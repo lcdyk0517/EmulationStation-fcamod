@@ -347,7 +347,7 @@ void SystemView::showQuickSearch()
 		};
 
 		//if (Settings::getInstance()->getBool("UseOSK"))
-			mWindow->pushGui(new GuiTextEditPopupKeyboard(mWindow, _("QUICK SEARCH"), "", updateVal, false));
+			mWindow->pushGui(new GuiTextEditPopupKeyboard(mWindow, _("Lcdyk搜索"), "", updateVal, false));
 		//else
 			//mWindow->pushGui(new GuiTextEditPopup(mWindow, _("QUICK SEARCH"), "", updateVal, false));
 	}

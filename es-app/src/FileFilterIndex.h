@@ -42,6 +42,9 @@ public:
 	void clearAllFilters();
 	void debugPrintIndexes();
 	bool showFile(FileData* game);
+	bool matchGameNameWithFilter(const std::wstring& name, const std::wstring& filter);
+	std::vector<std::wstring> convertToAllPinyinCombinations(const std::wstring& chineseName);
+	void loadPinyinData();
 	bool isFiltered() { return (!mTextFilter.empty() || filterByGenre || filterByPlayers || filterByPubDev || filterByRatings || filterByFavorites || filterByHidden || filterByKidGame); };
 	bool isKeyBeingFilteredBy(std::string key, FilterIndexType type);
 	std::vector<FilterDataDecl>& getFilterDataDecls();
