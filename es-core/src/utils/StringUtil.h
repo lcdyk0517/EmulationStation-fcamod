@@ -49,6 +49,7 @@ namespace Utils
 		bool            isKorean(const unsigned int uni);
 		bool            isKorean(const char* _string, bool checkFirstChar = true);
 		KoreanCharType  getKoreanCharType(const char* _string);
+		bool        	containsIgnoreCasePinyin(const std::string & _string, const std::string & _what);
 		bool            splitHangulSyllable(const char* input, const char** chosung, const char** joongsung = nullptr, const char** jongsung = nullptr);
 		void            koreanTextInput(const char* text, std::string& componentText, unsigned int& componentCursor);
 		// end Korean text input
