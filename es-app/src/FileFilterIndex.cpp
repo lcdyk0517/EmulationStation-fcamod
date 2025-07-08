@@ -319,7 +319,7 @@ bool FileFilterIndex::showFile(FileData* game)
 	if (!mTextFilter.empty() && Utils::String::toUpper(game->getName()).find(mTextFilter) != std::string::npos)
 		keepGoing = true;
 
-	if (Utils::String::containsIgnoreCasePinyin(name, mTextFilter)) 
+	if (Utils::String::containsIgnoreCasePinyin(game->getName(), mTextFilter)) 
 		keepGoing = true;
 
 	for (std::vector<FilterDataDecl>::const_iterator it = filterDataDecl.cbegin(); it != filterDataDecl.cend(); ++it ) {
