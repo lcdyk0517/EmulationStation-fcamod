@@ -2252,3 +2252,78 @@ msgstr "Core Vorgaben"
 
 msgid "Do not set"
 msgstr "Nicht setzen"
+
+msgid "ARKOS4CLONE SETTINGS"
+msgstr "ArkOS4Clone Einstellungen"
+
+msgid "WIFI SETTINGS"
+msgstr "WLAN-Einstellungen"
+
+msgid "CURRENT NETWORK"
+msgstr "Aktuelles Netzwerk"
+
+msgid "SCAN WIFI NETWORKS"
+msgstr "WLAN-Netzwerke scannen"
+
+msgid "ACTIVATE EXISTING CONNECTION"
+msgstr "Gespeicherte Verbindung aktivieren"
+
+msgid "DELETE EXISTING CONNECTIONS"
+msgstr "Gespeicherte Verbindungen löschen"
+
+msgid "NETWORK INFO"
+msgstr "Netzwerkinfo"
+
+msgid "SCANNING WIFI NETWORKS"
+msgstr "WLAN-Netzwerke werden gescannt"
+
+msgid "SELECT WIFI NETWORK"
+msgstr "WLAN-Netzwerk auswählen"
+
+msgid "NO SAVED CONNECTIONS"
+msgstr "Keine gespeicherten Verbindungen"
+
+msgid "SELECT CONNECTION"
+msgstr "Verbindung auswählen"
+
+msgid "CONNECTING..."
+msgstr "Verbinde..."
+
+msgid "CONNECTED TO"
+msgstr "Verbunden mit"
+
+msgid "CONNECTION FAILED"
+msgstr "Verbindung fehlgeschlagen"
+
+msgid "DELETE CONNECTION"
+msgstr "Verbindung löschen"
+
+msgid "DELETED"
+msgstr "Gelöscht"
+
+msgid "SSID"
+msgstr "SSID"
+
+msgid "IP"
+msgstr "IP-Adresse"
+
+msgid "GATEWAY"
+msgstr "Gateway"
+
+msgid "DNS"
+msgstr "DNS"
+
+msgid "PASSWORD FOR"
+msgstr "Passwort für"
+
+msgid "CONNECT"
+msgstr "Verbinden"
+
+msgid "CONNECTING TO"
+msgstr "Verbinde zu"
+
+msgid "INVALID PASSWORD"
+msgstr "Ungültiges Passwort"
+
+msgid "NETWORK NOT FOUND"
+msgstr "Netzwerk nicht gefunden"

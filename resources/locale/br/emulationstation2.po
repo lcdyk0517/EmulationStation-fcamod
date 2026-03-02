@@ -2153,3 +2153,78 @@ msgstr "Núcleo proporcionado"
 
 msgid "Do not set"
 msgstr "Não definir"
+
+msgid "ARKOS4CLONE SETTINGS"
+msgstr "Configurações ArkOS4Clone"
+
+msgid "WIFI SETTINGS"
+msgstr "Configurações Wi-Fi"
+
+msgid "CURRENT NETWORK"
+msgstr "Rede atual"
+
+msgid "SCAN WIFI NETWORKS"
+msgstr "Escanear redes Wi-Fi"
+
+msgid "ACTIVATE EXISTING CONNECTION"
+msgstr "Ativar conexão salva"
+
+msgid "DELETE EXISTING CONNECTIONS"
+msgstr "Excluir conexões salvas"
+
+msgid "NETWORK INFO"
+msgstr "Informações de rede"
+
+msgid "SCANNING WIFI NETWORKS"
+msgstr "Escaneando redes Wi-Fi"
+
+msgid "SELECT WIFI NETWORK"
+msgstr "Selecionar rede Wi-Fi"
+
+msgid "NO SAVED CONNECTIONS"
+msgstr "Sem conexões salvas"
+
+msgid "SELECT CONNECTION"
+msgstr "Selecionar conexão"
+
+msgid "CONNECTING..."
+msgstr "Conectando..."
+
+msgid "CONNECTED TO"
+msgstr "Conectado a"
+
+msgid "CONNECTION FAILED"
+msgstr "Falha na conexão"
+
+msgid "DELETE CONNECTION"
+msgstr "Excluir conexão"
+
+msgid "DELETED"
+msgstr "Excluído"
+
+msgid "SSID"
+msgstr "SSID"
+
+msgid "IP"
+msgstr "Endereço IP"
+
+msgid "GATEWAY"
+msgstr "Gateway"
+
+msgid "DNS"
+msgstr "DNS"
+
+msgid "PASSWORD FOR"
+msgstr "Senha para"
+
+msgid "CONNECT"
+msgstr "Conectar"
+
+msgid "CONNECTING TO"
+msgstr "Conectando a"
+
+msgid "INVALID PASSWORD"
+msgstr "Senha incorreta"
+
+msgid "NETWORK NOT FOUND"
+msgstr "Rede não encontrada"

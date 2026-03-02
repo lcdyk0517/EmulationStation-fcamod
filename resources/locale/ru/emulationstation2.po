@@ -3487,6 +3487,81 @@ msgstr "ТЕМА ВЕРХНЯЯ И НИЖНЯЯ ПАНЕЛЬ"
 msgid "THEME FORCE UPPERCASE"
 msgstr "ТЕМА ВЕРХНИЙ РЕГИСТР НАПИСАНИЯ"
 
+msgid "ARKOS4CLONE SETTINGS"
+msgstr "Настройки ArkOS4Clone"
+
+msgid "WIFI SETTINGS"
+msgstr "Настройки Wi-Fi"
+
+msgid "CURRENT NETWORK"
+msgstr "Текущая сеть"
+
+msgid "SCAN WIFI NETWORKS"
+msgstr "Сканировать сети Wi-Fi"
+
+msgid "ACTIVATE EXISTING CONNECTION"
+msgstr "Активировать сохранённое подключение"
+
+msgid "DELETE EXISTING CONNECTIONS"
+msgstr "Удалить сохранённые подключения"
+
+msgid "NETWORK INFO"
+msgstr "Информация о сети"
+
+msgid "SCANNING WIFI NETWORKS"
+msgstr "Сканирование сетей Wi-Fi"
+
+msgid "SELECT WIFI NETWORK"
+msgstr "Выбрать сеть Wi-Fi"
+
+msgid "NO SAVED CONNECTIONS"
+msgstr "Нет сохранённых подключений"
+
+msgid "SELECT CONNECTION"
+msgstr "Выбрать подключение"
+
+msgid "CONNECTING..."
+msgstr "Подключение..."
+
+msgid "CONNECTED TO"
+msgstr "Подключено к"
+
+msgid "CONNECTION FAILED"
+msgstr "Ошибка подключения"
+
+msgid "DELETE CONNECTION"
+msgstr "Удалить подключение"
+
+msgid "DELETED"
+msgstr "Удалено"
+
+msgid "SSID"
+msgstr "SSID"
+
+msgid "IP"
+msgstr "IP-адрес"
+
+msgid "GATEWAY"
+msgstr "Шлюз"
+
+msgid "DNS"
+msgstr "DNS"
+
+msgid "PASSWORD FOR"
+msgstr "Пароль для"
+
+msgid "CONNECT"
+msgstr "Подключить"
+
+msgid "CONNECTING TO"
+msgstr "Подключение к"
+
+msgid "INVALID PASSWORD"
+msgstr "Неверный пароль"
+
+msgid "NETWORK NOT FOUND"
+msgstr "Сеть не найдена"
+
 
 
 

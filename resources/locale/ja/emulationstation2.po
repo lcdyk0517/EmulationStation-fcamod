@@ -1315,3 +1315,78 @@ msgstr "編集"
 #:
 msgid "CHANGE"
 msgstr "変更"
+
+msgid "ARKOS4CLONE SETTINGS"
+msgstr "ArkOS4Clone 設定"
+
+msgid "WIFI SETTINGS"
+msgstr "Wi-Fi 設定"
+
+msgid "CURRENT NETWORK"
+msgstr "現在のネットワーク"
+
+msgid "SCAN WIFI NETWORKS"
+msgstr "Wi-Fi ネットワークをスキャン"
+
+msgid "ACTIVATE EXISTING CONNECTION"
+msgstr "保存済み接続を有効化"
+
+msgid "DELETE EXISTING CONNECTIONS"
+msgstr "保存済み接続を削除"
+
+msgid "NETWORK INFO"
+msgstr "ネットワーク情報"
+
+msgid "SCANNING WIFI NETWORKS"
+msgstr "Wi-Fi ネットワークをスキャン中"
+
+msgid "SELECT WIFI NETWORK"
+msgstr "Wi-Fi ネットワークを選択"
+
+msgid "NO SAVED CONNECTIONS"
+msgstr "保存済み接続なし"
+
+msgid "SELECT CONNECTION"
+msgstr "接続を選択"
+
+msgid "CONNECTING..."
+msgstr "接続中..."
+
+msgid "CONNECTED TO"
+msgstr "接続先"
+
+msgid "CONNECTION FAILED"
+msgstr "接続失敗"
+
+msgid "DELETE CONNECTION"
+msgstr "接続を削除"
+
+msgid "DELETED"
+msgstr "削除済み"
+
+msgid "SSID"
+msgstr "SSID"
+
+msgid "IP"
+msgstr "IPアドレス"
+
+msgid "GATEWAY"
+msgstr "ゲートウェイ"
+
+msgid "DNS"
+msgstr "DNS"
+
+msgid "PASSWORD FOR"
+msgstr "パスワード"
+
+msgid "CONNECT"
+msgstr "接続"
+
+msgid "CONNECTING TO"
+msgstr "接続中"
+
+msgid "INVALID PASSWORD"
+msgstr "パスワードが正しくありません"
+
+msgid "NETWORK NOT FOUND"
+msgstr "ネットワークが見つかりません"

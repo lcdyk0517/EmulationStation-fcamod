@@ -1010,6 +1010,81 @@ msgstr "REDIGERA"
 msgid "CHANGE"
 msgstr "ÄNDRA"
 
+msgid "ARKOS4CLONE SETTINGS"
+msgstr "ArkOS4Clone Inställningar"
+
+msgid "WIFI SETTINGS"
+msgstr "Wi-Fi Inställningar"
+
+msgid "CURRENT NETWORK"
+msgstr "Aktuellt nätverk"
+
+msgid "SCAN WIFI NETWORKS"
+msgstr "Sök efter Wi-Fi nätverk"
+
+msgid "ACTIVATE EXISTING CONNECTION"
+msgstr "Aktivera sparad anslutning"
+
+msgid "DELETE EXISTING CONNECTIONS"
+msgstr "Ta bort sparade anslutningar"
+
+msgid "NETWORK INFO"
+msgstr "Nätverksinformation"
+
+msgid "SCANNING WIFI NETWORKS"
+msgstr "Söker efter Wi-Fi nätverk"
+
+msgid "SELECT WIFI NETWORK"
+msgstr "Välj Wi-Fi nätverk"
+
+msgid "NO SAVED CONNECTIONS"
+msgstr "Inga sparade anslutningar"
+
+msgid "SELECT CONNECTION"
+msgstr "Välj anslutning"
+
+msgid "CONNECTING..."
+msgstr "Ansluter..."
+
+msgid "CONNECTED TO"
+msgstr "Ansluten till"
+
+msgid "CONNECTION FAILED"
+msgstr "Anslutning misslyckades"
+
+msgid "DELETE CONNECTION"
+msgstr "Ta bort anslutning"
+
+msgid "DELETED"
+msgstr "Borttagen"
+
+msgid "SSID"
+msgstr "SSID"
+
+msgid "IP"
+msgstr "IP-adress"
+
+msgid "GATEWAY"
+msgstr "Gateway"
+
+msgid "DNS"
+msgstr "DNS"
+
+msgid "PASSWORD FOR"
+msgstr "Lösenord för"
+
+msgid "CONNECT"
+msgstr "Anslut"
+
+msgid "CONNECTING TO"
+msgstr "Ansluter till"
+
+msgid "INVALID PASSWORD"
+msgstr "Ogiltigt lösenord"
+
+msgid "NETWORK NOT FOUND"
+msgstr "Nätverk hittades inte"
+
 #~ msgid "Network error (status:"
 #~ msgstr "Network error (status:"
 

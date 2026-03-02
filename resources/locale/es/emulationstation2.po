@@ -2420,3 +2420,78 @@ msgstr "No establecer"
 #:
 msgid "QUICK SEARCH"
 msgstr "BÚSQUEDA RÁPIDA"
+
+msgid "ARKOS4CLONE SETTINGS"
+msgstr "Configuración de ArkOS4Clone"
+
+msgid "WIFI SETTINGS"
+msgstr "Configuración Wi-Fi"
+
+msgid "CURRENT NETWORK"
+msgstr "Red actual"
+
+msgid "SCAN WIFI NETWORKS"
+msgstr "Escanear redes Wi-Fi"
+
+msgid "ACTIVATE EXISTING CONNECTION"
+msgstr "Activar conexión guardada"
+
+msgid "DELETE EXISTING CONNECTIONS"
+msgstr "Eliminar conexiones guardadas"
+
+msgid "NETWORK INFO"
+msgstr "Información de red"
+
+msgid "SCANNING WIFI NETWORKS"
+msgstr "Escaneando redes Wi-Fi"
+
+msgid "SELECT WIFI NETWORK"
+msgstr "Seleccionar red Wi-Fi"
+
+msgid "NO SAVED CONNECTIONS"
+msgstr "Sin conexiones guardadas"
+
+msgid "SELECT CONNECTION"
+msgstr "Seleccionar conexión"
+
+msgid "CONNECTING..."
+msgstr "Conectando..."
+
+msgid "CONNECTED TO"
+msgstr "Conectado a"
+
+msgid "CONNECTION FAILED"
+msgstr "Conexión fallida"
+
+msgid "DELETE CONNECTION"
+msgstr "Eliminar conexión"
+
+msgid "DELETED"
+msgstr "Eliminado"
+
+msgid "SSID"
+msgstr "SSID"
+
+msgid "IP"
+msgstr "Dirección IP"
+
+msgid "GATEWAY"
+msgstr "Puerta de enlace"
+
+msgid "DNS"
+msgstr "DNS"
+
+msgid "PASSWORD FOR"
+msgstr "Contraseña para"
+
+msgid "CONNECT"
+msgstr "Conectar"
+
+msgid "CONNECTING TO"
+msgstr "Conectando a"
+
+msgid "INVALID PASSWORD"
+msgstr "Contraseña incorrecta"
+
+msgid "NETWORK NOT FOUND"
+msgstr "Red no encontrada"

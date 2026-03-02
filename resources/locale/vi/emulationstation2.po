@@ -1548,3 +1548,78 @@ msgstr "Không thiết lập"
 
 msgid "QUICK SEARCH"
 msgstr "TÌM NHANH"
+
+msgid "ARKOS4CLONE SETTINGS"
+msgstr "Cài đặt ArkOS4Clone"
+
+msgid "WIFI SETTINGS"
+msgstr "Cài đặt Wi-Fi"
+
+msgid "CURRENT NETWORK"
+msgstr "Mạng hiện tại"
+
+msgid "SCAN WIFI NETWORKS"
+msgstr "Quét mạng Wi-Fi"
+
+msgid "ACTIVATE EXISTING CONNECTION"
+msgstr "Kích hoạt kết nối đã lưu"
+
+msgid "DELETE EXISTING CONNECTIONS"
+msgstr "Xóa kết nối đã lưu"
+
+msgid "NETWORK INFO"
+msgstr "Thông tin mạng"
+
+msgid "SCANNING WIFI NETWORKS"
+msgstr "Đang quét mạng Wi-Fi"
+
+msgid "SELECT WIFI NETWORK"
+msgstr "Chọn mạng Wi-Fi"
+
+msgid "NO SAVED CONNECTIONS"
+msgstr "Không có kết nối đã lưu"
+
+msgid "SELECT CONNECTION"
+msgstr "Chọn kết nối"
+
+msgid "CONNECTING..."
+msgstr "Đang kết nối..."
+
+msgid "CONNECTED TO"
+msgstr "Đã kết nối với"
+
+msgid "CONNECTION FAILED"
+msgstr "Kết nối thất bại"
+
+msgid "DELETE CONNECTION"
+msgstr "Xóa kết nối"
+
+msgid "DELETED"
+msgstr "Đã xóa"
+
+msgid "SSID"
+msgstr "SSID"
+
+msgid "IP"
+msgstr "Địa chỉ IP"
+
+msgid "GATEWAY"
+msgstr "Cổng"
+
+msgid "DNS"
+msgstr "DNS"
+
+msgid "PASSWORD FOR"
+msgstr "Mật khẩu cho"
+
+msgid "CONNECT"
+msgstr "Kết nối"
+
+msgid "CONNECTING TO"
+msgstr "Đang kết nối với"
+
+msgid "INVALID PASSWORD"
+msgstr "Mật khẩu không đúng"
+
+msgid "NETWORK NOT FOUND"
+msgstr "Không tìm thấy mạng"

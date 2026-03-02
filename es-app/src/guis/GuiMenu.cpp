@@ -1,6 +1,7 @@
 #include <string>
 #include "guis/GuiMenu.h"
 #include "guis/GuiTools.h"
+#include "guis/GuiArkOS4CloneSettings.h"
 #include "components/OptionListComponent.h"
 #include "components/SliderComponent.h"
 #include "components/SwitchComponent.h"
@@ -46,6 +47,10 @@ GuiMenu::GuiMenu(Window* window, bool animate) : GuiComponent(window), mMenu(win
 	
 	if (isFullUI)
 	{
+		addEntry(_("ARKOS4CLONE SETTINGS"), true, [this] {
+			mWindow->pushGui(new GuiArkOS4CloneSettings(mWindow));
+		}, "iconSettings");
+		
 		addEntry(_("UI SETTINGS"), true, [this] { openUISettings(); }, "iconUI");
 		// addEntry(_("CONFIGURE INPUT"), true, [this] { openConfigInput(); }, "iconControllers");
 	}

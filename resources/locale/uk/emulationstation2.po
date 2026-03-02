@@ -3597,3 +3597,78 @@ msgstr "ТЕМА ВЕРХНЯ І НИЖНЯ ПАНЕЛЬ"
 
 msgid "THEME FORCE UPPERCASE"
 msgstr "ТЕМА ВЕРХНІЙ РЕЄСТР НАПИСАННЯ"
+
+msgid "ARKOS4CLONE SETTINGS"
+msgstr "Налаштування ArkOS4Clone"
+
+msgid "WIFI SETTINGS"
+msgstr "Налаштування Wi-Fi"
+
+msgid "CURRENT NETWORK"
+msgstr "Поточна мережа"
+
+msgid "SCAN WIFI NETWORKS"
+msgstr "Сканувати мережі Wi-Fi"
+
+msgid "ACTIVATE EXISTING CONNECTION"
+msgstr "Активувати збережене підключення"
+
+msgid "DELETE EXISTING CONNECTIONS"
+msgstr "Видалити збережені підключення"
+
+msgid "NETWORK INFO"
+msgstr "Інформація про мережу"
+
+msgid "SCANNING WIFI NETWORKS"
+msgstr "Сканування мереж Wi-Fi"
+
+msgid "SELECT WIFI NETWORK"
+msgstr "Вибрати мережу Wi-Fi"
+
+msgid "NO SAVED CONNECTIONS"
+msgstr "Немає збережених підключень"
+
+msgid "SELECT CONNECTION"
+msgstr "Вибрати підключення"
+
+msgid "CONNECTING..."
+msgstr "Підключення..."
+
+msgid "CONNECTED TO"
+msgstr "Підключено до"
+
+msgid "CONNECTION FAILED"
+msgstr "Помилка підключення"
+
+msgid "DELETE CONNECTION"
+msgstr "Видалити підключення"
+
+msgid "DELETED"
+msgstr "Видалено"
+
+msgid "SSID"
+msgstr "SSID"
+
+msgid "IP"
+msgstr "IP-адреса"
+
+msgid "GATEWAY"
+msgstr "Шлюз"
+
+msgid "DNS"
+msgstr "DNS"
+
+msgid "PASSWORD FOR"
+msgstr "Пароль для"
+
+msgid "CONNECT"
+msgstr "Підключити"
+
+msgid "CONNECTING TO"
+msgstr "Підключення до"
+
+msgid "INVALID PASSWORD"
+msgstr "Невірний пароль"
+
+msgid "NETWORK NOT FOUND"
+msgstr "Мережу не знайдено"

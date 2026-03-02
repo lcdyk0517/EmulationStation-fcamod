@@ -1952,3 +1952,78 @@ msgstr "Μην ρυθμίσετε"
 #:
 msgid "QUICK SEARCH"
 msgstr "ΓΡΗΓΟΡΗ ΑΝΑΖΗΤΗΣΗ"
+
+msgid "ARKOS4CLONE SETTINGS"
+msgstr "Ρυθμίσεις ArkOS4Clone"
+
+msgid "WIFI SETTINGS"
+msgstr "Ρυθμίσεις Wi-Fi"
+
+msgid "CURRENT NETWORK"
+msgstr "Τρέχον δίκτυο"
+
+msgid "SCAN WIFI NETWORKS"
+msgstr "Σάρωση δικτύων Wi-Fi"
+
+msgid "ACTIVATE EXISTING CONNECTION"
+msgstr "Ενεργοποίηση αποθηκευμένης σύνδεσης"
+
+msgid "DELETE EXISTING CONNECTIONS"
+msgstr "Διαγραφή αποθηκευμένων συνδέσεων"
+
+msgid "NETWORK INFO"
+msgstr "Πληροφορίες δικτύου"
+
+msgid "SCANNING WIFI NETWORKS"
+msgstr "Σάρωση δικτύων Wi-Fi"
+
+msgid "SELECT WIFI NETWORK"
+msgstr "Επιλογή δικτύου Wi-Fi"
+
+msgid "NO SAVED CONNECTIONS"
+msgstr "Δεν υπάρχουν αποθηκευμένες συνδέσεις"
+
+msgid "SELECT CONNECTION"
+msgstr "Επιλογή σύνδεσης"
+
+msgid "CONNECTING..."
+msgstr "Σύνδεση..."
+
+msgid "CONNECTED TO"
+msgstr "Συνδέθηκε με"
+
+msgid "CONNECTION FAILED"
+msgstr "Η σύνδεση απέτυχε"
+
+msgid "DELETE CONNECTION"
+msgstr "Διαγραφή σύνδεσης"
+
+msgid "DELETED"
+msgstr "Διαγράφηκε"
+
+msgid "SSID"
+msgstr "SSID"
+
+msgid "IP"
+msgstr "Διεύθυνση IP"
+
+msgid "GATEWAY"
+msgstr "Πύλη"
+
+msgid "DNS"
+msgstr "DNS"
+
+msgid "PASSWORD FOR"
+msgstr "Κωδικός για"
+
+msgid "CONNECT"
+msgstr "Σύνδεση"
+
+msgid "CONNECTING TO"
+msgstr "Σύνδεση με"
+
+msgid "INVALID PASSWORD"
+msgstr "Λάθος κωδικός"
+
+msgid "NETWORK NOT FOUND"
+msgstr "Το δίκτυο δεν βρέθηκε"

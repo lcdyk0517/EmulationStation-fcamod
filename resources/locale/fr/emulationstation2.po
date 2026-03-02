@@ -1438,3 +1438,78 @@ msgstr "erreur"
 #: don't work
 msgid "Please restart Emulationstation for your changes to take effect"
 msgstr "veuillez redémarrer EmulationStation pour que vos modifications prennent effet"
+
+msgid "ARKOS4CLONE SETTINGS"
+msgstr "Paramètres ArkOS4Clone"
+
+msgid "WIFI SETTINGS"
+msgstr "Paramètres Wi-Fi"
+
+msgid "CURRENT NETWORK"
+msgstr "Réseau actuel"
+
+msgid "SCAN WIFI NETWORKS"
+msgstr "Rechercher les réseaux Wi-Fi"
+
+msgid "ACTIVATE EXISTING CONNECTION"
+msgstr "Activer une connexion enregistrée"
+
+msgid "DELETE EXISTING CONNECTIONS"
+msgstr "Supprimer les connexions enregistrées"
+
+msgid "NETWORK INFO"
+msgstr "Informations réseau"
+
+msgid "SCANNING WIFI NETWORKS"
+msgstr "Recherche des réseaux Wi-Fi"
+
+msgid "SELECT WIFI NETWORK"
+msgstr "Sélectionner un réseau Wi-Fi"
+
+msgid "NO SAVED CONNECTIONS"
+msgstr "Aucune connexion enregistrée"
+
+msgid "SELECT CONNECTION"
+msgstr "Sélectionner une connexion"
+
+msgid "CONNECTING..."
+msgstr "Connexion..."
+
+msgid "CONNECTED TO"
+msgstr "Connecté à"
+
+msgid "CONNECTION FAILED"
+msgstr "Échec de la connexion"
+
+msgid "DELETE CONNECTION"
+msgstr "Supprimer la connexion"
+
+msgid "DELETED"
+msgstr "Supprimé"
+
+msgid "SSID"
+msgstr "SSID"
+
+msgid "IP"
+msgstr "Adresse IP"
+
+msgid "GATEWAY"
+msgstr "Passerelle"
+
+msgid "DNS"
+msgstr "DNS"
+
+msgid "PASSWORD FOR"
+msgstr "Mot de passe pour"
+
+msgid "CONNECT"
+msgstr "Connecter"
+
+msgid "CONNECTING TO"
+msgstr "Connexion à"
+
+msgid "INVALID PASSWORD"
+msgstr "Mot de passe incorrect"
+
+msgid "NETWORK NOT FOUND"
+msgstr "Réseau introuvable"

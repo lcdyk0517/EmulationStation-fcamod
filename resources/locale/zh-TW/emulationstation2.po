@@ -3472,3 +3472,78 @@ msgstr "主題頂部與底部列"
 
 msgid "THEME FORCE UPPERCASE"
 msgstr "主題強制大寫"
+
+msgid "ARKOS4CLONE SETTINGS"
+msgstr "ArkOS4Clone 設定"
+
+msgid "WIFI SETTINGS"
+msgstr "Wi-Fi 設定"
+
+msgid "CURRENT NETWORK"
+msgstr "目前網路"
+
+msgid "SCAN WIFI NETWORKS"
+msgstr "掃描 Wi-Fi 網路"
+
+msgid "ACTIVATE EXISTING CONNECTION"
+msgstr "啟動已儲存連線"
+
+msgid "DELETE EXISTING CONNECTIONS"
+msgstr "刪除已儲存連線"
+
+msgid "NETWORK INFO"
+msgstr "網路資訊"
+
+msgid "SCANNING WIFI NETWORKS"
+msgstr "正在掃描 Wi-Fi 網路"
+
+msgid "SELECT WIFI NETWORK"
+msgstr "選擇 Wi-Fi 網路"
+
+msgid "NO SAVED CONNECTIONS"
+msgstr "沒有已儲存的連線"
+
+msgid "SELECT CONNECTION"
+msgstr "選擇連線"
+
+msgid "CONNECTING..."
+msgstr "正在連線..."
+
+msgid "CONNECTED TO"
+msgstr "已連線到"
+
+msgid "CONNECTION FAILED"
+msgstr "連線失敗"
+
+msgid "DELETE CONNECTION"
+msgstr "刪除連線"
+
+msgid "DELETED"
+msgstr "已刪除"
+
+msgid "SSID"
+msgstr "SSID"
+
+msgid "IP"
+msgstr "IP 位址"
+
+msgid "GATEWAY"
+msgstr "閘道"
+
+msgid "DNS"
+msgstr "DNS"
+
+msgid "PASSWORD FOR"
+msgstr "密碼用於"
+
+msgid "CONNECT"
+msgstr "連線"
+
+msgid "CONNECTING TO"
+msgstr "正在連線到"
+
+msgid "INVALID PASSWORD"
+msgstr "密碼錯誤"
+
+msgid "NETWORK NOT FOUND"
+msgstr "找不到網路"

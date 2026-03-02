@@ -102,6 +102,7 @@ set(ES_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiThemeInstall.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiCollectionSystemsOptions.cpp    
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiTools.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiArkOS4CloneSettings.cpp
 
     # Scrapers
     ${CMAKE_CURRENT_SOURCE_DIR}/src/scrapers/Scraper.cpp
