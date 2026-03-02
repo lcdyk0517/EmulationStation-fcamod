@@ -1,4 +1,6 @@
 #include <string>
+#include <vector>
+#include <algorithm>
 #include "AudioManager.h"
 #include "VolumeControl.h"
 #include "guis/GuiTools.h"
@@ -7,9 +9,6 @@
 #include "utils/FileSystemUtil.h"
 #include "utils/StringUtil.h"
 #include "platform.h"
-
-#include <fstream>
-#include <algorithm>
 
 // ------------------- SubMenuWrapper -------------------
 class SubMenuWrapper : public GuiComponent
@@ -42,13 +41,14 @@ private:
 
 // ------------------- GuiTools -------------------
 GuiTools::GuiTools(Window* window)
-    : GuiComponent(window), mMenu(window, _("OPTIONS"))
+    : GuiComponent(window)
+    , mMenu(window, _("OPTIONS"))
+    , mResolver(new NameResolver("/opt/system"))
 {
     addChild(&mMenu);
 
     addScriptsToMenu(mMenu, "/opt/system");
 
-    // Root BACK button
     mMenu.addButton(_("BACK"), "back", [this] { delete this; });
 
     Vector2f screenSize((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
@@ -68,95 +68,58 @@ GuiTools::~GuiTools()
 {
 }
 
-// ------------------- addScriptsToMenu -------------------
 bool GuiTools::addScriptsToMenu(MenuComponent& menu, const std::string& folderPath)
 {
     auto items = Utils::FileSystem::getDirContent(folderPath);
-    std::vector<std::pair<std::string, SubMenuWrapper*> > folderWrappers;
+    std::vector<std::pair<std::string, SubMenuWrapper*> > folders;
     std::vector<std::pair<std::string, std::string> > scripts;
 
     for (auto& item : items)
     {
-        std::string name = Utils::FileSystem::getFileName(item);
-        std::string fullPath = item;
+        std::string fileName = Utils::FileSystem::getFileName(item);
 
-        if (Utils::FileSystem::isDirectory(fullPath))
+        if (Utils::FileSystem::isDirectory(item))
         {
-            std::string folderDisplayName = _U("\uF07B ") + name;
-            MenuComponent* subMenu = new MenuComponent(mWindow, name);
-            bool hasItems = addScriptsToMenu(*subMenu, fullPath);
+            MenuComponent* subMenu = new MenuComponent(mWindow, fileName);
+            bool hasItems = addScriptsToMenu(*subMenu, item);
 
             if (hasItems)
             {
                 SubMenuWrapper* wrapper = new SubMenuWrapper(mWindow, subMenu);
 
-			    Vector2f screenSize((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
-			    Vector2f menuSize = subMenu->getSize();
+                Vector2f screenSize((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
+                Vector2f menuSize = subMenu->getSize();
 
-			    if (screenSize.x() >= 1024 && screenSize.y() >= 600)
-			    {
-			        Vector3f pos;
-			        pos[0] = (screenSize.x() - menuSize.x()) / 2.0f;
-			        pos[1] = (screenSize.y() - menuSize.y()) / 2.0f;
-			        pos[2] = 0;
-			        subMenu->setPosition(pos);
-    			}
+                if (screenSize.x() >= 1024 && screenSize.y() >= 600)
+                {
+                    Vector3f pos;
+                    pos[0] = (screenSize.x() - menuSize.x()) / 2.0f;
+                    pos[1] = (screenSize.y() - menuSize.y()) / 2.0f;
+                    pos[2] = 0;
+                    subMenu->setPosition(pos);
+                }
 
-                // On-screen BACK button closes submenu
                 subMenu->addButton(_("BACK"), "back", [wrapper] {
                     wrapper->close();
                 });
 
-                folderWrappers.push_back(std::make_pair(folderDisplayName, wrapper));
+                std::string displayName = _U("\uF07B ") + mResolver->resolve(item);
+                folders.push_back(std::make_pair(displayName, wrapper));
             }
             else
             {
                 delete subMenu;
             }
         }
-        else if (Utils::String::toLower(Utils::FileSystem::getExtension(name)) == ".sh")
+        else if (Utils::String::toLower(Utils::FileSystem::getExtension(fileName)) == ".sh")
         {
-            std::string displayName = Utils::FileSystem::getStem(name);
-
-            // .name sidecar
-            std::string nameFile = fullPath + ".name";
-            if (Utils::FileSystem::exists(nameFile))
-            {
-                std::ifstream f(nameFile.c_str());
-                if (f)
-                    std::getline(f, displayName);
-            }
-            else
-            {
-                // First 10 lines: look for "# NAME:"
-                std::ifstream f(fullPath.c_str());
-                if (f)
-                {
-                    std::string line;
-                    const std::string marker = "# NAME:";
-                    int linesChecked = 0;
-                    while (linesChecked < 10 && std::getline(f, line))
-                    {
-                        linesChecked++;
-                        if (line.find(marker) == 0)
-                        {
-                            std::string candidate = Utils::String::trim(line.substr(marker.size()));
-                            if (!candidate.empty())
-                            {
-                                displayName = candidate;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            std::string scriptDisplayName = _U("\uF013 ") + displayName;
-            scripts.push_back(std::make_pair(scriptDisplayName, fullPath));
+            std::string displayName = _U("\uF013 ") + mResolver->resolve(item);
+            scripts.push_back(std::make_pair(displayName, item));
         }
     }
 
     // Sort case-insensitive
-    std::sort(folderWrappers.begin(), folderWrappers.end(),
+    std::sort(folders.begin(), folders.end(),
         [](const std::pair<std::string, SubMenuWrapper*>& a,
            const std::pair<std::string, SubMenuWrapper*>& b) {
             return Utils::String::toLower(a.first) < Utils::String::toLower(b.first);
@@ -168,37 +131,33 @@ bool GuiTools::addScriptsToMenu(MenuComponent& menu, const std::string& folderPa
             return Utils::String::toLower(a.first) < Utils::String::toLower(b.first);
         });
 
-    // Add folder entries
-    for (size_t i = 0; i < folderWrappers.size(); ++i)
+    // Add folder entries - capture only the pointer, not the whole vector
+    for (size_t i = 0; i < folders.size(); ++i)
     {
-        const std::string folderName = folderWrappers[i].first;
-        SubMenuWrapper* wrapper = folderWrappers[i].second;
-
-        menu.addEntry(folderName, true, [this, wrapper] {
-            mWindow->pushGui(wrapper);
+        SubMenuWrapper* wrapperPtr = folders[i].second;
+        std::string entryName = folders[i].first;
+        menu.addEntry(entryName, true, [this, wrapperPtr] {
+            mWindow->pushGui(wrapperPtr);
         }, "");
     }
 
-    // Add script entries
+    // Add script entries - capture only the script path, not the whole vector
     for (size_t i = 0; i < scripts.size(); ++i)
     {
-        const std::string displayName = scripts[i].first;
-        const std::string path = scripts[i].second;
-
-        menu.addEntry(displayName, false, [this, path] {
-            launchTool(path);
+        std::string scriptPath = scripts[i].second;
+        std::string entryName = scripts[i].first;
+        menu.addEntry(entryName, false, [this, scriptPath] {
+            launchTool(scriptPath);
         }, "");
     }
 
-    return (!folderWrappers.empty() || !scripts.empty());
+    return (!folders.empty() || !scripts.empty());
 }
 
-// ------------------- launchTool -------------------
 void GuiTools::launchTool(const std::string& script)
 {
     AudioManager::getInstance()->deinit();
     VolumeControl::getInstance()->deinit();
-    // Hide ES temporarily
     mWindow->deinit(true);
 
     system("sudo chmod 666 /dev/tty1");
@@ -206,16 +165,13 @@ void GuiTools::launchTool(const std::string& script)
     int ret = system(cmd.c_str());
     (void)ret;
 
-    // Clear framebuffer in case script left garbage
     system("setterm -clear all > /dev/tty1");
 
-    // Restore ES
     mWindow->init(true);
     VolumeControl::getInstance()->init();
     AudioManager::getInstance()->init();
 }
 
-// ------------------- input -------------------
 bool GuiTools::input(InputConfig* config, Input input)
 {
     if (input.value != 0 && config->isMappedTo(BUTTON_BACK, input))
@@ -235,7 +191,6 @@ bool GuiTools::input(InputConfig* config, Input input)
     return GuiComponent::input(config, input);
 }
 
-// ------------------- render -------------------
 void GuiTools::render(const Transform4x4f& parentTrans)
 {
     GuiComponent::render(parentTrans);
