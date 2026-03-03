@@ -51,17 +51,13 @@ GuiTools::GuiTools(Window* window)
 
     mMenu.addButton(_("BACK"), "back", [this] { delete this; });
 
-    Vector2f screenSize((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
-    Vector2f menuSize = mMenu.getSize();
+    setSize((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
 
-    if (screenSize.x() >= 1024 && screenSize.y() >= 600)
-    {
-        Vector3f pos;
-        pos[0] = (screenSize.x() - menuSize.x()) / 2.0f;
-        pos[1] = (screenSize.y() - menuSize.y()) / 2.0f;
-        pos[2] = 0;
-        mMenu.setPosition(pos);
-    }
+    // Position menu like other settings menus
+    if (Renderer::isSmallScreen())
+        mMenu.setPosition((Renderer::getScreenWidth() - mMenu.getSize().x()) / 2, (Renderer::getScreenHeight() - mMenu.getSize().y()) / 2);
+    else
+        mMenu.setPosition((mSize.x() - mMenu.getSize().x()) / 2, Renderer::getScreenHeight() * 0.15f);
 }
 
 GuiTools::~GuiTools()
