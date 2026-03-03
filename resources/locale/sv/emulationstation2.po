@@ -1085,6 +1085,99 @@ msgstr "Ogiltigt lösenord"
 msgid "NETWORK NOT FOUND"
 msgstr "Nätverk hittades inte"
 
+msgid "JOYSTICK LED"
+msgstr "JOYSTICK LED"
+
+msgid "UNSUPPORTED DEVICE"
+msgstr "ENHET STÖDS EJ"
+
+msgid "Joystick LED is not supported on this device."
+msgstr "Joystick LED stöds inte på denna enhet."
+
+msgid "LED MODE"
+msgstr "LED-LÄGE"
+
+msgid "TURN OFF LED"
+msgstr "STÄNG AV LED"
+
+msgid "SOLID RED"
+msgstr "FAST RÖD"
+
+msgid "SOLID GREEN"
+msgstr "FAST GRÖN"
+
+msgid "SOLID BLUE"
+msgstr "FAST BLÅ"
+
+msgid "SOLID ORANGE"
+msgstr "FAST ORANGE"
+
+msgid "SOLID PURPLE"
+msgstr "FAST LILA"
+
+msgid "SOLID CYAN"
+msgstr "FAST CYAN"
+
+msgid "SOLID WHITE"
+msgstr "FAST VIT"
+
+msgid "SOLID YELLOW"
+msgstr "FAST GUL"
+
+msgid "SOLID MAGENTA"
+msgstr "FAST MAGENTA"
+
+msgid "BREATHING RED"
+msgstr "ANDES RÖD"
+
+msgid "BREATHING GREEN"
+msgstr "ANDES GRÖN"
+
+msgid "BREATHING BLUE"
+msgstr "ANDES BLÅ"
+
+msgid "BREATHING ORANGE"
+msgstr "ANDES ORANGE"
+
+msgid "BREATHING PURPLE"
+msgstr "ANDES LILA"
+
+msgid "BREATHING CYAN"
+msgstr "ANDES CYAN"
+
+msgid "BREATHING WHITE"
+msgstr "ANDES VIT"
+
+msgid "BREATHING"
+msgstr "ANDES"
+
+msgid "BREATHING RGB"
+msgstr "ANDES RGB"
+
+msgid "BREATHING YELLOW"
+msgstr "ANDES GUL"
+
+msgid "BREATHING MAGENTA"
+msgstr "ANDES MAGENTA"
+
+msgid "FLOW EFFECT"
+msgstr "FLÖDESEFFEKT"
+
+msgid "SCROLLING EFFECT"
+msgstr "RULLNINGSEFFEKT"
+
+msgid "BRIGHTNESS"
+msgstr "Ljusstyrka"
+
+msgid "HIGH"
+msgstr "Hög"
+
+msgid "MEDIUM"
+msgstr "Medel"
+
+msgid "LOW"
+msgstr "Låg"
+
 #~ msgid "Network error (status:"
 #~ msgstr "Network error (status:"
 

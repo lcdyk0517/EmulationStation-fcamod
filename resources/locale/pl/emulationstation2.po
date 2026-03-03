@@ -2760,3 +2760,96 @@ msgstr "Nieprawidłowe hasło"
 msgid "NETWORK NOT FOUND"
 msgstr "Nie znaleziono sieci"
 
+msgid "JOYSTICK LED"
+msgstr "LED JOYSTICKA"
+
+msgid "UNSUPPORTED DEVICE"
+msgstr "NIEOBSŁUGIWANE URZĄDZENIE"
+
+msgid "Joystick LED is not supported on this device."
+msgstr "LED joysticka nie jest obsługiwany na tym urządzeniu."
+
+msgid "LED MODE"
+msgstr "TRYB LED"
+
+msgid "TURN OFF LED"
+msgstr "WYŁĄCZ LED"
+
+msgid "SOLID RED"
+msgstr "CZERWONY STAŁY"
+
+msgid "SOLID GREEN"
+msgstr "ZIELONY STAŁY"
+
+msgid "SOLID BLUE"
+msgstr "NIEBIESKI STAŁY"
+
+msgid "SOLID ORANGE"
+msgstr "POMARAŃCZOWY STAŁY"
+
+msgid "SOLID PURPLE"
+msgstr "FIOLETOWY STAŁY"
+
+msgid "SOLID CYAN"
+msgstr "CYJAN STAŁY"
+
+msgid "SOLID WHITE"
+msgstr "BIAŁY STAŁY"
+
+msgid "SOLID YELLOW"
+msgstr "ŻÓŁTY STAŁY"
+
+msgid "SOLID MAGENTA"
+msgstr "MAGENTA STAŁY"
+
+msgid "BREATHING RED"
+msgstr "CZERWONY ODDECH"
+
+msgid "BREATHING GREEN"
+msgstr "ZIELONY ODDECH"
+
+msgid "BREATHING BLUE"
+msgstr "NIEBIESKI ODDECH"
+
+msgid "BREATHING ORANGE"
+msgstr "POMARAŃCZOWY ODDECH"
+
+msgid "BREATHING PURPLE"
+msgstr "FIOLETOWY ODDECH"
+
+msgid "BREATHING CYAN"
+msgstr "CYJAN ODDECH"
+
+msgid "BREATHING WHITE"
+msgstr "BIAŁY ODDECH"
+
+msgid "BREATHING"
+msgstr "ODDECH"
+
+msgid "BREATHING RGB"
+msgstr "RGB ODDECH"
+
+msgid "BREATHING YELLOW"
+msgstr "ŻÓŁTY ODDECH"
+
+msgid "BREATHING MAGENTA"
+msgstr "MAGENTA ODDECH"
+
+msgid "FLOW EFFECT"
+msgstr "EFEKT PRZEPŁYWU"
+
+msgid "SCROLLING EFFECT"
+msgstr "EFEKT PRZEWIJANIA"
+
+msgid "BRIGHTNESS"
+msgstr "Jasność"
+
+msgid "HIGH"
+msgstr "Wysoka"
+
+msgid "MEDIUM"
+msgstr "Średnia"
+
+msgid "LOW"
+msgstr "Niska"
+

@@ -402,6 +402,7 @@ void processAudioTitles(Window* window)
 }
 
 #include "ApiSystem.h"
+#include "guis/GuiArkOS4CloneSettings.h"
 
 int main(int argc, char* argv[])
 {
@@ -418,6 +419,9 @@ int main(int argc, char* argv[])
 
 	if(!parseArgs(argc, argv))
 		return 0;
+
+	// Apply joystick LED on startup (for supported devices)
+	GuiArkOS4CloneSettings::checkAndApplyLedOnStartup();
 /*
 	ApiSystem::checkUpdateVersion();
 	ApiSystem::updateSystem(nullptr);

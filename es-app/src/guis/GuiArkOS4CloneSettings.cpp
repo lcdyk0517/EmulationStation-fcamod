@@ -16,7 +16,62 @@
 #include <thread>
 #include <chrono>
 
-// Helper function to execute command and get output
+// ============================================================================
+// Static Constants
+// ============================================================================
+
+// LED Configuration file path
+static const std::string LED_CONFIG_FILE = "/home/ark/.es_joyled";
+
+// MCU LED mode names (for mcu_led backend)
+static const std::map<std::string, std::string> MCU_MODES = {
+    {"red", "Red"}, {"green", "Green"}, {"blue", "Blue"}, {"white", "White"},
+    {"orange", "Orange"}, {"purple", "Purple"}, {"cyan", "Cyan"},
+    {"breath_red", "Breathing_Red"}, {"breath_green", "Breathing_Green"},
+    {"breath_blue", "Breathing_Blue"}, {"breath_white", "Breathing_White"},
+    {"breath_orange", "Breathing_Orange"}, {"breath_purple", "Breathing_Purple"},
+    {"breath_cyan", "Breathing_Cyan"}, {"breath", "Breathing"}, {"flow", "Flow"}
+};
+
+// WS2812 mode names (for ws2812 backend)
+static const std::map<std::string, std::string> WS2812_MODES = {
+    {"scrolling", "Scrolling"}, {"breathing", "Breathing"},
+    {"breathing_red", "Breathing_Red"}, {"breathing_green", "Breathing_Green"}, {"breathing_blue", "Breathing_Blue"},
+    {"breathing_blue_red", "Breathing_Blue_Red"}, {"breathing_green_blue", "Breathing_Green_Blue"},
+    {"breathing_red_green", "Breathing_Red_Green"}, {"breathing_red_green_blue", "Breathing_Red_Green_Blue"},
+    {"red_green_blue", "Red_Green_Blue"}, {"blue_red", "Blue_Red"}, {"blue", "Blue"},
+    {"green_blue", "Green_Blue"}, {"green", "Green"}, {"red_green", "Red_Green"}, {"red", "Red"}
+};
+
+// WS2812 brightness levels
+static const std::vector<std::pair<std::string, std::string>> WS2812_BRIGHTNESS = {
+    {"HIGH", "HIGH"}, {"MEDIUM", "MEDIUM"}, {"LOW", "LOW"}
+};
+
+static std::string getSavedWs2812Brightness()
+{
+    std::ifstream file(LED_CONFIG_FILE);
+    if (file.is_open()) {
+        std::string line;
+        while (std::getline(file, line)) {
+            if (line.find("BRIGHTNESS=") == 0) {
+                std::string brightness = line.substr(11);
+                // Validate brightness value
+                for (const auto& b : WS2812_BRIGHTNESS) {
+                    if (b.first == brightness) {
+                        return brightness;
+                    }
+                }
+            }
+        }
+    }
+    return "HIGH"; // Default brightness
+}
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
 static std::string executeCommand(const std::string& cmd)
 {
     FILE* pipe = popen(cmd.c_str(), "r");
@@ -31,18 +86,15 @@ static std::string executeCommand(const std::string& cmd)
     return Utils::String::trim(result);
 }
 
-// Helper function to get current WiFi SSID using nmcli
 static std::string getCurrentWifiSSID()
 {
     // Method 1: nmcli active connection
     std::string result = executeCommand("nmcli -t -f NAME,DEVICE connection show --active 2>/dev/null");
     if (!result.empty()) {
-        // Format: SSID:wlan0 or just SSID if connected
         std::istringstream stream(result);
         std::string line;
         while (std::getline(stream, line)) {
             if (line.find(":wlan") != std::string::npos || line.find("wlan") != std::string::npos) {
-                // Extract SSID (before the colon or the whole line)
                 size_t colonPos = line.find(':');
                 if (colonPos != std::string::npos) {
                     std::string ssid = line.substr(0, colonPos);
@@ -55,7 +107,6 @@ static std::string getCurrentWifiSSID()
     // Method 2: iw dev
     std::string ssid = executeCommand("iw dev wlan0 info 2>/dev/null | grep ssid");
     if (!ssid.empty()) {
-        // Format: ssid MyNetwork
         size_t pos = ssid.find("ssid ");
         if (pos != std::string::npos) {
             ssid = ssid.substr(pos + 5);
@@ -65,6 +116,10 @@ static std::string getCurrentWifiSSID()
     
     return "";
 }
+
+// ============================================================================
+// Constructor / Destructor
+// ============================================================================
 
 GuiArkOS4CloneSettings::GuiArkOS4CloneSettings(Window* window)
     : GuiComponent(window), mMenu(window, _("ARKOS4CLONE SETTINGS"))
@@ -76,20 +131,34 @@ GuiArkOS4CloneSettings::GuiArkOS4CloneSettings(Window* window)
         openWifiSettings();
     }, "iconWifi");
 
+    // Joystick LED Settings submenu
+    mMenu.addEntry(_("JOYSTICK LED"), true, [this] {
+        openJoystickLedSettings();
+    }, "");
+
     mMenu.addButton(_("BACK"), "back", [this] {
         delete this;
     });
 
     setSize((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
+    
+    // Position menu like other settings menus
+    if (Renderer::isSmallScreen())
+        mMenu.setPosition((Renderer::getScreenWidth() - mMenu.getSize().x()) / 2, (Renderer::getScreenHeight() - mMenu.getSize().y()) / 2);
+    else
+        mMenu.setPosition((mSize.x() - mMenu.getSize().x()) / 2, Renderer::getScreenHeight() * 0.15f);
 }
 
 GuiArkOS4CloneSettings::~GuiArkOS4CloneSettings()
 {
 }
 
+// ============================================================================
+// WiFi Functions
+// ============================================================================
+
 void GuiArkOS4CloneSettings::openWifiSettings()
 {
-    // Create a new WiFi settings menu that can be refreshed
     createWifiSettingsMenu();
 }
 
@@ -97,31 +166,25 @@ void GuiArkOS4CloneSettings::createWifiSettingsMenu()
 {
     auto s = new GuiSettings(mWindow, _("WIFI SETTINGS"));
 
-    // Current WiFi Status - display only, not clickable
     std::string wifiStatus = getCurrentWifiSSID();
     if (wifiStatus.empty()) {
         wifiStatus = _("NOT CONNECTED");
     }
-    // Save status text component for later update
     mWifiStatusText = std::make_shared<TextComponent>(mWindow, wifiStatus, ThemeData::getMenuTheme()->TextSmall.font, ThemeData::getMenuTheme()->TextSmall.color);
     s->addWithLabel(_("CURRENT NETWORK"), mWifiStatusText);
 
-    // Scan WiFi Networks
     s->addEntry(_("SCAN WIFI NETWORKS"), true, [this] {
         scanWifi();
     }, "");
 
-    // Activate existing connection
     s->addEntry(_("ACTIVATE EXISTING CONNECTION"), true, [this] {
         activateExistingConnection();
     }, "");
 
-    // Delete existing connections
     s->addEntry(_("DELETE EXISTING CONNECTIONS"), true, [this] {
         deleteConnections();
     }, "");
 
-    // Network Info
     s->addEntry(_("NETWORK INFO"), true, [this] {
         showNetworkInfo();
     }, "");
@@ -150,23 +213,18 @@ void GuiArkOS4CloneSettings::scanWifi()
     busy->setSize((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
     mWindow->pushGui(busy);
 
-    // Scan using nmcli
     mWifiNetworks.clear();
     
-    // Rescan first
     system("sudo nmcli device wifi rescan 2>/dev/null");
     std::this_thread::sleep_for(std::chrono::seconds(2));
     
-    // Get list
     std::string clist = executeCommand("sudo nmcli -t -f IN-USE,SSID,SIGNAL dev wifi 2>/dev/null");
     
-    // Parse output
     std::istringstream stream(clist);
     std::string line;
     while (std::getline(stream, line)) {
         if (line.empty()) continue;
         
-        // Parse: IN-USE:SSID:SIGNAL
         size_t pos1 = line.find(':');
         if (pos1 == std::string::npos) continue;
         
@@ -188,26 +246,21 @@ void GuiArkOS4CloneSettings::scanWifi()
         mWifiNetworks.push_back(std::make_pair(ssid, signal));
     }
 
-    // Remove busy dialog
     mWindow->removeGui(busy);
     delete busy;
 
-    // Show results
     if (mWifiNetworks.empty()) {
         mWindow->pushGui(new GuiMsgBox(mWindow, _("NO WIFI NETWORKS FOUND"), _("OK")));
         return;
     }
 
-    // Create network selection menu
     auto s = new GuiSettings(mWindow, _("SELECT WIFI NETWORK"));
 
-    // Sort by signal strength (descending)
     std::sort(mWifiNetworks.begin(), mWifiNetworks.end(),
         [](const std::pair<std::string, int>& a, const std::pair<std::string, int>& b) {
             return a.second > b.second;
         });
 
-    // Remove duplicates (keep strongest)
     std::map<std::string, int> uniqueNetworks;
     for (auto& net : mWifiNetworks) {
         if (uniqueNetworks.find(net.first) == uniqueNetworks.end() || uniqueNetworks[net.first] < net.second) {
@@ -215,15 +268,12 @@ void GuiArkOS4CloneSettings::scanWifi()
         }
     }
 
-    // Add networks to menu with simple signal display
     for (auto& net : uniqueNetworks) {
         if (net.first.empty()) continue;
         
-        // Simple signal display without unicode characters
         std::string signalStr = std::to_string(net.second) + "%";
         std::string entryName = net.first + " (" + signalStr + ")";
         
-        // Capture SSID by value
         std::string ssid = net.first;
         s->addEntry(entryName, true, [this, ssid] {
             showWifiPasswordInput(ssid);
@@ -235,7 +285,6 @@ void GuiArkOS4CloneSettings::scanWifi()
 
 void GuiArkOS4CloneSettings::activateExistingConnection()
 {
-    // Get existing connections
     std::string conns = executeCommand("ls -1 /etc/NetworkManager/system-connections/ 2>/dev/null | sed 's/\\.nmconnection$//'");
     
     if (conns.empty()) {
@@ -243,7 +292,6 @@ void GuiArkOS4CloneSettings::activateExistingConnection()
         return;
     }
 
-    // Get current connection
     std::string curSsid = getCurrentWifiSSID();
 
     auto s = new GuiSettings(mWindow, _("SELECT CONNECTION"));
@@ -256,7 +304,6 @@ void GuiArkOS4CloneSettings::activateExistingConnection()
         std::string connName = conn;
         std::string displayName = connName;
         
-        // Mark current connection
         if (connName == curSsid) {
             displayName = connName + " [" + _("CONNECTED") + "]";
         }
@@ -271,7 +318,6 @@ void GuiArkOS4CloneSettings::activateExistingConnection()
 
 void GuiArkOS4CloneSettings::activateConnection(const std::string& connName)
 {
-    // Show busy
     auto busy = new GuiComponent(mWindow);
     auto busyComp = new BusyComponent(mWindow);
     busy->addChild(busyComp);
@@ -279,19 +325,16 @@ void GuiArkOS4CloneSettings::activateConnection(const std::string& connName)
     busy->setSize((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
     mWindow->pushGui(busy);
 
-    // Disconnect current
     std::string curSsid = getCurrentWifiSSID();
     if (!curSsid.empty() && curSsid != connName) {
         executeCommand("nmcli con down \"" + curSsid + "\" 2>/dev/null");
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
     
-    // Connect to new
     std::string result = executeCommand("nmcli con up \"" + connName + "\" 2>&1");
     
     std::this_thread::sleep_for(std::chrono::seconds(2));
 
-    // Remove busy
     mWindow->removeGui(busy);
     delete busy;
 
@@ -302,7 +345,6 @@ void GuiArkOS4CloneSettings::activateConnection(const std::string& connName)
             _("CONNECTED TO") + "\n" + connName, 
             _("OK")));
     } else {
-        // Update status to show current state (previous network or not connected)
         updateWifiStatusText();
         mWindow->pushGui(new GuiMsgBox(mWindow, 
             _("CONNECTION FAILED") + "\n" + result, 
@@ -312,7 +354,6 @@ void GuiArkOS4CloneSettings::activateConnection(const std::string& connName)
 
 void GuiArkOS4CloneSettings::deleteConnections()
 {
-    // Get existing connections
     std::string conns = executeCommand("ls -1 /etc/NetworkManager/system-connections/ 2>/dev/null | sed 's/\\.nmconnection$//'");
     
     if (conns.empty()) {
@@ -320,7 +361,6 @@ void GuiArkOS4CloneSettings::deleteConnections()
         return;
     }
 
-    // Get current connection
     std::string curSsid = getCurrentWifiSSID();
 
     auto s = new GuiSettings(mWindow, _("DELETE CONNECTION"));
@@ -333,7 +373,6 @@ void GuiArkOS4CloneSettings::deleteConnections()
         std::string connName = conn;
         std::string displayName = connName;
         
-        // Mark current connection
         if (connName == curSsid) {
             displayName = connName + " [" + _("CONNECTED") + "]";
         }
@@ -370,7 +409,6 @@ void GuiArkOS4CloneSettings::showNetworkInfo()
 
 void GuiArkOS4CloneSettings::showWifiPasswordInput(const std::string& ssid)
 {
-    // Use GuiTextEditPopupKeyboard for virtual keyboard support
     mWindow->pushGui(new GuiTextEditPopupKeyboard(mWindow, 
         _("PASSWORD FOR") + " " + ssid, 
         "",
@@ -382,7 +420,6 @@ void GuiArkOS4CloneSettings::showWifiPasswordInput(const std::string& ssid)
 
 void GuiArkOS4CloneSettings::connectWifi(const std::string& ssid, const std::string& password)
 {
-    // Show busy dialog
     auto busy = new GuiComponent(mWindow);
     auto busyComp = new BusyComponent(mWindow);
     busy->addChild(busyComp);
@@ -390,10 +427,8 @@ void GuiArkOS4CloneSettings::connectWifi(const std::string& ssid, const std::str
     busy->setSize((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
     mWindow->pushGui(busy);
 
-    // Delete existing connection with same name first
     executeCommand("nmcli con delete \"" + ssid + "\" 2>/dev/null");
     
-    // Connect using nmcli
     std::string result;
     if (password.empty()) {
         result = executeCommand("nmcli device wifi connect \"" + ssid + "\" 2>&1");
@@ -401,21 +436,16 @@ void GuiArkOS4CloneSettings::connectWifi(const std::string& ssid, const std::str
         result = executeCommand("nmcli device wifi connect \"" + ssid + "\" password \"" + password + "\" 2>&1");
     }
 
-    // Wait for connection
     std::this_thread::sleep_for(std::chrono::seconds(3));
 
-    // Remove busy dialog
     mWindow->removeGui(busy);
     delete busy;
 
-    // Check connection using nmcli status
     std::string status = executeCommand("nmcli -t -f DEVICE,STATE dev 2>/dev/null | grep wlan");
     bool connected = (status.find(":connected") != std::string::npos);
     
-    // Also verify SSID
     std::string connectedSSID = getCurrentWifiSSID();
     if (connectedSSID.empty()) {
-        // Try alternative check
         connected = (result.find("successfully activated") != std::string::npos ||
                      result.find("successfully") != std::string::npos);
     } else {
@@ -428,10 +458,7 @@ void GuiArkOS4CloneSettings::connectWifi(const std::string& ssid, const std::str
             _("CONNECTED TO") + "\n" + ssid, 
             _("OK")));
     } else {
-        // Clean up failed connection
         executeCommand("sudo rm -f \"/etc/NetworkManager/system-connections/" + ssid + ".nmconnection\" 2>/dev/null");
-        
-        // Update status to show current state (previous network or not connected)
         updateWifiStatusText();
         
         std::string errorMsg = _("CONNECTION FAILED");
@@ -440,12 +467,439 @@ void GuiArkOS4CloneSettings::connectWifi(const std::string& ssid, const std::str
         } else if (result.find("not found") != std::string::npos || result.find("No network") != std::string::npos) {
             errorMsg += "\n" + _("NETWORK NOT FOUND");
         } else if (!result.empty()) {
-            // Show raw error for debugging
             errorMsg += "\n" + result;
         }
         mWindow->pushGui(new GuiMsgBox(mWindow, errorMsg, _("OK")));
     }
 }
+
+// ============================================================================
+// LED Functions - Detection & Configuration
+// ============================================================================
+
+std::string GuiArkOS4CloneSettings::detectLedType()
+{
+    // Cache result to avoid repeated console_detect calls
+    static std::string cachedLedType;
+    static bool cached = false;
+    
+    if (cached) {
+        return cachedLedType;
+    }
+    
+    // Try console_detect first
+    std::string output = executeCommand("/usr/local/bin/console_detect -s 2>/dev/null");
+    if (!output.empty()) {
+        std::istringstream stream(output);
+        std::string line;
+        while (std::getline(stream, line)) {
+            if (line.find("LED_TYPE=") == 0) {
+                std::string ledType = line.substr(9);
+                if (!ledType.empty() && ledType != "unsupported") {
+                    cachedLedType = ledType;
+                    cached = true;
+                    return cachedLedType;
+                }
+            }
+        }
+    }
+    
+    // Fallback: read from /boot/.console
+    std::string deviceName = executeCommand("cat /boot/.console 2>/dev/null");
+    deviceName = Utils::String::trim(deviceName);
+    
+    if (deviceName == "xf35h" || deviceName == "xf40h" || deviceName == "k36s" || deviceName == "r36tmax") {
+        cachedLedType = "mcu_led";
+    } else if (deviceName == "mymini" || deviceName == "r36ultra" || deviceName == "xgb36" || deviceName == "mini40") {
+        cachedLedType = "gpio";
+    } else if (deviceName == "dc40v" || deviceName == "dc35v" || deviceName == "xf28" || deviceName == "r36max2") {
+        cachedLedType = "ws2812";
+    }
+    
+    cached = true;
+    return cachedLedType;
+}
+
+std::string GuiArkOS4CloneSettings::getDeviceName()
+{
+    std::string output = executeCommand("/usr/local/bin/console_detect -s 2>/dev/null");
+    if (!output.empty()) {
+        std::istringstream stream(output);
+        std::string line;
+        while (std::getline(stream, line)) {
+            if (line.find("DEVICE_NAME=") == 0) {
+                return line.substr(12);
+            }
+        }
+    }
+    return executeCommand("cat /boot/.console 2>/dev/null");
+}
+
+std::string GuiArkOS4CloneSettings::getCurrentLedColor()
+{
+    std::ifstream file(LED_CONFIG_FILE);
+    if (file.is_open()) {
+        std::string line;
+        while (std::getline(file, line)) {
+            if (line.find("COLOR=") == 0) {
+                return line.substr(6);
+            }
+        }
+    }
+    return "off";
+}
+
+std::vector<std::pair<std::string, std::string>> GuiArkOS4CloneSettings::getLedMenuItems(const std::string& ledType)
+{
+    std::vector<std::pair<std::string, std::string>> items;
+    
+    if (ledType == "mcu_led") {
+        items.push_back({"off", _("TURN OFF LED")});
+        items.push_back({"red", _("SOLID RED")});
+        items.push_back({"green", _("SOLID GREEN")});
+        items.push_back({"blue", _("SOLID BLUE")});
+        items.push_back({"orange", _("SOLID ORANGE")});
+        items.push_back({"purple", _("SOLID PURPLE")});
+        items.push_back({"cyan", _("SOLID CYAN")});
+        items.push_back({"white", _("SOLID WHITE")});
+        items.push_back({"breath_red", _("BREATHING RED")});
+        items.push_back({"breath_green", _("BREATHING GREEN")});
+        items.push_back({"breath_blue", _("BREATHING BLUE")});
+        items.push_back({"breath_orange", _("BREATHING ORANGE")});
+        items.push_back({"breath_purple", _("BREATHING PURPLE")});
+        items.push_back({"breath_cyan", _("BREATHING CYAN")});
+        items.push_back({"breath_white", _("BREATHING WHITE")});
+        items.push_back({"flow", _("FLOW EFFECT")});
+    } else if (ledType == "gpio") {
+        items.push_back({"off", _("TURN OFF LED")});
+        items.push_back({"red", _("SOLID RED")});
+        items.push_back({"green", _("SOLID GREEN")});
+        items.push_back({"blue", _("SOLID BLUE")});
+        items.push_back({"white", _("SOLID WHITE")});
+        items.push_back({"orange", _("SOLID ORANGE")});
+        items.push_back({"yellow", _("SOLID YELLOW")});
+        items.push_back({"purple", _("SOLID PURPLE")});
+    } else if (ledType == "ws2812") {
+        items.push_back({"off", _("TURN OFF LED")});
+        items.push_back({"scrolling", _("SCROLLING EFFECT")});
+        items.push_back({"breathing", _("BREATHING")});
+        items.push_back({"breathing_red", _("BREATHING RED")});
+        items.push_back({"breathing_green", _("BREATHING GREEN")});
+        items.push_back({"breathing_blue", _("BREATHING BLUE")});
+        items.push_back({"breathing_blue_red", _("BREATHING MAGENTA")});
+        items.push_back({"breathing_green_blue", _("BREATHING CYAN")});
+        items.push_back({"breathing_red_green", _("BREATHING YELLOW")});
+        items.push_back({"breathing_red_green_blue", _("BREATHING RGB")});
+        items.push_back({"red", _("SOLID RED")});
+        items.push_back({"green", _("SOLID GREEN")});
+        items.push_back({"blue", _("SOLID BLUE")});
+        items.push_back({"red_green", _("SOLID YELLOW")});
+        items.push_back({"green_blue", _("SOLID CYAN")});
+        items.push_back({"blue_red", _("SOLID MAGENTA")});
+        items.push_back({"red_green_blue", _("SOLID WHITE")});
+    }
+    
+    return items;
+}
+
+// ============================================================================
+// LED Functions - Apply
+// ============================================================================
+
+void GuiArkOS4CloneSettings::applyLedColor(const std::string& color, const std::string& brightness)
+{
+    std::string ledType = detectLedType();
+    
+    if (ledType == "mcu_led") {
+        applyMcuLed(color);
+        saveLedConfig(color);
+    } else if (ledType == "gpio") {
+        applyGpioLed(color);
+        saveLedConfig(color);
+    } else if (ledType == "ws2812") {
+        std::string bri = brightness.empty() ? "HIGH" : brightness;
+        applyWs2812Led(color, bri);
+        saveLedConfig(color, bri);
+    }
+}
+
+void GuiArkOS4CloneSettings::applyMcuLed(const std::string& color)
+{
+    const int GPIO_NUM = 65;
+    std::string gpioDir = "/sys/class/gpio/gpio" + std::to_string(GPIO_NUM);
+    std::string gpioExport = "/sys/class/gpio/export";
+    std::string mcuLedBin = "/usr/bin/mcu_led";
+    
+    // Security: validate color string
+    if (!color.empty() && color.find_first_not_of("abcdefghijklmnopqrstuvwxyz_") != std::string::npos) {
+        return;
+    }
+    
+    // Export GPIO if needed
+    if (!Utils::FileSystem::exists(gpioDir + "/direction")) {
+        executeCommand("sudo sh -c 'echo " + std::to_string(GPIO_NUM) + " > " + gpioExport + "'");
+    }
+    // Always ensure direction is out
+    executeCommand("sudo sh -c 'echo out > " + gpioDir + "/direction'");
+    
+    if (color == "off") {
+        executeCommand("sudo sh -c 'echo 0 > " + gpioDir + "/value'");
+        return;
+    }
+    
+    executeCommand("sudo sh -c 'echo 1 > " + gpioDir + "/value'");
+    
+    auto it = MCU_MODES.find(color);
+    if (it != MCU_MODES.end() && Utils::FileSystem::exists(mcuLedBin)) {
+        executeCommand("sudo " + mcuLedBin + " " + it->second);
+    }
+}
+
+void GuiArkOS4CloneSettings::applyGpioLed(const std::string& color)
+{
+    // Security: validate color string
+    if (!color.empty() && color.find_first_not_of("abcdefghijklmnopqrstuvwxyz_") != std::string::npos) {
+        return;
+    }
+    
+    std::string ledBlue = "/sys/class/leds/blue:joy/brightness";
+    std::string ledGreen = "/sys/class/leds/green:joy/brightness";
+    std::string ledRed = "/sys/class/leds/red:joy/brightness";
+    
+    // Disable triggers only for joystick LEDs
+    executeCommand("sudo sh -c 'echo none > /sys/class/leds/blue:joy/trigger 2>/dev/null; echo none > /sys/class/leds/green:joy/trigger 2>/dev/null; echo none > /sys/class/leds/red:joy/trigger 2>/dev/null'");
+    
+    // Get max brightness
+    int maxB = 1, maxG = 1, maxR = 1;
+    std::string maxBPath = "/sys/class/leds/blue:joy/max_brightness";
+    std::string maxGPath = "/sys/class/leds/green:joy/max_brightness";
+    std::string maxRPath = "/sys/class/leds/red:joy/max_brightness";
+    
+    if (Utils::FileSystem::exists(maxBPath)) {
+        maxB = atoi(executeCommand("cat " + maxBPath).c_str());
+    }
+    if (Utils::FileSystem::exists(maxGPath)) {
+        maxG = atoi(executeCommand("cat " + maxGPath).c_str());
+    }
+    if (Utils::FileSystem::exists(maxRPath)) {
+        maxR = atoi(executeCommand("cat " + maxRPath).c_str());
+    }
+    
+    int b = 0, g = 0, r = 0;
+    
+    if (color == "red") {
+        r = maxR;
+    } else if (color == "green") {
+        g = maxG;
+    } else if (color == "blue") {
+        b = maxB;
+    } else if (color == "white") {
+        b = maxB; g = maxG; r = maxR;
+    } else if (color == "orange" || color == "yellow") {
+        g = maxG; r = maxR;
+    } else if (color == "purple") {
+        b = maxB; r = maxR;
+    }
+    // else: color == "off" or unknown, all remain 0
+    
+    // Apply colors
+    if (Utils::FileSystem::exists(ledBlue)) {
+        executeCommand("sudo sh -c 'echo " + std::to_string(b) + " > " + ledBlue + "'");
+    }
+    if (Utils::FileSystem::exists(ledGreen)) {
+        executeCommand("sudo sh -c 'echo " + std::to_string(g) + " > " + ledGreen + "'");
+    }
+    if (Utils::FileSystem::exists(ledRed)) {
+        executeCommand("sudo sh -c 'echo " + std::to_string(r) + " > " + ledRed + "'");
+    }
+}
+
+void GuiArkOS4CloneSettings::applyWs2812Led(const std::string& color, const std::string& brightness)
+{
+    // Security: validate color string
+    if (!color.empty() && color.find_first_not_of("abcdefghijklmnopqrstuvwxyz_") != std::string::npos) {
+        return;
+    }
+    
+    // Security: validate brightness string
+    std::string validBrightness = "HIGH";
+    for (const auto& b : WS2812_BRIGHTNESS) {
+        if (b.first == brightness) {
+            validBrightness = brightness;
+            break;
+        }
+    }
+    
+    std::string ws2812Bin = "/usr/bin/ws2812";
+    
+    if (!Utils::FileSystem::exists(ws2812Bin)) {
+        return;
+    }
+    
+    // Kill existing ws2812 process
+    executeCommand("sudo pkill -f '^" + ws2812Bin + "' 2>/dev/null || true");
+    
+    if (color == "off") {
+        // Run OFF command to actually turn off the LEDs
+        executeCommand("sudo " + ws2812Bin + " OFF 2>/dev/null || true");
+        return;
+    }
+    
+    auto it = WS2812_MODES.find(color);
+    if (it != WS2812_MODES.end()) {
+        executeCommand("sudo nohup " + ws2812Bin + " " + it->second + " " + validBrightness + " >/dev/null 2>&1 </dev/null &");
+    }
+}
+
+// ============================================================================
+// LED Functions - Config & Startup
+// ============================================================================
+
+void GuiArkOS4CloneSettings::saveLedConfig(const std::string& color, const std::string& brightness)
+{
+    std::string deviceName = getDeviceName();
+    
+    std::ofstream file(LED_CONFIG_FILE);
+    if (file.is_open()) {
+        file << "DEVICE=" << deviceName << "\n";
+        file << "COLOR=" << color << "\n";
+        if (!brightness.empty()) {
+            file << "BRIGHTNESS=" << brightness << "\n";
+        }
+        file.close();
+    }
+}
+
+bool GuiArkOS4CloneSettings::checkAndApplyLedOnStartup()
+{
+    // Early exit if no config file
+    if (!Utils::FileSystem::exists(LED_CONFIG_FILE)) {
+        return false;
+    }
+    
+    // Read saved device, color and brightness
+    std::string savedDevice, savedColor, savedBrightness;
+    std::ifstream file(LED_CONFIG_FILE);
+    if (file.is_open()) {
+        std::string line;
+        while (std::getline(file, line)) {
+            if (line.find("DEVICE=") == 0) {
+                savedDevice = line.substr(7);
+            } else if (line.find("COLOR=") == 0) {
+                savedColor = line.substr(6);
+            } else if (line.find("BRIGHTNESS=") == 0) {
+                savedBrightness = line.substr(11);
+            }
+        }
+        file.close();
+    }
+    
+    // Early exit if no color or off
+    if (savedColor.empty() || savedColor == "off") {
+        return false;
+    }
+    
+    // Check if device matches
+    std::string currentDevice = getDeviceName();
+    if (savedDevice != currentDevice) {
+        Utils::FileSystem::removeFile(LED_CONFIG_FILE);
+        return false;
+    }
+    
+    // Apply the saved color
+    std::string ledType = detectLedType();
+    if (ledType == "mcu_led") {
+        applyMcuLed(savedColor);
+    } else if (ledType == "gpio") {
+        applyGpioLed(savedColor);
+    } else if (ledType == "ws2812") {
+        std::string brightness = savedBrightness.empty() ? "HIGH" : savedBrightness;
+        applyWs2812Led(savedColor, brightness);
+    }
+    
+    return true;
+}
+
+void GuiArkOS4CloneSettings::openJoystickLedSettings()
+{
+    std::string ledType = detectLedType();
+    
+    if (ledType.empty()) {
+        mWindow->pushGui(new GuiMsgBox(mWindow, 
+            _("UNSUPPORTED DEVICE") + "\n" + _("Joystick LED is not supported on this device."), 
+            _("OK")));
+        return;
+    }
+    
+    auto items = getLedMenuItems(ledType);
+    
+    if (items.empty()) {
+        mWindow->pushGui(new GuiMsgBox(mWindow, 
+            _("UNSUPPORTED DEVICE") + "\n" + _("Joystick LED is not supported on this device."), 
+            _("OK")));
+        return;
+    }
+    
+    auto s = new GuiSettings(mWindow, _("JOYSTICK LED"));
+    
+    std::string currentColor = getCurrentLedColor();
+    
+    // Check if currentColor is valid (UI dirty data tolerance)
+    bool colorFound = false;
+    for (auto& item : items) {
+        if (item.first == currentColor) {
+            colorFound = true;
+            break;
+        }
+    }
+    if (!colorFound) {
+        currentColor = "off";
+    }
+    
+    auto ledOptions = std::make_shared<OptionListComponent<std::string>>(mWindow, _("LED MODE"), false);
+    
+    for (auto& item : items) {
+        ledOptions->add(item.second, item.first, item.first == currentColor);
+    }
+    
+    s->addWithLabel(_("LED MODE"), ledOptions);
+    
+    // Add brightness option for WS2812 only
+    std::shared_ptr<OptionListComponent<std::string>> brightnessOptions;
+    if (ledType == "ws2812") {
+        brightnessOptions = std::make_shared<OptionListComponent<std::string>>(mWindow, _("BRIGHTNESS"), false);
+        std::string currentBrightness = getSavedWs2812Brightness();
+        
+        for (const auto& b : WS2812_BRIGHTNESS) {
+            brightnessOptions->add(b.second, b.first, b.first == currentBrightness);
+        }
+        
+        s->addWithLabel(_("BRIGHTNESS"), brightnessOptions);
+    }
+    
+    // Apply LED color immediately when selection changes
+    ledOptions->setSelectedChangedCallback([this, brightnessOptions, ledType](const std::string& selectedColor) {
+        std::string selectedBrightness;
+        if (ledType == "ws2812" && brightnessOptions) {
+            selectedBrightness = brightnessOptions->getSelected();
+        }
+        applyLedColor(selectedColor, selectedBrightness);
+    });
+    
+    // Apply brightness immediately when selection changes (WS2812 only)
+    if (ledType == "ws2812" && brightnessOptions) {
+        brightnessOptions->setSelectedChangedCallback([this, ledOptions](const std::string& selectedBrightness) {
+            std::string selectedColor = ledOptions->getSelected();
+            applyLedColor(selectedColor, selectedBrightness);
+        });
+    }
+    
+    mWindow->pushGui(s);
+}
+
+// ============================================================================
+// GuiComponent Interface
+// ============================================================================
 
 bool GuiArkOS4CloneSettings::input(InputConfig* config, Input input)
 {

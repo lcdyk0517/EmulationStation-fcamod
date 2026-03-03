@@ -2027,3 +2027,96 @@ msgstr "Λάθος κωδικός"
 
 msgid "NETWORK NOT FOUND"
 msgstr "Το δίκτυο δεν βρέθηκε"
+
+msgid "JOYSTICK LED"
+msgstr "LED ΧΕΙΡΙΣΤΗΡΙΟΥ"
+
+msgid "UNSUPPORTED DEVICE"
+msgstr "ΜΗ ΥΠΟΣΤΗΡΙΖΟΜΕΝΗ ΣΥΣΚΕΥΗ"
+
+msgid "Joystick LED is not supported on this device."
+msgstr "Το LED χειριστηρίου δεν υποστηρίζεται σε αυτή τη συσκευή."
+
+msgid "LED MODE"
+msgstr "ΛΕΙΤΟΥΡΓΙΑ LED"
+
+msgid "TURN OFF LED"
+msgstr "ΑΠΕΝΕΡΓΟΠΟΙΗΣΗ LED"
+
+msgid "SOLID RED"
+msgstr "ΚΟΚΚΙΝΟ ΣΤΑΘΕΡΟ"
+
+msgid "SOLID GREEN"
+msgstr "ΠΡΑΣΙΝΟ ΣΤΑΘΕΡΟ"
+
+msgid "SOLID BLUE"
+msgstr "ΜΠΛΕ ΣΤΑΘΕΡΟ"
+
+msgid "SOLID ORANGE"
+msgstr "ΠΟΡΤΟΚΑΛΙ ΣΤΑΘΕΡΟ"
+
+msgid "SOLID PURPLE"
+msgstr "ΜΩΒ ΣΤΑΘΕΡΟ"
+
+msgid "SOLID CYAN"
+msgstr "ΚΥΑΝΟ ΣΤΑΘΕΡΟ"
+
+msgid "SOLID WHITE"
+msgstr "ΛΕΥΚΟ ΣΤΑΘΕΡΟ"
+
+msgid "SOLID YELLOW"
+msgstr "ΚΙΤΡΙΝΟ ΣΤΑΘΕΡΟ"
+
+msgid "SOLID MAGENTA"
+msgstr "ΜΑΤΖΕΝΤΑ ΣΤΑΘΕΡΟ"
+
+msgid "BREATHING RED"
+msgstr "ΚΟΚΚΙΝΟ ΑΝΑΠΝΟΗ"
+
+msgid "BREATHING GREEN"
+msgstr "ΠΡΑΣΙΝΟ ΑΝΑΠΝΟΗ"
+
+msgid "BREATHING BLUE"
+msgstr "ΜΠΛΕ ΑΝΑΠΝΟΗ"
+
+msgid "BREATHING ORANGE"
+msgstr "ΠΟΡΤΟΚΑΛΙ ΑΝΑΠΝΟΗ"
+
+msgid "BREATHING PURPLE"
+msgstr "ΜΩΒ ΑΝΑΠΝΟΗ"
+
+msgid "BREATHING CYAN"
+msgstr "ΚΥΑΝΟ ΑΝΑΠΝΟΗ"
+
+msgid "BREATHING WHITE"
+msgstr "ΛΕΥΚΟ ΑΝΑΠΝΟΗ"
+
+msgid "BREATHING"
+msgstr "ΑΝΑΠΝΟΗ"
+
+msgid "BREATHING RGB"
+msgstr "RGB ΑΝΑΠΝΟΗ"
+
+msgid "BREATHING YELLOW"
+msgstr "ΚΙΤΡΙΝΟ ΑΝΑΠΝΟΗ"
+
+msgid "BREATHING MAGENTA"
+msgstr "ΜΑΤΖΕΝΤΑ ΑΝΑΠΝΟΗ"
+
+msgid "FLOW EFFECT"
+msgstr "ΕΦΕ ΡΟΗΣ"
+
+msgid "SCROLLING EFFECT"
+msgstr "ΕΦΕ ΚΥΛΙΣΗΣ"
+
+msgid "BRIGHTNESS"
+msgstr "Φωτεινότητα"
+
+msgid "HIGH"
+msgstr "Υψηλή"
+
+msgid "MEDIUM"
+msgstr "Μεσαία"
+
+msgid "LOW"
+msgstr "Χαμηλή"

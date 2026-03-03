@@ -3543,3 +3543,177 @@ msgstr "密码错误"
 
 msgid "NETWORK NOT FOUND"
 msgstr "未找到网络"
+
+msgid "JOYSTICK LED"
+msgstr "摇杆灯"
+
+msgid "UNSUPPORTED DEVICE"
+msgstr "不支持的设备"
+
+msgid "Joystick LED is not supported on this device."
+msgstr "此设备不支持摇杆灯功能。"
+
+msgid "LED MODE"
+msgstr "LED 模式"
+
+msgid "TURN OFF LED"
+msgstr "关闭 LED"
+
+msgid "SOLID RED"
+msgstr "红色常亮"
+
+msgid "SOLID GREEN"
+msgstr "绿色常亮"
+
+msgid "SOLID BLUE"
+msgstr "蓝色常亮"
+
+msgid "SOLID ORANGE"
+msgstr "橙色常亮"
+
+msgid "SOLID PURPLE"
+msgstr "紫色常亮"
+
+msgid "SOLID CYAN"
+msgstr "青色常亮"
+
+msgid "SOLID WHITE"
+msgstr "白色常亮"
+
+msgid "SOLID YELLOW"
+msgstr "黄色常亮"
+
+msgid "SOLID MAGENTA"
+msgstr "洋红常亮"
+
+msgid "BREATHING RED"
+msgstr "红色呼吸"
+
+msgid "BREATHING GREEN"
+msgstr "绿色呼吸"
+
+msgid "BREATHING BLUE"
+msgstr "蓝色呼吸"
+
+msgid "BREATHING ORANGE"
+msgstr "橙色呼吸"
+
+msgid "BREATHING PURPLE"
+msgstr "紫色呼吸"
+
+msgid "BREATHING CYAN"
+msgstr "青色呼吸"
+
+msgid "BREATHING WHITE"
+msgstr "白色呼吸"
+
+msgid "BREATHING"
+msgstr "呼吸"
+
+msgid "BREATHING RGB"
+msgstr "RGB 呼吸"
+
+msgid "BREATHING YELLOW"
+msgstr "黄色呼吸"
+
+msgid "BREATHING MAGENTA"
+msgstr "洋红呼吸"
+
+msgid "FLOW EFFECT"
+msgstr "流动效果"
+
+msgid "SCROLLING EFFECT"
+msgstr "滚动效果"
+
+msgid "BRIGHTNESS"
+msgstr "亮度"
+
+msgid "HIGH"
+msgstr "高"
+
+msgid "MEDIUM"
+msgstr "中"
+
+msgid "LOW"
+msgstr "低"
+
+msgid "JOYSTICK LED"
+msgstr "摇杆灯"
+
+msgid "UNSUPPORTED DEVICE"
+msgstr "不支持的设备"
+
+msgid "Joystick LED is not supported on this device."
+msgstr "此设备不支持摇杆灯功能。"
+
+msgid "LED MODE"
+msgstr "LED 模式"
+
+msgid "TURN OFF LED"
+msgstr "关闭 LED"
+
+msgid "SOLID RED"
+msgstr "红色常亮"
+
+msgid "SOLID GREEN"
+msgstr "绿色常亮"
+
+msgid "SOLID BLUE"
+msgstr "蓝色常亮"
+
+msgid "SOLID ORANGE"
+msgstr "橙色常亮"
+
+msgid "SOLID PURPLE"
+msgstr "紫色常亮"
+
+msgid "SOLID CYAN"
+msgstr "青色常亮"
+
+msgid "SOLID WHITE"
+msgstr "白色常亮"
+
+msgid "SOLID YELLOW"
+msgstr "黄色常亮"
+
+msgid "SOLID MAGENTA"
+msgstr "品红常亮"
+
+msgid "BREATHING RED"
+msgstr "红色呼吸"
+
+msgid "BREATHING GREEN"
+msgstr "绿色呼吸"
+
+msgid "BREATHING BLUE"
+msgstr "蓝色呼吸"
+
+msgid "BREATHING ORANGE"
+msgstr "橙色呼吸"
+
+msgid "BREATHING PURPLE"
+msgstr "紫色呼吸"
+
+msgid "BREATHING CYAN"
+msgstr "青色呼吸"
+
+msgid "BREATHING WHITE"
+msgstr "白色呼吸"
+
+msgid "BREATHING"
+msgstr "呼吸"
+
+msgid "BREATHING RGB"
+msgstr "RGB 呼吸"
+
+msgid "BREATHING YELLOW"
+msgstr "黄色呼吸"
+
+msgid "BREATHING MAGENTA"
+msgstr "洋红呼吸"
+
+msgid "FLOW EFFECT"
+msgstr "流动效果"
+
+msgid "SCROLLING EFFECT"
+msgstr "滚动效果"

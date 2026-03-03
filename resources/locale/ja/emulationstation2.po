@@ -1390,3 +1390,96 @@ msgstr "パスワードが正しくありません"
 
 msgid "NETWORK NOT FOUND"
 msgstr "ネットワークが見つかりません"
+
+msgid "JOYSTICK LED"
+msgstr "ジョイスティック LED"
+
+msgid "UNSUPPORTED DEVICE"
+msgstr "非対応デバイス"
+
+msgid "Joystick LED is not supported on this device."
+msgstr "このデバイスではジョイスティック LED に対応していません。"
+
+msgid "LED MODE"
+msgstr "LED モード"
+
+msgid "TURN OFF LED"
+msgstr "LED をオフ"
+
+msgid "SOLID RED"
+msgstr "赤（点灯）"
+
+msgid "SOLID GREEN"
+msgstr "緑（点灯）"
+
+msgid "SOLID BLUE"
+msgstr "青（点灯）"
+
+msgid "SOLID ORANGE"
+msgstr "オレンジ（点灯）"
+
+msgid "SOLID PURPLE"
+msgstr "紫（点灯）"
+
+msgid "SOLID CYAN"
+msgstr "シアン（点灯）"
+
+msgid "SOLID WHITE"
+msgstr "白（点灯）"
+
+msgid "SOLID YELLOW"
+msgstr "黄（点灯）"
+
+msgid "SOLID MAGENTA"
+msgstr "マゼンタ（点灯）"
+
+msgid "BREATHING RED"
+msgstr "赤（呼吸）"
+
+msgid "BREATHING GREEN"
+msgstr "緑（呼吸）"
+
+msgid "BREATHING BLUE"
+msgstr "青（呼吸）"
+
+msgid "BREATHING ORANGE"
+msgstr "オレンジ（呼吸）"
+
+msgid "BREATHING PURPLE"
+msgstr "紫（呼吸）"
+
+msgid "BREATHING CYAN"
+msgstr "シアン（呼吸）"
+
+msgid "BREATHING WHITE"
+msgstr "白（呼吸）"
+
+msgid "BREATHING"
+msgstr "呼吸"
+
+msgid "BREATHING RGB"
+msgstr "RGB（呼吸）"
+
+msgid "BREATHING YELLOW"
+msgstr "黄（呼吸）"
+
+msgid "BREATHING MAGENTA"
+msgstr "マゼンタ（呼吸）"
+
+msgid "FLOW EFFECT"
+msgstr "フローエフェクト"
+
+msgid "SCROLLING EFFECT"
+msgstr "スクロールエフェクト"
+
+msgid "BRIGHTNESS"
+msgstr "明るさ"
+
+msgid "HIGH"
+msgstr "高"
+
+msgid "MEDIUM"
+msgstr "中"
+
+msgid "LOW"
+msgstr "低"

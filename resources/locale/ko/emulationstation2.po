@@ -1767,3 +1767,96 @@ msgstr "잘못된 비밀번호"
 
 msgid "NETWORK NOT FOUND"
 msgstr "네트워크를 찾을 수 없음"
+
+msgid "JOYSTICK LED"
+msgstr "조이스틱 LED"
+
+msgid "UNSUPPORTED DEVICE"
+msgstr "지원되지 않는 장치"
+
+msgid "Joystick LED is not supported on this device."
+msgstr "이 장치는 조이스틱 LED를 지원하지 않습니다."
+
+msgid "LED MODE"
+msgstr "LED 모드"
+
+msgid "TURN OFF LED"
+msgstr "LED 끄기"
+
+msgid "SOLID RED"
+msgstr "빨간색 (켜기)"
+
+msgid "SOLID GREEN"
+msgstr "초록색 (켜기)"
+
+msgid "SOLID BLUE"
+msgstr "파란색 (켜기)"
+
+msgid "SOLID ORANGE"
+msgstr "주황색 (켜기)"
+
+msgid "SOLID PURPLE"
+msgstr "보라색 (켜기)"
+
+msgid "SOLID CYAN"
+msgstr "청록색 (켜기)"
+
+msgid "SOLID WHITE"
+msgstr "흰색 (켜기)"
+
+msgid "SOLID YELLOW"
+msgstr "노란색 (켜기)"
+
+msgid "SOLID MAGENTA"
+msgstr "자홍색 (켜기)"
+
+msgid "BREATHING RED"
+msgstr "빨간색 (호흡)"
+
+msgid "BREATHING GREEN"
+msgstr "초록색 (호흡)"
+
+msgid "BREATHING BLUE"
+msgstr "파란색 (호흡)"
+
+msgid "BREATHING ORANGE"
+msgstr "주황색 (호흡)"
+
+msgid "BREATHING PURPLE"
+msgstr "보라색 (호흡)"
+
+msgid "BREATHING CYAN"
+msgstr "청록색 (호흡)"
+
+msgid "BREATHING WHITE"
+msgstr "흰색 (호흡)"
+
+msgid "BREATHING"
+msgstr "호흡"
+
+msgid "BREATHING RGB"
+msgstr "RGB (호흡)"
+
+msgid "BREATHING YELLOW"
+msgstr "노란색 (호흡)"
+
+msgid "BREATHING MAGENTA"
+msgstr "자홍색 (호흡)"
+
+msgid "FLOW EFFECT"
+msgstr "흐름 효과"
+
+msgid "SCROLLING EFFECT"
+msgstr "스크롤 효과"
+
+msgid "BRIGHTNESS"
+msgstr "밝기"
+
+msgid "HIGH"
+msgstr "높음"
+
+msgid "MEDIUM"
+msgstr "중간"
+
+msgid "LOW"
+msgstr "낮음"

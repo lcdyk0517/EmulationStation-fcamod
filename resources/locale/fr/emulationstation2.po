@@ -1513,3 +1513,96 @@ msgstr "Mot de passe incorrect"
 
 msgid "NETWORK NOT FOUND"
 msgstr "Réseau introuvable"
+
+msgid "JOYSTICK LED"
+msgstr "LED Joystick"
+
+msgid "UNSUPPORTED DEVICE"
+msgstr "APPAREIL NON PRIS EN CHARGE"
+
+msgid "Joystick LED is not supported on this device."
+msgstr "La LED Joystick n'est pas prise en charge sur cet appareil."
+
+msgid "LED MODE"
+msgstr "MODE LED"
+
+msgid "TURN OFF LED"
+msgstr "ÉTEINDRE LA LED"
+
+msgid "SOLID RED"
+msgstr "ROUGE FIXE"
+
+msgid "SOLID GREEN"
+msgstr "VERT FIXE"
+
+msgid "SOLID BLUE"
+msgstr "BLEU FIXE"
+
+msgid "SOLID ORANGE"
+msgstr "ORANGE FIXE"
+
+msgid "SOLID PURPLE"
+msgstr "VIOLET FIXE"
+
+msgid "SOLID CYAN"
+msgstr "CYAN FIXE"
+
+msgid "SOLID WHITE"
+msgstr "BLANC FIXE"
+
+msgid "SOLID YELLOW"
+msgstr "JAUNE FIXE"
+
+msgid "SOLID MAGENTA"
+msgstr "MAGENTA FIXE"
+
+msgid "BREATHING RED"
+msgstr "ROUGE RESPIRANT"
+
+msgid "BREATHING GREEN"
+msgstr "VERT RESPIRANT"
+
+msgid "BREATHING BLUE"
+msgstr "BLEU RESPIRANT"
+
+msgid "BREATHING ORANGE"
+msgstr "ORANGE RESPIRANT"
+
+msgid "BREATHING PURPLE"
+msgstr "VIOLET RESPIRANT"
+
+msgid "BREATHING CYAN"
+msgstr "CYAN RESPIRANT"
+
+msgid "BREATHING WHITE"
+msgstr "BLANC RESPIRANT"
+
+msgid "BREATHING"
+msgstr "RESPIRANT"
+
+msgid "BREATHING RGB"
+msgstr "RGB RESPIRANT"
+
+msgid "BREATHING YELLOW"
+msgstr "JAUNE RESPIRANT"
+
+msgid "BREATHING MAGENTA"
+msgstr "MAGENTA RESPIRANT"
+
+msgid "FLOW EFFECT"
+msgstr "EFFET FLUX"
+
+msgid "SCROLLING EFFECT"
+msgstr "EFFET DÉFILANT"
+
+msgid "BRIGHTNESS"
+msgstr "Luminosité"
+
+msgid "HIGH"
+msgstr "Haute"
+
+msgid "MEDIUM"
+msgstr "Moyenne"
+
+msgid "LOW"
+msgstr "Basse"

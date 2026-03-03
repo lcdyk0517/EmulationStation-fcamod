@@ -1623,3 +1623,96 @@ msgstr "Mật khẩu không đúng"
 
 msgid "NETWORK NOT FOUND"
 msgstr "Không tìm thấy mạng"
+
+msgid "JOYSTICK LED"
+msgstr "LED TAY CẦM"
+
+msgid "UNSUPPORTED DEVICE"
+msgstr "THIẾT BỊ KHÔNG HỖ TRỢ"
+
+msgid "Joystick LED is not supported on this device."
+msgstr "LED tay cầm không được hỗ trợ trên thiết bị này."
+
+msgid "LED MODE"
+msgstr "CHẾ ĐỘ LED"
+
+msgid "TURN OFF LED"
+msgstr "TẮT LED"
+
+msgid "SOLID RED"
+msgstr "ĐỎ LIÊN TỤC"
+
+msgid "SOLID GREEN"
+msgstr "XANH LÁ LIÊN TỤC"
+
+msgid "SOLID BLUE"
+msgstr "XANH DƯƠNG LIÊN TỤC"
+
+msgid "SOLID ORANGE"
+msgstr "CAM LIÊN TỤC"
+
+msgid "SOLID PURPLE"
+msgstr "TÍM LIÊN TỤC"
+
+msgid "SOLID CYAN"
+msgstr "XANH LAM LIÊN TỤC"
+
+msgid "SOLID WHITE"
+msgstr "TRẮNG LIÊN TỤC"
+
+msgid "SOLID YELLOW"
+msgstr "VÀNG LIÊN TỤC"
+
+msgid "SOLID MAGENTA"
+msgstr "HỒNG TÍM LIÊN TỤC"
+
+msgid "BREATHING RED"
+msgstr "ĐỎ NHẸ NHÀNG"
+
+msgid "BREATHING GREEN"
+msgstr "XANH LÁ NHẸ NHÀNG"
+
+msgid "BREATHING BLUE"
+msgstr "XANH DƯƠNG NHẸ NHÀNG"
+
+msgid "BREATHING ORANGE"
+msgstr "CAM NHẸ NHÀNG"
+
+msgid "BREATHING PURPLE"
+msgstr "TÍM NHẸ NHÀNG"
+
+msgid "BREATHING CYAN"
+msgstr "XANH LAM NHẸ NHÀNG"
+
+msgid "BREATHING WHITE"
+msgstr "TRẮNG NHẸ NHÀNG"
+
+msgid "BREATHING"
+msgstr "NHẸ NHÀNG"
+
+msgid "BREATHING RGB"
+msgstr "RGB NHẸ NHÀNG"
+
+msgid "BREATHING YELLOW"
+msgstr "VÀNG NHẸ NHÀNG"
+
+msgid "BREATHING MAGENTA"
+msgstr "HỒNG TÍM NHẸ NHÀNG"
+
+msgid "FLOW EFFECT"
+msgstr "HIỆU ỨNG DÒNG CHẢY"
+
+msgid "SCROLLING EFFECT"
+msgstr "HIỆU ỨNG CUỘN"
+
+msgid "BRIGHTNESS"
+msgstr "Độ sáng"
+
+msgid "HIGH"
+msgstr "Cao"
+
+msgid "MEDIUM"
+msgstr "Trung bình"
+
+msgid "LOW"
+msgstr "Thấp"

@@ -2495,3 +2495,96 @@ msgstr "Contraseña incorrecta"
 
 msgid "NETWORK NOT FOUND"
 msgstr "Red no encontrada"
+
+msgid "JOYSTICK LED"
+msgstr "LED DEL JOYSTICK"
+
+msgid "UNSUPPORTED DEVICE"
+msgstr "DISPOSITIVO NO COMPATIBLE"
+
+msgid "Joystick LED is not supported on this device."
+msgstr "El LED del joystick no es compatible con este dispositivo."
+
+msgid "LED MODE"
+msgstr "MODO LED"
+
+msgid "TURN OFF LED"
+msgstr "APAGAR LED"
+
+msgid "SOLID RED"
+msgstr "ROJO SÓLIDO"
+
+msgid "SOLID GREEN"
+msgstr "VERDE SÓLIDO"
+
+msgid "SOLID BLUE"
+msgstr "AZUL SÓLIDO"
+
+msgid "SOLID ORANGE"
+msgstr "NARANJA SÓLIDO"
+
+msgid "SOLID PURPLE"
+msgstr "PÚRPURA SÓLIDO"
+
+msgid "SOLID CYAN"
+msgstr "CIAN SÓLIDO"
+
+msgid "SOLID WHITE"
+msgstr "BLANCO SÓLIDO"
+
+msgid "SOLID YELLOW"
+msgstr "AMARILLO SÓLIDO"
+
+msgid "SOLID MAGENTA"
+msgstr "MAGENTA SÓLIDO"
+
+msgid "BREATHING RED"
+msgstr "ROJO RESPIRANTE"
+
+msgid "BREATHING GREEN"
+msgstr "VERDE RESPIRANTE"
+
+msgid "BREATHING BLUE"
+msgstr "AZUL RESPIRANTE"
+
+msgid "BREATHING ORANGE"
+msgstr "NARANJA RESPIRANTE"
+
+msgid "BREATHING PURPLE"
+msgstr "PÚRPURA RESPIRANTE"
+
+msgid "BREATHING CYAN"
+msgstr "CIAN RESPIRANTE"
+
+msgid "BREATHING WHITE"
+msgstr "BLANCO RESPIRANTE"
+
+msgid "BREATHING"
+msgstr "RESPIRANTE"
+
+msgid "BREATHING RGB"
+msgstr "RGB RESPIRANTE"
+
+msgid "BREATHING YELLOW"
+msgstr "AMARILLO RESPIRANTE"
+
+msgid "BREATHING MAGENTA"
+msgstr "MAGENTA RESPIRANTE"
+
+msgid "FLOW EFFECT"
+msgstr "EFECTO FLUJO"
+
+msgid "SCROLLING EFFECT"
+msgstr "EFECTO DESPLAZAMIENTO"
+
+msgid "BRIGHTNESS"
+msgstr "Brillo"
+
+msgid "HIGH"
+msgstr "Alto"
+
+msgid "MEDIUM"
+msgstr "Medio"
+
+msgid "LOW"
+msgstr "Bajo"

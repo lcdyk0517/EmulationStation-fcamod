@@ -2327,3 +2327,96 @@ msgstr "Ungültiges Passwort"
 
 msgid "NETWORK NOT FOUND"
 msgstr "Netzwerk nicht gefunden"
+
+msgid "JOYSTICK LED"
+msgstr "JOYSTICK LED"
+
+msgid "UNSUPPORTED DEVICE"
+msgstr "NICHT UNTERSTÜTZTES GERÄT"
+
+msgid "Joystick LED is not supported on this device."
+msgstr "Joystick LED wird auf diesem Gerät nicht unterstützt."
+
+msgid "LED MODE"
+msgstr "LED MODUS"
+
+msgid "TURN OFF LED"
+msgstr "LED AUSSCHALTEN"
+
+msgid "SOLID RED"
+msgstr "ROT DAUERHAFT"
+
+msgid "SOLID GREEN"
+msgstr "GRÜN DAUERHAFT"
+
+msgid "SOLID BLUE"
+msgstr "BLAU DAUERHAFT"
+
+msgid "SOLID ORANGE"
+msgstr "ORANGE DAUERHAFT"
+
+msgid "SOLID PURPLE"
+msgstr "LILA DAUERHAFT"
+
+msgid "SOLID CYAN"
+msgstr "CYAN DAUERHAFT"
+
+msgid "SOLID WHITE"
+msgstr "WEISS DAUERHAFT"
+
+msgid "SOLID YELLOW"
+msgstr "GELB DAUERHAFT"
+
+msgid "SOLID MAGENTA"
+msgstr "MAGENTA DAUERHAFT"
+
+msgid "BREATHING RED"
+msgstr "ROT ATMEND"
+
+msgid "BREATHING GREEN"
+msgstr "GRÜN ATMEND"
+
+msgid "BREATHING BLUE"
+msgstr "BLAU ATMEND"
+
+msgid "BREATHING ORANGE"
+msgstr "ORANGE ATMEND"
+
+msgid "BREATHING PURPLE"
+msgstr "LILA ATMEND"
+
+msgid "BREATHING CYAN"
+msgstr "CYAN ATMEND"
+
+msgid "BREATHING WHITE"
+msgstr "WEISS ATMEND"
+
+msgid "BREATHING"
+msgstr "ATMEND"
+
+msgid "BREATHING RGB"
+msgstr "RGB ATMEND"
+
+msgid "BREATHING YELLOW"
+msgstr "GELB ATMEND"
+
+msgid "BREATHING MAGENTA"
+msgstr "MAGENTA ATMEND"
+
+msgid "FLOW EFFECT"
+msgstr "FLUSS-EFFEKT"
+
+msgid "SCROLLING EFFECT"
+msgstr "SCROLL-EFFEKT"
+
+msgid "BRIGHTNESS"
+msgstr "Helligkeit"
+
+msgid "HIGH"
+msgstr "Hoch"
+
+msgid "MEDIUM"
+msgstr "Mittel"
+
+msgid "LOW"
+msgstr "Niedrig"

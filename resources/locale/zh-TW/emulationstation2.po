@@ -3547,3 +3547,96 @@ msgstr "密碼錯誤"
 
 msgid "NETWORK NOT FOUND"
 msgstr "找不到網路"
+
+msgid "JOYSTICK LED"
+msgstr "搖桿燈"
+
+msgid "UNSUPPORTED DEVICE"
+msgstr "不支援的裝置"
+
+msgid "Joystick LED is not supported on this device."
+msgstr "此裝置不支援搖桿燈功能。"
+
+msgid "LED MODE"
+msgstr "LED 模式"
+
+msgid "TURN OFF LED"
+msgstr "關閉 LED"
+
+msgid "SOLID RED"
+msgstr "紅色常亮"
+
+msgid "SOLID GREEN"
+msgstr "綠色常亮"
+
+msgid "SOLID BLUE"
+msgstr "藍色常亮"
+
+msgid "SOLID ORANGE"
+msgstr "橙色常亮"
+
+msgid "SOLID PURPLE"
+msgstr "紫色常亮"
+
+msgid "SOLID CYAN"
+msgstr "青色常亮"
+
+msgid "SOLID WHITE"
+msgstr "白色常亮"
+
+msgid "SOLID YELLOW"
+msgstr "黃色常亮"
+
+msgid "SOLID MAGENTA"
+msgstr "洋紅常亮"
+
+msgid "BREATHING RED"
+msgstr "紅色呼吸"
+
+msgid "BREATHING GREEN"
+msgstr "綠色呼吸"
+
+msgid "BREATHING BLUE"
+msgstr "藍色呼吸"
+
+msgid "BREATHING ORANGE"
+msgstr "橙色呼吸"
+
+msgid "BREATHING PURPLE"
+msgstr "紫色呼吸"
+
+msgid "BREATHING CYAN"
+msgstr "青色呼吸"
+
+msgid "BREATHING WHITE"
+msgstr "白色呼吸"
+
+msgid "BREATHING"
+msgstr "呼吸"
+
+msgid "BREATHING RGB"
+msgstr "RGB 呼吸"
+
+msgid "BREATHING YELLOW"
+msgstr "黃色呼吸"
+
+msgid "BREATHING MAGENTA"
+msgstr "洋紅呼吸"
+
+msgid "FLOW EFFECT"
+msgstr "流動效果"
+
+msgid "SCROLLING EFFECT"
+msgstr "滾動效果"
+
+msgid "BRIGHTNESS"
+msgstr "亮度"
+
+msgid "HIGH"
+msgstr "高"
+
+msgid "MEDIUM"
+msgstr "中"
+
+msgid "LOW"
+msgstr "低"

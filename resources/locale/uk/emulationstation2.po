@@ -3672,3 +3672,96 @@ msgstr "Невірний пароль"
 
 msgid "NETWORK NOT FOUND"
 msgstr "Мережу не знайдено"
+
+msgid "JOYSTICK LED"
+msgstr "СВІТЛОДІОД ДЖОЙСТИКА"
+
+msgid "UNSUPPORTED DEVICE"
+msgstr "НЕПІДТРИМУВАНИЙ ПРИСТРІЙ"
+
+msgid "Joystick LED is not supported on this device."
+msgstr "Світлодіод джойстика не підтримується на цьому пристрої."
+
+msgid "LED MODE"
+msgstr "РЕЖИМ LED"
+
+msgid "TURN OFF LED"
+msgstr "ВИМКНУТИ LED"
+
+msgid "SOLID RED"
+msgstr "ЧЕРВОНИЙ ПОСТІЙНИЙ"
+
+msgid "SOLID GREEN"
+msgstr "ЗЕЛЕНИЙ ПОСТІЙНИЙ"
+
+msgid "SOLID BLUE"
+msgstr "СИНІЙ ПОСТІЙНИЙ"
+
+msgid "SOLID ORANGE"
+msgstr "ПОМАРАНЧЕВИЙ ПОСТІЙНИЙ"
+
+msgid "SOLID PURPLE"
+msgstr "ФІОЛЕТОВИЙ ПОСТІЙНИЙ"
+
+msgid "SOLID CYAN"
+msgstr "БІРЮЗОВИЙ ПОСТІЙНИЙ"
+
+msgid "SOLID WHITE"
+msgstr "БІЛИЙ ПОСТІЙНИЙ"
+
+msgid "SOLID YELLOW"
+msgstr "ЖОВТИЙ ПОСТІЙНИЙ"
+
+msgid "SOLID MAGENTA"
+msgstr "ПУРПУРОВИЙ ПОСТІЙНИЙ"
+
+msgid "BREATHING RED"
+msgstr "ЧЕРВОНИЙ ДИХАННЯ"
+
+msgid "BREATHING GREEN"
+msgstr "ЗЕЛЕНИЙ ДИХАННЯ"
+
+msgid "BREATHING BLUE"
+msgstr "СИНІЙ ДИХАННЯ"
+
+msgid "BREATHING ORANGE"
+msgstr "ПОМАРАНЧЕВИЙ ДИХАННЯ"
+
+msgid "BREATHING PURPLE"
+msgstr "ФІОЛЕТОВИЙ ДИХАННЯ"
+
+msgid "BREATHING CYAN"
+msgstr "БІРЮЗОВИЙ ДИХАННЯ"
+
+msgid "BREATHING WHITE"
+msgstr "БІЛИЙ ДИХАННЯ"
+
+msgid "BREATHING"
+msgstr "ДИХАННЯ"
+
+msgid "BREATHING RGB"
+msgstr "RGB ДИХАННЯ"
+
+msgid "BREATHING YELLOW"
+msgstr "ЖОВТИЙ ДИХАННЯ"
+
+msgid "BREATHING MAGENTA"
+msgstr "ПУРПУРОВИЙ ДИХАННЯ"
+
+msgid "FLOW EFFECT"
+msgstr "ЕФЕКТ ПОТОКУ"
+
+msgid "SCROLLING EFFECT"
+msgstr "ЕФЕКТ ПРОКРУТКИ"
+
+msgid "BRIGHTNESS"
+msgstr "Яскравість"
+
+msgid "HIGH"
+msgstr "Висока"
+
+msgid "MEDIUM"
+msgstr "Середня"
+
+msgid "LOW"
+msgstr "Низька"
