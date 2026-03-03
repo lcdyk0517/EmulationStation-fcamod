@@ -14,6 +14,7 @@
 
 #include <fstream>
 #include <thread>
+#include <regex>
 #include <chrono>
 
 // ============================================================================
@@ -171,7 +172,29 @@ void GuiArkOS4CloneSettings::createWifiSettingsMenu()
         wifiStatus = _("NOT CONNECTED");
     }
     mWifiStatusText = std::make_shared<TextComponent>(mWindow, wifiStatus, ThemeData::getMenuTheme()->TextSmall.font, ThemeData::getMenuTheme()->TextSmall.color);
+    mWifiStatusText->setLineSpacing(1.0f);
     s->addWithLabel(_("CURRENT NETWORK"), mWifiStatusText);
+
+    // Remote Services toggle (SSH, Samba, FileBrowser, NTP)
+    bool remoteEnabled = isRemoteServicesEnabled();
+    auto remoteSwitch = std::make_shared<SwitchComponent>(mWindow);
+    remoteSwitch->setState(remoteEnabled);
+    remoteSwitch->setOnChangedCallback([this, remoteSwitch] {
+        toggleRemoteServices(remoteSwitch->getState());
+    });
+    s->addWithLabel(_("REMOTE SERVICES"), remoteSwitch);
+
+    // IP Address display
+    std::string ipAddress = getIpAddress();
+    if (ipAddress.empty()) {
+        ipAddress = _("NOT CONNECTED");
+    }
+    // Set height > fontHeight to avoid truncation, but use lineSpacing 1.0f for correct rendering
+    float ipHeight = ThemeData::getMenuTheme()->TextSmall.font->getHeight(1.0f) * 1.5f;
+    mIpAddressText = std::make_shared<TextComponent>(mWindow, ipAddress, ThemeData::getMenuTheme()->TextSmall.font, ThemeData::getMenuTheme()->TextSmall.color, ALIGN_RIGHT);
+    mIpAddressText->setLineSpacing(1.0f);
+    mIpAddressText->setSize(Renderer::getScreenWidth() * 0.4f, ipHeight);
+    s->addWithLabel(_("IP ADDRESS"), mIpAddressText);
 
     s->addEntry(_("SCAN WIFI NETWORKS"), true, [this] {
         scanWifi();
@@ -200,6 +223,77 @@ void GuiArkOS4CloneSettings::updateWifiStatusText()
             wifiStatus = _("NOT CONNECTED");
         }
         mWifiStatusText->setText(wifiStatus);
+    }
+}
+
+// ============================================================================
+// Remote Services Functions
+// ============================================================================
+
+bool GuiArkOS4CloneSettings::isRemoteServicesEnabled()
+{
+    // Check if sshd process is running as indicator
+    std::string result = executeCommand("pgrep -x sshd 2>/dev/null");
+    return !result.empty();
+}
+
+std::string GuiArkOS4CloneSettings::getIpAddress()
+{
+    std::string ip = executeCommand("ip route | awk '/src/ { print $9; exit }' 2>/dev/null");
+    ip = Utils::String::trim(ip);
+    
+    // Extract only IP address pattern (xxx.xxx.xxx.xxx) using regex
+    std::regex ipPattern("(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})");
+    std::smatch match;
+    if (std::regex_search(ip, match, ipPattern)) {
+        return match[1].str();
+    }
+    return ip;
+}
+
+void GuiArkOS4CloneSettings::toggleRemoteServices(bool enable)
+{
+    if (enable) {
+        // Check if network is available
+        std::string gateway = executeCommand("ip route | awk '/default/ { print $3; exit }' 2>/dev/null");
+        if (Utils::String::trim(gateway).empty()) {
+            return; // No network connection
+        }
+        
+        // Enable NetworkManager-wait-online
+        executeCommand("sudo systemctl enable NetworkManager-wait-online 2>/dev/null");
+        executeCommand("sudo systemctl start NetworkManager-wait-online 2>/dev/null");
+        
+        // Enable NTP time sync
+        executeCommand("sudo timedatectl set-ntp 1 2>/dev/null");
+        
+        // Start Samba services
+        executeCommand("sudo systemctl start smbd 2>/dev/null");
+        executeCommand("sudo systemctl start nmbd 2>/dev/null");
+        
+        // Start SSH service
+        executeCommand("sudo systemctl start ssh.service 2>/dev/null");
+        
+        // Start FileBrowser
+        executeCommand("sudo pkill -f filebrowser 2>/dev/null || true");
+        executeCommand("sudo filebrowser -a 0.0.0.0 -p 80 -d /home/ark/.config/filebrowser.db -r / >/dev/null 2>&1 &");
+    } else {
+        // Disable NetworkManager-wait-online
+        executeCommand("sudo systemctl disable NetworkManager-wait-online 2>/dev/null");
+        executeCommand("sudo systemctl stop NetworkManager-wait-online 2>/dev/null");
+        
+        // Disable NTP time sync
+        executeCommand("sudo timedatectl set-ntp 0 2>/dev/null");
+        
+        // Stop Samba services
+        executeCommand("sudo systemctl stop smbd 2>/dev/null");
+        executeCommand("sudo systemctl stop nmbd 2>/dev/null");
+        
+        // Stop SSH service
+        executeCommand("sudo systemctl stop ssh.service 2>/dev/null");
+        
+        // Stop FileBrowser
+        executeCommand("sudo pkill -f filebrowser 2>/dev/null || true");
     }
 }
 

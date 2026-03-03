@@ -614,6 +614,9 @@ msgstr "상태"
 msgid "IP ADDRESS"
 msgstr "IP 주소"
 
+msgid "REMOTE SERVICES"
+msgstr "원격 서비스"
+
 msgid "HOSTNAME"
 msgstr "호스트 이름"
 

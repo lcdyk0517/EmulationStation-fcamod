@@ -1591,7 +1591,9 @@ msgstr "STATUS"
 msgid "IP ADDRESS"
 msgstr "ADRES IP"
 
-#: 
+msgid "REMOTE SERVICES"
+msgstr "Usługi zdalne"
+
 msgid "HOSTNAME"
 msgstr "NAZWA HOSTA"
 

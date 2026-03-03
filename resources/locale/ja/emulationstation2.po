@@ -1325,6 +1325,9 @@ msgstr "Wi-Fi 設定"
 msgid "CURRENT NETWORK"
 msgstr "現在のネットワーク"
 
+msgid "REMOTE SERVICES"
+msgstr "リモートサービス"
+
 msgid "SCAN WIFI NETWORKS"
 msgstr "Wi-Fi ネットワークをスキャン"
 

@@ -1019,6 +1019,9 @@ msgstr "Wi-Fi Inställningar"
 msgid "CURRENT NETWORK"
 msgstr "Aktuellt nätverk"
 
+msgid "REMOTE SERVICES"
+msgstr "Fjärrtjänster"
+
 msgid "SCAN WIFI NETWORKS"
 msgstr "Sök efter Wi-Fi nätverk"
 

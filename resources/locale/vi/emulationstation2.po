@@ -604,6 +604,9 @@ msgstr "TRẠNG THÁI"
 msgid "IP ADDRESS"
 msgstr "ĐỊA CHỈ IP"
 
+msgid "REMOTE SERVICES"
+msgstr "Dịch vụ từ xa"
+
 msgid "HOSTNAME"
 msgstr "HOSTNAME"
 

@@ -35,6 +35,11 @@ private:
     void showNetworkInfo();
     void updateWifiStatusText();
     
+    // Remote Services functions
+    static bool isRemoteServicesEnabled();
+    static std::string getIpAddress();
+    static void toggleRemoteServices(bool enable);
+    
     // Joystick LED functions
     void openJoystickLedSettings();
     static std::string detectLedType();
@@ -50,6 +55,7 @@ private:
     MenuComponent mMenu;
     std::vector<std::pair<std::string, int>> mWifiNetworks; // ssid, signal
     std::shared_ptr<TextComponent> mWifiStatusText;
+    std::shared_ptr<TextComponent> mIpAddressText;
 };
 
 #endif // ES_APP_GUIGUIARKOS4CLONESETTINGS_H

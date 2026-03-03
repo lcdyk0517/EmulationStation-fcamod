@@ -1769,6 +1769,9 @@ msgstr "УВІМКНИТИ ЗВУК У ВІДЕО"
 msgid "IP ADDRESS"
 msgstr "IP АДРЕСА"
 
+msgid "REMOTE SERVICES"
+msgstr "Віддалені служби"
+
 msgid "CONNECTED"
 msgstr "ПІДКЛЮЧЕНО"
 

@@ -617,7 +617,9 @@ msgstr "ΚΑΤΑΣΤΑΣΗ"
 msgid "IP ADDRESS"
 msgstr "ΔΙΕΥΘΥΝΣΗ IP"
 
-#: 
+msgid "REMOTE SERVICES"
+msgstr "Υπηρεσίες απομακρυσμένης πρόσβασης"
+
 msgid "HOSTNAME"
 msgstr "ΟΝΟΜΑ HOST"
 

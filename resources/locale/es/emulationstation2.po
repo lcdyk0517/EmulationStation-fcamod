@@ -1085,7 +1085,9 @@ msgstr "ESTADO"
 msgid "IP ADDRESS"
 msgstr "DIRECCIÓN IP"
 
-#: 
+msgid "REMOTE SERVICES"
+msgstr "Servicios remotos"
+
 msgid "HOSTNAME"
 msgstr "NOMBRE HOST"
 

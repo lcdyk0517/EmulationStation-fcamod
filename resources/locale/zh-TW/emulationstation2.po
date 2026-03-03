@@ -1715,6 +1715,9 @@ msgstr "啟用影片音訊"
 msgid "IP ADDRESS"
 msgstr "IP 位址"
 
+msgid "REMOTE SERVICES"
+msgstr "遠端服務"
+
 msgid "CONNECTED"
 msgstr "已連線"
 

@@ -777,7 +777,9 @@ msgstr "ESTADO"
 msgid "IP ADDRESS"
 msgstr "ENDEREÇO ​​DE IP"
 
-#: 
+msgid "REMOTE SERVICES"
+msgstr "Serviços remotos"
+
 msgid "HOSTNAME"
 msgstr "NOME DO HOST"
 

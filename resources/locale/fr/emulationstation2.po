@@ -1448,6 +1448,9 @@ msgstr "Paramètres Wi-Fi"
 msgid "CURRENT NETWORK"
 msgstr "Réseau actuel"
 
+msgid "REMOTE SERVICES"
+msgstr "Services distants"
+
 msgid "SCAN WIFI NETWORKS"
 msgstr "Rechercher les réseaux Wi-Fi"
 
