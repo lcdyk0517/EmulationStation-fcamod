@@ -42,3 +42,6 @@ CPackConfig.cmake
 CPackSourceConfig.cmake
 *.cbp
 /.vs
+
+# Local build scripts (may contain API keys)
+build-local.sh
