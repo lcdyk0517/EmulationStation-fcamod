@@ -137,10 +137,12 @@ GuiArkOS4CloneSettings::GuiArkOS4CloneSettings(Window* window)
         openWifiSettings();
     }, "iconWifi");
 
-    // Joystick LED Settings submenu
-    mMenu.addEntry(_("JOYSTICK LED"), true, [this] {
-        openJoystickLedSettings();
-    }, "");
+    // Joystick LED Settings submenu (only for supported devices)
+    if (!detectLedType().empty()) {
+        mMenu.addEntry(_("JOYSTICK LED"), true, [this] {
+            openJoystickLedSettings();
+        }, "");
+    }
 
     // USB Switch (R36Max2 only)
     if (isR36Max2()) {
