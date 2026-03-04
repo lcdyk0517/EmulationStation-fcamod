@@ -1506,3 +1506,27 @@ msgstr "内部 USB (内蔵ストレージ)"
 
 msgid "EXTERNAL USB (OTG DEVICE)"
 msgstr "外部 USB (OTG デバイス)"
+
+msgid "DATE & TIME"
+msgstr "日付と時刻"
+
+msgid "CURRENT"
+msgstr "現在"
+
+msgid "DATE"
+msgstr "日付"
+
+msgid "TIME"
+msgstr "時刻"
+
+msgid "SYNC WITH NETWORK"
+msgstr "ネットワークと同期"
+
+msgid "TIME SET SUCCESSFULLY"
+msgstr "時刻を設定しました"
+
+msgid "TIME SYNCED SUCCESSFULLY"
+msgstr "時刻を同期しました"
+
+msgid "NO NETWORK CONNECTION"
+msgstr "ネットワーク接続なし"

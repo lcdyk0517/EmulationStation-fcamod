@@ -18,6 +18,7 @@
 #include "guis/GuiMsgBox.h"
 #include "scrapers/ThreadedScraper.h"
 #include "guis/GuiMenu.h"
+#include "guis/GuiSettings.h"
 
 std::vector<std::string> GuiGamelistOptions::gridSizes {
 	"automatic",
@@ -91,6 +92,17 @@ GuiGamelistOptions::GuiGamelistOptions(Window* window, SystemData* system, bool 
 
 	if (!fromPlaceholder)
 	{
+		// Emulator settings - show only if system has multiple emulators or cores (first option)
+		auto emulData = mSystem->getSystemEnvData();
+		if (emulData && emulData->mEmulators.size() > 0 &&
+			(emulData->mEmulators.size() > 1 ||
+			 (emulData->mEmulators.size() == 1 && emulData->mEmulators[0].mCores.size() > 1)))
+		{
+			mMenu.addEntry(_("EMULATOR SETTINGS"), true, [this] {
+				openEmulatorSettings();
+			}, "iconSystem");
+		}
+
 		// jump to letter
 		row.elements.clear();
 
@@ -613,4 +625,120 @@ std::vector<HelpPrompt> GuiGamelistOptions::getHelpPrompts()
 IGameListView* GuiGamelistOptions::getGamelist()
 {
 	return ViewController::get()->getGameListView(mSystem).get();
+}
+
+void GuiGamelistOptions::openEmulatorSettings()
+{
+	auto theme = ThemeData::getMenuTheme();
+
+	GuiSettings* s = new GuiSettings(mWindow, mSystem->getFullName().c_str());
+
+	auto emul_choice = std::make_shared<OptionListComponent<std::string>>(mWindow, _("EMULATOR"), false);
+	auto core_choice = std::make_shared<OptionListComponent<std::string>>(mWindow, _("CORE"), false);
+
+	std::string currentEmul = Settings::getInstance()->getString(mSystem->getName() + ".emulator");
+	std::string defaultEmul = (mSystem->getSystemEnvData()->mEmulators.size() == 0 ? "" : mSystem->getSystemEnvData()->mEmulators[0].mName);
+
+	emul_choice->add(_("AUTO"), "", false);
+
+	bool found = false;
+	for (auto core : mSystem->getSystemEnvData()->mEmulators)
+	{
+		if (core.mName == currentEmul)
+			found = true;
+
+		emul_choice->add(core.mName, core.mName, core.mName == currentEmul);
+	}
+
+	if (!found)
+		emul_choice->selectFirstItem();
+
+	ComponentListRow row;
+	row.addElement(std::make_shared<TextComponent>(mWindow, _("EMULATOR"), theme->Text.font, theme->Text.color), true);
+	row.addElement(emul_choice, false);
+
+	s->addRow(row);
+
+	emul_choice->setSelectedChangedCallback([this, core_choice](std::string emulatorName)
+	{
+		std::string currentCore = Settings::getInstance()->getString(mSystem->getName() + ".core");
+		std::string defaultCore;
+
+		for (auto& emulator : mSystem->getSystemEnvData()->mEmulators)
+		{
+			if (emulatorName == emulator.mName)
+			{
+				for (auto core : emulator.mCores)
+				{
+					defaultCore = core;
+					break;
+				}
+			}
+		}
+
+		core_choice->clear();
+
+		core_choice->add(_("AUTO"), "", false);
+
+		std::vector<std::string> cores = mSystem->getSystemEnvData()->getCores(emulatorName);
+
+		bool found = false;
+
+		for (auto it = cores.begin(); it != cores.end(); it++)
+		{
+			std::string core = *it;
+			core_choice->add(core, core, currentCore == core);
+			if (currentCore == core)
+				found = true;
+		}
+
+		if (!found)
+			core_choice->selectFirstItem();
+		else
+			core_choice->invalidate();
+	});
+
+	row.elements.clear();
+	row.addElement(std::make_shared<TextComponent>(mWindow, _("CORE"), theme->Text.font, theme->Text.color), true);
+	row.addElement(core_choice, false);
+	s->addRow(row);
+
+	// force change event to load core list
+	emul_choice->invalidate();
+
+	// set governor
+	auto gov_choice = std::make_shared<OptionListComponent<std::string>>(mWindow, _("GOVERNOR"), false);
+
+	gov_choice->clear();
+
+	gov_choice->add(_("AUTO"), "", false);
+
+	std::vector<std::string> governors = mSystem->getSystemEnvData()->allGovernors();
+	std::string currentGovernor = Settings::getInstance()->getString(mSystem->getName() + ".governor");
+
+	bool foundgov = false;
+
+	for (auto it = governors.begin(); it != governors.end(); it++)
+	{
+		std::string govena = *it;
+		gov_choice->add(govena, govena, currentGovernor == govena);
+		if (currentGovernor == govena)
+			foundgov = true;
+	}
+
+	if (!foundgov)
+		gov_choice->selectFirstItem();
+	else
+		gov_choice->invalidate();
+
+	s->addWithLabel(_("GOVERNOR"), gov_choice);
+
+	s->addSaveFunc([this, emul_choice, core_choice, gov_choice]
+	{
+		Settings::getInstance()->setString(mSystem->getName() + ".emulator", emul_choice->getSelected());
+		Settings::getInstance()->setString(mSystem->getName() + ".core", core_choice->getSelected());
+		Settings::getInstance()->setString(mSystem->getName() + ".governor", gov_choice->getSelected());
+	});
+
+	mWindow->pushGui(s);
 }

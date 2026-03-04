@@ -58,6 +58,12 @@ private:
     static bool isUsbInternal();
     static void setUsbInternal(bool internal);
     
+    // Date & Time functions
+    void openDateTimeSettings();
+    static std::string getCurrentDateTime();
+    static bool setSystemTime(int year, int month, int day, int hour, int minute);
+    static bool syncNetworkTime();
+    
     MenuComponent mMenu;
     std::vector<std::pair<std::string, int>> mWifiNetworks; // ssid, signal
     std::shared_ptr<TextComponent> mWifiStatusText;

@@ -2,6 +2,8 @@
 #include "guis/GuiMsgBox.h"
 #include "guis/GuiTextEditPopupKeyboard.h"
 #include "guis/GuiSettings.h"
+#include "guis/GuiDetectDevice.h"
+#include "components/SliderComponent.h"
 #include "components/OptionListComponent.h"
 #include "components/SwitchComponent.h"
 #include "components/BusyComponent.h"
@@ -144,6 +146,20 @@ GuiArkOS4CloneSettings::GuiArkOS4CloneSettings(Window* window)
             openUsbSwitchSettings();
         }, "");
     }
+
+    // Configure Input
+    mMenu.addEntry(_("CONFIGURE INPUT"), true, [this] {
+        Window* window = mWindow;
+        window->pushGui(new GuiMsgBox(window, _("ARE YOU SURE YOU WANT TO CONFIGURE INPUT?"), _("YES"),
+            [window] {
+                window->pushGui(new GuiDetectDevice(window, false, nullptr));
+            }, _("NO"), nullptr));
+    }, "iconControllers");
+
+    // Date & Time Settings
+    mMenu.addEntry(_("DATE & TIME"), true, [this] {
+        openDateTimeSettings();
+    }, "");
 
     mMenu.addButton(_("BACK"), "back", [this] {
         delete this;
@@ -1092,6 +1108,172 @@ void GuiArkOS4CloneSettings::openJoystickLedSettings()
             std::string selectedColor = ledOptions->getSelected();
             applyLedColor(selectedColor, selectedBrightness);
         });
+    }
+    
+    mWindow->pushGui(s);
+}
+
+// ============================================================================
+// Date & Time Functions
+// ============================================================================
+
+std::string GuiArkOS4CloneSettings::getCurrentDateTime()
+{
+    std::string result = executeCommand("date '+%Y-%m-%d %H:%M'");
+    return result.empty() ? "2024-01-01 00:00" : result;
+}
+
+bool GuiArkOS4CloneSettings::setSystemTime(int year, int month, int day, int hour, int minute)
+{
+    char cmd[128];
+    snprintf(cmd, sizeof(cmd), "sudo date -s '%04d-%02d-%02d %02d:%02d:00' 2>/dev/null", year, month, day, hour, minute);
+    executeCommand(cmd);
+    
+    // Sync to hardware clock
+    executeCommand("sudo hwclock -w 2>/dev/null");
+    
+    return true;
+}
+
+bool GuiArkOS4CloneSettings::syncNetworkTime()
+{
+    // Enable NTP sync
+    executeCommand("sudo timedatectl set-ntp 1 2>/dev/null");
+    
+    // Try ntpdate as fallback
+    executeCommand("sudo ntpdate pool.ntp.org 2>/dev/null || sudo ntpdate time.google.com 2>/dev/null");
+    
+    // Sync to hardware clock
+    executeCommand("sudo hwclock -w 2>/dev/null");
+    
+    return true;
+}
+
+void GuiArkOS4CloneSettings::openDateTimeSettings()
+{
+    auto s = new GuiSettings(mWindow, _("DATE & TIME"));
+    auto theme = ThemeData::getMenuTheme();
+    
+    // Check network connection
+    std::string gateway = executeCommand("ip route | awk '/default/ { print $3; exit }' 2>/dev/null");
+    bool hasNetwork = !Utils::String::trim(gateway).empty();
+    
+    // Get current date/time
+    std::string currentDateTime = getCurrentDateTime();
+    int currentYear = 2024, currentMonth = 1, currentDay = 1, currentHour = 0, currentMinute = 0;
+    sscanf(currentDateTime.c_str(), "%d-%d-%d %d:%d", &currentYear, &currentMonth, &currentDay, &currentHour, &currentMinute);
+    
+    // Display current time (extract only the datetime pattern, remove extra chars)
+    std::string fullDateTime = executeCommand("date '+%Y-%m-%d %H:%M'");
+    std::regex dtRegex("^[\\s\\r\\n]+|[\\s\\r\\n]+$");
+    fullDateTime = std::regex_replace(fullDateTime, dtRegex, "");
+    
+    auto currentTimeText = std::make_shared<TextComponent>(mWindow, fullDateTime, 
+        theme->Text.font, theme->Text.color, ALIGN_RIGHT);
+    currentTimeText->setSize(Renderer::getScreenWidth() * 0.4f, theme->Text.font->getHeight() * 1.5f);
+    s->addWithLabel(_("CURRENT"), currentTimeText);
+    
+    // Network sync button (always available when network connected)
+    s->addEntry(_("SYNC WITH NETWORK"), hasNetwork, [this, hasNetwork] {
+        if (!hasNetwork) {
+            mWindow->pushGui(new GuiMsgBox(mWindow, _("NO NETWORK CONNECTION"), _("OK")));
+            return;
+        }
+        syncNetworkTime();
+        mWindow->pushGui(new GuiMsgBox(mWindow, _("TIME SYNCED SUCCESSFULLY"), _("OK")));
+    }, "");
+    
+    // Manual adjustment only when offline
+    if (!hasNetwork) {
+        // Helper function to get days in month
+        auto getDaysInMonth = [](int year, int month) -> int {
+            static const int daysInMonth[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+            if (month == 2) {
+                bool isLeap = (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+                return isLeap ? 29 : 28;
+            }
+            return daysInMonth[month];
+        };
+        
+        // Year selector (2020-2040)
+        auto yearList = std::make_shared<OptionListComponent<std::string>>(mWindow, _("YEAR"), false);
+        for (int y = 2020; y <= 2040; y++) {
+            yearList->add(std::to_string(y), std::to_string(y), y == currentYear);
+        }
+        s->addWithLabel(_("YEAR"), yearList);
+        
+        // Month selector
+        auto monthList = std::make_shared<OptionListComponent<std::string>>(mWindow, _("MONTH"), false);
+        for (int m = 1; m <= 12; m++) {
+            char buf[8];
+            snprintf(buf, sizeof(buf), "%02d", m);
+            monthList->add(buf, buf, m == currentMonth);
+        }
+        s->addWithLabel(_("MONTH"), monthList);
+        
+        // Day selector
+        auto dayList = std::make_shared<OptionListComponent<std::string>>(mWindow, _("DAY"), false);
+        int maxDays = getDaysInMonth(currentYear, currentMonth);
+        if (currentDay > maxDays) currentDay = maxDays;
+        for (int d = 1; d <= maxDays; d++) {
+            char buf[8];
+            snprintf(buf, sizeof(buf), "%02d", d);
+            dayList->add(buf, buf, d == currentDay);
+        }
+        s->addWithLabel(_("DAY"), dayList);
+        
+        // Update day list when year or month changes
+        auto updateDays = [dayList, &getDaysInMonth](int year, int month) {
+            int maxDays = getDaysInMonth(year, month);
+            int selected = atoi(dayList->getSelected().c_str());
+            if (selected > maxDays) selected = maxDays;
+            
+            dayList->clear();
+            for (int d = 1; d <= maxDays; d++) {
+                char buf[8];
+                snprintf(buf, sizeof(buf), "%02d", d);
+                dayList->add(buf, buf, d == selected);
+            }
+        };
+        
+        yearList->setSelectedChangedCallback([monthList, updateDays](const std::string& val) {
+            updateDays(atoi(val.c_str()), atoi(monthList->getSelected().c_str()));
+        });
+        
+        monthList->setSelectedChangedCallback([yearList, updateDays](const std::string& val) {
+            updateDays(atoi(yearList->getSelected().c_str()), atoi(val.c_str()));
+        });
+        
+        // Hour selector
+        auto hourList = std::make_shared<OptionListComponent<std::string>>(mWindow, _("HOUR"), false);
+        for (int h = 0; h < 24; h++) {
+            char buf[8];
+            snprintf(buf, sizeof(buf), "%02d", h);
+            hourList->add(buf, buf, h == currentHour);
+        }
+        s->addWithLabel(_("HOUR"), hourList);
+        
+        // Minute selector (5-minute intervals)
+        auto minuteList = std::make_shared<OptionListComponent<std::string>>(mWindow, _("MINUTE"), false);
+        int currentMinuteRounded = (currentMinute / 5) * 5;
+        for (int m = 0; m < 60; m += 5) {
+            char buf[8];
+            snprintf(buf, sizeof(buf), "%02d", m);
+            minuteList->add(buf, buf, m == currentMinuteRounded);
+        }
+        s->addWithLabel(_("MINUTE"), minuteList);
+        
+        // Apply button
+        s->addEntry(_("APPLY"), true, [this, yearList, monthList, dayList, hourList, minuteList] {
+            setSystemTime(
+                atoi(yearList->getSelected().c_str()),
+                atoi(monthList->getSelected().c_str()),
+                atoi(dayList->getSelected().c_str()),
+                atoi(hourList->getSelected().c_str()),
+                atoi(minuteList->getSelected().c_str())
+            );
+            mWindow->pushGui(new GuiMsgBox(mWindow, _("TIME SET SUCCESSFULLY"), _("OK")));
+        }, "");
     }
     
     mWindow->pushGui(s);

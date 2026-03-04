@@ -1659,3 +1659,27 @@ msgstr "USB Interno (armazenamento integrado)"
 
 msgid "EXTERNAL USB (OTG DEVICE)"
 msgstr "USB Externo (dispositivo OTG)"
+
+msgid "DATE & TIME"
+msgstr "Data e hora"
+
+msgid "CURRENT"
+msgstr "Atual"
+
+msgid "DATE"
+msgstr "Data"
+
+msgid "TIME"
+msgstr "Hora"
+
+msgid "SYNC WITH NETWORK"
+msgstr "Sincronizar com rede"
+
+msgid "TIME SET SUCCESSFULLY"
+msgstr "Hora definida com sucesso"
+
+msgid "TIME SYNCED SUCCESSFULLY"
+msgstr "Hora sincronizada com sucesso"
+
+msgid "NO NETWORK CONNECTION"
+msgstr "Sem conexão de rede"

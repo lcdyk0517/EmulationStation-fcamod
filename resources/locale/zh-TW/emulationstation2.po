@@ -783,7 +783,7 @@ msgid "NETWORK SETTINGS"
 msgstr "網路設定"
 
 msgid "CONFIGURE INPUT"
-msgstr "設定輸入"
+msgstr "按鍵配置"
 
 msgid "EMULATOR SETTINGS"
 msgstr "模擬器設定"
@@ -1051,7 +1051,7 @@ msgid "PASSWORD"
 msgstr "密碼"
 
 msgid "ARE YOU SURE YOU WANT TO CONFIGURE INPUT?"
-msgstr "您確定要設定輸入嗎？"
+msgstr "您確定要配置按鍵嗎？"
 
 msgid "CHOOSE"
 msgstr "選擇"
@@ -3664,3 +3664,27 @@ msgstr "內置 USB (內置存儲)"
 
 msgid "EXTERNAL USB (OTG DEVICE)"
 msgstr "外置 USB (OTG 設備)"
+
+msgid "DATE & TIME"
+msgstr "日期與時間"
+
+msgid "CURRENT"
+msgstr "當前"
+
+msgid "DATE"
+msgstr "日期"
+
+msgid "TIME"
+msgstr "時間"
+
+msgid "SYNC WITH NETWORK"
+msgstr "網絡同步"
+
+msgid "TIME SET SUCCESSFULLY"
+msgstr "時間設置成功"
+
+msgid "TIME SYNCED SUCCESSFULLY"
+msgstr "時間同步成功"
+
+msgid "NO NETWORK CONNECTION"
+msgstr "無網絡連接"

@@ -3684,3 +3684,27 @@ msgstr "Внутренний USB (встроенное хранилище)"
 
 msgid "EXTERNAL USB (OTG DEVICE)"
 msgstr "Внешний USB (OTG-устройство)"
+
+msgid "DATE & TIME"
+msgstr "Дата и время"
+
+msgid "CURRENT"
+msgstr "Текущее"
+
+msgid "DATE"
+msgstr "Дата"
+
+msgid "TIME"
+msgstr "Время"
+
+msgid "SYNC WITH NETWORK"
+msgstr "Синхронизировать с сетью"
+
+msgid "TIME SET SUCCESSFULLY"
+msgstr "Время успешно установлено"
+
+msgid "TIME SYNCED SUCCESSFULLY"
+msgstr "Время успешно синхронизировано"
+
+msgid "NO NETWORK CONNECTION"
+msgstr "Нет подключения к сети"

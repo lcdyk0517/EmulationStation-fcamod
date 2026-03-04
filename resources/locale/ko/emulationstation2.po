@@ -1884,3 +1884,27 @@ msgstr "내부 USB (내장 저장소)"
 
 msgid "EXTERNAL USB (OTG DEVICE)"
 msgstr "외부 USB (OTG 기기)"
+
+msgid "DATE & TIME"
+msgstr "날짜와 시간"
+
+msgid "CURRENT"
+msgstr "현재"
+
+msgid "DATE"
+msgstr "날짜"
+
+msgid "TIME"
+msgstr "시간"
+
+msgid "SYNC WITH NETWORK"
+msgstr "네트워크 동기화"
+
+msgid "TIME SET SUCCESSFULLY"
+msgstr "시간 설정 완료"
+
+msgid "TIME SYNCED SUCCESSFULLY"
+msgstr "시간 동기화 완료"
+
+msgid "NO NETWORK CONNECTION"
+msgstr "네트워크 연결 없음"
