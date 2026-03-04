@@ -993,6 +993,12 @@ msgid "PASSWORD"
 msgstr "ПАРОЛЬ"
 
 msgid "ARE YOU SURE YOU WANT TO CONFIGURE INPUT?"
+msgid "JOYPAD TEST"
+msgstr "Тест геймпада"
+
+msgid "ARE YOU SURE YOU WANT TO TEST JOYPAD?"
+msgstr "Вы уверены, что хотите протестировать геймпад?"
+
 msgstr "ВЫ УВЕРЕНЫ, ЧТО ХОТИТЕ НАСТРОИТЬ УПРАВЛЕНИЕ?"
 
 msgid "CHOOSE"

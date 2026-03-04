@@ -98,6 +98,12 @@ msgstr "VERZEICHNISSE ANZEIGEN"
 
 #:
 msgid "ARE YOU SURE YOU WANT TO CONFIGURE INPUT?"
+msgid "JOYPAD TEST"
+msgstr "Gamepad-Test"
+
+msgid "ARE YOU SURE YOU WANT TO TEST JOYPAD?"
+msgstr "Sind Sie sicher, dass Sie das Gamepad testen möchten?"
+
 msgstr "BIST DU SICHER, DASS DU DEN EINGANG KONFIGURIEREN WILLST?"
 
 #:

@@ -1152,6 +1152,12 @@ msgstr "ΚΑΛΩΣ ΗΡΘΑΤΕ"
 
 #: 
 msgid "CONFIGURE INPUT"
+
+msgid "JOYPAD TEST"
+msgstr "Δοκιμή χειριστηρίου"
+
+msgid "ARE YOU SURE YOU WANT TO TEST JOYPAD?"
+msgstr "Είστε βέβαιοι ότι θέλετε να δοκιμάσετε το χειριστήριο;"
 msgstr "ΔΙΑΜΟΡΦΩΣΗ ΕΝΤΟΛΗΣ"
 
 #: 

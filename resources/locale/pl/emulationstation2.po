@@ -834,6 +834,12 @@ msgstr "OPCJONALNY SILNIK DRGAŃ"
 
 #: 
 msgid "ARE YOU SURE YOU WANT TO CONFIGURE INPUT?"
+msgid "JOYPAD TEST"
+msgstr "Test kontrolera"
+
+msgid "ARE YOU SURE YOU WANT TO TEST JOYPAD?"
+msgstr "Czy na pewno chcesz przetestować kontroler?"
+
 msgstr "CZY NA PEWNO CHCESZ SKONFIGUROWAĆ WEJŚCIE?"
 
 #: 

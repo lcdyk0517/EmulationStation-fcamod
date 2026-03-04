@@ -1021,6 +1021,12 @@ msgid "WELCOME"
 msgstr "CHÀO MỪNG"
 
 msgid "CONFIGURE INPUT"
+
+msgid "JOYPAD TEST"
+msgstr "Kiểm tra tay cầm"
+
+msgid "ARE YOU SURE YOU WANT TO TEST JOYPAD?"
+msgstr "Bạn có chắc chắn muốn kiểm tra tay cầm không?"
 msgstr "CẤU HÌNH ĐẦU VÀO"
 
 msgid "%i GAMEPAD DETECTED"

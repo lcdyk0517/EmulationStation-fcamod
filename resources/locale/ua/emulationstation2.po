@@ -1051,6 +1051,12 @@ msgid "PASSWORD"
 msgstr "ПАРОЛЬ"
 
 msgid "ARE YOU SURE YOU WANT TO CONFIGURE INPUT?"
+msgid "JOYPAD TEST"
+msgstr "Тест геймпада"
+
+msgid "ARE YOU SURE YOU WANT TO TEST JOYPAD?"
+msgstr "Ви впевнені, що хочете протестувати геймпад?"
+
 msgstr "ВИ ВПЕВНЕНІ, ЩО ХОЧЕТЕ НАЛАШТУВАТИ УПРАВЛІННЯ?"
 
 msgid "CHOOSE"

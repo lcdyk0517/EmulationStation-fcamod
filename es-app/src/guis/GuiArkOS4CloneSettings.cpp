@@ -12,6 +12,8 @@
 #include "ApiSystem.h"
 #include "SystemConf.h"
 #include "Log.h"
+#include "AudioManager.h"
+#include "VolumeControl.h"
 #include "utils/StringUtil.h"
 
 #include <fstream>
@@ -160,6 +162,28 @@ GuiArkOS4CloneSettings::GuiArkOS4CloneSettings(Window* window)
     mMenu.addEntry(_("DATE & TIME"), true, [this] {
         openDateTimeSettings();
     }, "");
+
+    // Joypad Test
+    mMenu.addEntry(_("JOYPAD TEST"), true, [this] {
+        Window* window = mWindow;
+        window->pushGui(new GuiMsgBox(window, _("ARE YOU SURE YOU WANT TO TEST JOYPAD?"), _("YES"),
+            [window] {
+                // Deinit ES resources
+                AudioManager::getInstance()->deinit();
+                VolumeControl::getInstance()->deinit();
+                window->deinit(true);
+
+                // Run sdljoytest on tty1
+                system("sudo chmod 666 /dev/tty1");
+                system("/usr/local/bin/sdljoytest 2>&1 > /dev/tty1");
+                system("setterm -clear all > /dev/tty1");
+
+                // Reinit ES resources
+                window->init(true);
+                VolumeControl::getInstance()->init();
+                AudioManager::getInstance()->init();
+            }, _("NO"), nullptr));
+    }, "iconControllers");
 
     mMenu.addButton(_("BACK"), "back", [this] {
         delete this;

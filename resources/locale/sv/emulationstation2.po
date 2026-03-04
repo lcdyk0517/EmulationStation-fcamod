@@ -643,6 +643,12 @@ msgid "OPTIONAL RUMBLE MOTOR"
 msgstr "RUMLANDE MOTOR SOM TILLVAL"
 
 msgid "ARE YOU SURE YOU WANT TO CONFIGURE INPUT?"
+msgid "JOYPAD TEST"
+msgstr "Handkontrolltest"
+
+msgid "ARE YOU SURE YOU WANT TO TEST JOYPAD?"
+msgstr "Är du säker på att du vill testa handkontrollen?"
+
 msgstr "ÄR DU SÄKER PÅ ATT DU VILL KONFIGURERA INMATNINGEN?"
 
 msgid "REALLY RESTART?"

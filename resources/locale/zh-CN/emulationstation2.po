@@ -1049,6 +1049,12 @@ msgstr "密码"
 msgid "ARE YOU SURE YOU WANT TO CONFIGURE INPUT?"
 msgstr "您确定要配置按键吗？"
 
+msgid "JOYPAD TEST"
+msgstr "手柄测试"
+
+msgid "ARE YOU SURE YOU WANT TO TEST JOYPAD?"
+msgstr "您确定要测试手柄吗？"
+
 msgid "CHOOSE"
 msgstr "选择"
 

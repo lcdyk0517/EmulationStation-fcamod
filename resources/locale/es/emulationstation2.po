@@ -1620,6 +1620,12 @@ msgstr "BIENVENIDO"
 
 #: 
 msgid "CONFIGURE INPUT"
+
+msgid "JOYPAD TEST"
+msgstr "Prueba de mando"
+
+msgid "ARE YOU SURE YOU WANT TO TEST JOYPAD?"
+msgstr "¿Está seguro de que desea probar el mando?"
 msgstr "CONFIGURAR MANDO"
 
 #: 

@@ -1356,6 +1356,14 @@ msgstr "BEM VINDO"
 
 #: 
 msgid "CONFIGURE INPUT"
+
+msgid "JOYPAD TEST"
+msgstr "Teste de Controle"
+msgstr ""
+
+msgid "ARE YOU SURE YOU WANT TO TEST JOYPAD?"
+msgstr "Tem certeza de que deseja testar o controle?"
+msgstr ""
 msgstr "CONFIGURAR CONTROLES"
 
 #: 

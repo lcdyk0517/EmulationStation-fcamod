@@ -834,6 +834,12 @@ msgstr "OPTION DU VIBREUR"
 
 #:
 msgid "ARE YOU SURE YOU WANT TO CONFIGURE INPUT?"
+msgid "JOYPAD TEST"
+msgstr "Test de manette"
+
+msgid "ARE YOU SURE YOU WANT TO TEST JOYPAD?"
+msgstr "Êtes-vous sûr de vouloir tester la manette?"
+
 msgstr "VOULEZ-VOUS MODIFIER LA CONFIGURATION DES TOUCHES ?"
 
 #:

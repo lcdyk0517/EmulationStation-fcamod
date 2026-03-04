@@ -834,6 +834,12 @@ msgstr "追加の振動モーター"
 
 #:
 msgid "ARE YOU SURE YOU WANT TO CONFIGURE INPUT?"
+msgid "JOYPAD TEST"
+msgstr "ゲームパッドテスト"
+
+msgid "ARE YOU SURE YOU WANT TO TEST JOYPAD?"
+msgstr "ゲームパッドをテストしますか？"
+
 msgstr "本当に入力を設定しますか？"
 
 #:

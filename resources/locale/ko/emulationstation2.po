@@ -64,6 +64,12 @@ msgid "SHOW FOLDERS"
 msgstr "폴더 표시"
 
 msgid "ARE YOU SURE YOU WANT TO CONFIGURE INPUT?"
+msgid "JOYPAD TEST"
+msgstr "게임패드 테스트"
+
+msgid "ARE YOU SURE YOU WANT TO TEST JOYPAD?"
+msgstr "게임패드를 테스트하시겠습니까?"
+
 msgstr "입력 설정을 진행하시겠습니까?"
 
 msgid "LOG LEVEL"
