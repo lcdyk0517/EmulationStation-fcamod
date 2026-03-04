@@ -2122,3 +2122,24 @@ msgstr "Μεσαία"
 
 msgid "LOW"
 msgstr "Χαμηλή"
+
+msgid "USB SWITCH"
+msgstr "Διακόπτης USB"
+
+msgid "INTERNAL USB"
+msgstr "Εσωτερικό USB"
+
+msgid "INTERNAL USB FOR BUILT-IN STORAGE"
+msgstr "Εσωτερικό USB για ενσωματωμένο αποθηκευτικό χώρο"
+
+msgid "EXTERNAL USB FOR OTG DEVICES"
+msgstr "Εξωτερικό USB για συσκευές OTG"
+
+msgid "USB MODE"
+msgstr "Λειτουργία USB"
+
+msgid "INTERNAL USB (BUILT-IN STORAGE)"
+msgstr "Εσωτερικό USB (ενσωματωμένος αποθηκευτικός χώρος)"
+
+msgid "EXTERNAL USB (OTG DEVICE)"
+msgstr "Εξωτερικό USB (συσκευή OTG)"

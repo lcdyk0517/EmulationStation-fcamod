@@ -16,6 +16,7 @@
 #include <thread>
 #include <regex>
 #include <chrono>
+#include <algorithm>
 
 // ============================================================================
 // Static Constants
@@ -136,6 +137,13 @@ GuiArkOS4CloneSettings::GuiArkOS4CloneSettings(Window* window)
     mMenu.addEntry(_("JOYSTICK LED"), true, [this] {
         openJoystickLedSettings();
     }, "");
+
+    // USB Switch (R36Max2 only)
+    if (isR36Max2()) {
+        mMenu.addEntry(_("USB SWITCH"), true, [this] {
+            openUsbSwitchSettings();
+        }, "");
+    }
 
     mMenu.addButton(_("BACK"), "back", [this] {
         delete this;
@@ -565,6 +573,104 @@ void GuiArkOS4CloneSettings::connectWifi(const std::string& ssid, const std::str
         }
         mWindow->pushGui(new GuiMsgBox(mWindow, errorMsg, _("OK")));
     }
+}
+
+// ============================================================================
+// USB Switch Functions (R36Max2 only)
+// ============================================================================
+
+// USB switch sysfs path for R36Max2
+static const std::string USB_SWITCH_PATH = "/sys/devices/platform/ff2c0000.syscon/ff2c0000.syscon:usb2-phy@100";
+
+bool GuiArkOS4CloneSettings::isR36Max2()
+{
+    std::string device = executeCommand("/usr/local/bin/console_detect -n 2>/dev/null");
+    
+    // Remove all non-alphanumeric characters (handles \r, \n, spaces, etc.)
+    std::string clean;
+    for (char c : device) {
+        if (std::isalnum(c)) {
+            clean += c;
+        }
+    }
+    
+    // Log for debugging (Info level for visibility)
+    LOG(LogInfo) << "USB Switch: cleaned device name: [" << clean << "]";
+    
+    // Case-insensitive comparison
+    std::transform(clean.begin(), clean.end(), clean.begin(), ::tolower);
+    
+    bool result = (clean == "r36max2");
+    LOG(LogInfo) << "USB Switch: isR36Max2 = " << (result ? "true" : "false");
+    
+    return result;
+}
+
+bool GuiArkOS4CloneSettings::isUsbInternal()
+{
+    // Read current USB switch status
+    // Internal USB: usb_switch_gpio=0, usb_switch_ext=1
+    // External USB: usb_switch_gpio=1, usb_switch_ext=0
+    
+    std::string gpioPath = USB_SWITCH_PATH + "/usb_switch_gpio";
+    std::string extPath = USB_SWITCH_PATH + "/usb_switch_ext";
+    
+    if (!Utils::FileSystem::exists(gpioPath) || !Utils::FileSystem::exists(extPath)) {
+        return false; // Default to internal if files don't exist
+    }
+    
+    std::string gpioValue = executeCommand("cat " + gpioPath + " 2>/dev/null");
+    std::string extValue = executeCommand("cat " + extPath + " 2>/dev/null");
+    
+    int gpio = atoi(Utils::String::trim(gpioValue).c_str());
+    int ext = atoi(Utils::String::trim(extValue).c_str());
+    
+    // Internal USB: gpio=0, ext=1
+    return (gpio == 0 && ext == 1);
+}
+
+void GuiArkOS4CloneSettings::setUsbInternal(bool internal)
+{
+    std::string gpioPath = USB_SWITCH_PATH + "/usb_switch_gpio";
+    std::string extPath = USB_SWITCH_PATH + "/usb_switch_ext";
+    
+    if (!Utils::FileSystem::exists(gpioPath) || !Utils::FileSystem::exists(extPath)) {
+        return;
+    }
+    
+    if (internal) {
+        // Switch to internal USB: first enable ext, then disable gpio
+        executeCommand("sudo sh -c 'echo 1 > " + extPath + "'");
+        executeCommand("sudo sh -c 'echo 0 > " + gpioPath + "'");
+    } else {
+        // Switch to external USB: first enable gpio, then disable ext
+        executeCommand("sudo sh -c 'echo 1 > " + gpioPath + "'");
+        executeCommand("sudo sh -c 'echo 0 > " + extPath + "'");
+    }
+}
+
+void GuiArkOS4CloneSettings::openUsbSwitchSettings()
+{
+    auto s = new GuiSettings(mWindow, _("USB SWITCH"));
+    
+    bool isInternal = isUsbInternal();
+    
+    auto usbOptions = std::make_shared<OptionListComponent<std::string>>(mWindow, _("USB MODE"), false);
+    
+    usbOptions->add(_("INTERNAL USB (BUILT-IN STORAGE)"), "internal", isInternal);
+    usbOptions->add(_("EXTERNAL USB (OTG DEVICE)"), "external", !isInternal);
+    
+    usbOptions->setSelectedChangedCallback([this](const std::string& selected) {
+        if (selected == "internal") {
+            setUsbInternal(true);
+        } else {
+            setUsbInternal(false);
+        }
+    });
+    
+    s->addWithLabel(_("USB MODE"), usbOptions);
+    
+    mWindow->pushGui(s);
 }
 
 // ============================================================================

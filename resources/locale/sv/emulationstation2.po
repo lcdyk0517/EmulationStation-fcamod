@@ -3394,3 +3394,24 @@ msgstr "Låg"
 
 #~ msgid "ERROR: COULDN'T RENDER PDF FILE"
 #~ msgstr "FEL: KUNDE INTE RENDERA PDF FIL"
+
+msgid "USB SWITCH"
+msgstr "USB-växel"
+
+msgid "INTERNAL USB"
+msgstr "Internt USB"
+
+msgid "INTERNAL USB FOR BUILT-IN STORAGE"
+msgstr "Internt USB för inbyggd lagring"
+
+msgid "EXTERNAL USB FOR OTG DEVICES"
+msgstr "Externt USB för OTG-enheter"
+
+msgid "USB MODE"
+msgstr "USB-läge"
+
+msgid "INTERNAL USB (BUILT-IN STORAGE)"
+msgstr "Internt USB (inbyggd lagring)"
+
+msgid "EXTERNAL USB (OTG DEVICE)"
+msgstr "Externt USB (OTG-enhet)"

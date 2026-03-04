@@ -3720,3 +3720,23 @@ msgstr "流动效果"
 
 msgid "SCROLLING EFFECT"
 msgstr "滚动效果"
+msgid "USB SWITCH"
+msgstr "USB 切换"
+
+msgid "INTERNAL USB"
+msgstr "内置 USB"
+
+msgid "INTERNAL USB FOR BUILT-IN STORAGE"
+msgstr "内置 USB 用于内置存储"
+
+msgid "EXTERNAL USB FOR OTG DEVICES"
+msgstr "外置 USB 用于 OTG 设备"
+
+msgid "USB MODE"
+msgstr "USB 模式"
+
+msgid "INTERNAL USB (BUILT-IN STORAGE)"
+msgstr "内置 USB (内置存储)"
+
+msgid "EXTERNAL USB (OTG DEVICE)"
+msgstr "外置 USB (OTG 设备)"

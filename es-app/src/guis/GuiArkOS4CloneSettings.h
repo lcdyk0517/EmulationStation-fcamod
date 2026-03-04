@@ -52,6 +52,12 @@ private:
     static void saveLedConfig(const std::string& color, const std::string& brightness = "");
     static std::vector<std::pair<std::string, std::string>> getLedMenuItems(const std::string& ledType);
     
+    // USB Switch functions (R36Max2 only)
+    void openUsbSwitchSettings();
+    static bool isR36Max2();
+    static bool isUsbInternal();
+    static void setUsbInternal(bool internal);
+    
     MenuComponent mMenu;
     std::vector<std::pair<std::string, int>> mWifiNetworks; // ssid, signal
     std::shared_ptr<TextComponent> mWifiStatusText;

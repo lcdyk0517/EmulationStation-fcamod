@@ -2855,3 +2855,24 @@ msgstr "Średnia"
 msgid "LOW"
 msgstr "Niska"
 
+
+msgid "USB SWITCH"
+msgstr "Przełącznik USB"
+
+msgid "INTERNAL USB"
+msgstr "Wewnętrzny USB"
+
+msgid "INTERNAL USB FOR BUILT-IN STORAGE"
+msgstr "Wewnętrzny USB dla pamięci wewnętrznej"
+
+msgid "EXTERNAL USB FOR OTG DEVICES"
+msgstr "Zewnętrzny USB dla urządzeń OTG"
+
+msgid "USB MODE"
+msgstr "Tryb USB"
+
+msgid "INTERNAL USB (BUILT-IN STORAGE)"
+msgstr "Wewnętrzny USB (pamięć wewnętrzna)"
+
+msgid "EXTERNAL USB (OTG DEVICE)"
+msgstr "Zewnętrzny USB (urządzenie OTG)"

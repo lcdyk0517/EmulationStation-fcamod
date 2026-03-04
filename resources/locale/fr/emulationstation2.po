@@ -1609,3 +1609,24 @@ msgstr "Moyenne"
 
 msgid "LOW"
 msgstr "Basse"
+
+msgid "USB SWITCH"
+msgstr "Commutateur USB"
+
+msgid "INTERNAL USB"
+msgstr "USB Interne"
+
+msgid "INTERNAL USB FOR BUILT-IN STORAGE"
+msgstr "USB interne pour stockage intégré"
+
+msgid "EXTERNAL USB FOR OTG DEVICES"
+msgstr "USB externe pour appareils OTG"
+
+msgid "USB MODE"
+msgstr "Mode USB"
+
+msgid "INTERNAL USB (BUILT-IN STORAGE)"
+msgstr "USB Interne (stockage intégré)"
+
+msgid "EXTERNAL USB (OTG DEVICE)"
+msgstr "USB Externe (appareil OTG)"

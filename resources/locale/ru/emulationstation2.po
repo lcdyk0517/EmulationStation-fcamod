@@ -3663,3 +3663,24 @@ msgstr "Низкая"
 
 
 
+
+msgid "USB SWITCH"
+msgstr "Переключатель USB"
+
+msgid "INTERNAL USB"
+msgstr "Внутренний USB"
+
+msgid "INTERNAL USB FOR BUILT-IN STORAGE"
+msgstr "Внутренний USB для встроенного хранилища"
+
+msgid "EXTERNAL USB FOR OTG DEVICES"
+msgstr "Внешний USB для OTG-устройств"
+
+msgid "USB MODE"
+msgstr "Режим USB"
+
+msgid "INTERNAL USB (BUILT-IN STORAGE)"
+msgstr "Внутренний USB (встроенное хранилище)"
+
+msgid "EXTERNAL USB (OTG DEVICE)"
+msgstr "Внешний USB (OTG-устройство)"

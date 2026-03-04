@@ -3768,3 +3768,24 @@ msgstr "Середня"
 
 msgid "LOW"
 msgstr "Низька"
+
+msgid "USB SWITCH"
+msgstr "Перемикач USB"
+
+msgid "INTERNAL USB"
+msgstr "Внутрішній USB"
+
+msgid "INTERNAL USB FOR BUILT-IN STORAGE"
+msgstr "Внутрішній USB для вбудованого сховища"
+
+msgid "EXTERNAL USB FOR OTG DEVICES"
+msgstr "Зовнішній USB для OTG-пристроїв"
+
+msgid "USB MODE"
+msgstr "Режим USB"
+
+msgid "INTERNAL USB (BUILT-IN STORAGE)"
+msgstr "Внутрішній USB (вбудоване сховище)"
+
+msgid "EXTERNAL USB (OTG DEVICE)"
+msgstr "Зовнішній USB (OTG-пристрій)"

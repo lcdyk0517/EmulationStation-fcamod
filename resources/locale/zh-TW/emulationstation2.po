@@ -3643,3 +3643,24 @@ msgstr "中"
 
 msgid "LOW"
 msgstr "低"
+
+msgid "USB SWITCH"
+msgstr "USB 切換"
+
+msgid "INTERNAL USB"
+msgstr "內置 USB"
+
+msgid "INTERNAL USB FOR BUILT-IN STORAGE"
+msgstr "內置 USB 用於內置存儲"
+
+msgid "EXTERNAL USB FOR OTG DEVICES"
+msgstr "外置 USB 用於 OTG 設備"
+
+msgid "USB MODE"
+msgstr "USB 模式"
+
+msgid "INTERNAL USB (BUILT-IN STORAGE)"
+msgstr "內置 USB (內置存儲)"
+
+msgid "EXTERNAL USB (OTG DEVICE)"
+msgstr "外置 USB (OTG 設備)"

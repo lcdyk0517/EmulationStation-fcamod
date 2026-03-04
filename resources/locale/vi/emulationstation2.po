@@ -1719,3 +1719,24 @@ msgstr "Trung bình"
 
 msgid "LOW"
 msgstr "Thấp"
+
+msgid "USB SWITCH"
+msgstr "Chuyển đổi USB"
+
+msgid "INTERNAL USB"
+msgstr "USB nội bộ"
+
+msgid "INTERNAL USB FOR BUILT-IN STORAGE"
+msgstr "USB nội bộ cho bộ nhớ tích hợp"
+
+msgid "EXTERNAL USB FOR OTG DEVICES"
+msgstr "USB ngoại vi cho thiết bị OTG"
+
+msgid "USB MODE"
+msgstr "Chế độ USB"
+
+msgid "INTERNAL USB (BUILT-IN STORAGE)"
+msgstr "USB nội bộ (bộ nhớ tích hợp)"
+
+msgid "EXTERNAL USB (OTG DEVICE)"
+msgstr "USB ngoại vi (thiết bị OTG)"

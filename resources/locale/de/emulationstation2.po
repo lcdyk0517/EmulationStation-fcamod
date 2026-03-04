@@ -2422,3 +2422,24 @@ msgstr "Mittel"
 
 msgid "LOW"
 msgstr "Niedrig"
+
+msgid "USB SWITCH"
+msgstr "USB-Umschaltung"
+
+msgid "INTERNAL USB"
+msgstr "Interne USB"
+
+msgid "INTERNAL USB FOR BUILT-IN STORAGE"
+msgstr "Interne USB für internen Speicher"
+
+msgid "EXTERNAL USB FOR OTG DEVICES"
+msgstr "Externe USB für OTG-Geräte"
+
+msgid "USB MODE"
+msgstr "USB-Modus"
+
+msgid "INTERNAL USB (BUILT-IN STORAGE)"
+msgstr "Interne USB (interner Speicher)"
+
+msgid "EXTERNAL USB (OTG DEVICE)"
+msgstr "Externe USB (OTG-Gerät)"

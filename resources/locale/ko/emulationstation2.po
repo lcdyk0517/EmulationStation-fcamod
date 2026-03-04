@@ -1863,3 +1863,24 @@ msgstr "중간"
 
 msgid "LOW"
 msgstr "낮음"
+
+msgid "USB SWITCH"
+msgstr "USB 전환"
+
+msgid "INTERNAL USB"
+msgstr "내부 USB"
+
+msgid "INTERNAL USB FOR BUILT-IN STORAGE"
+msgstr "내장 저장소용 내부 USB"
+
+msgid "EXTERNAL USB FOR OTG DEVICES"
+msgstr "OTG 기기용 외부 USB"
+
+msgid "USB MODE"
+msgstr "USB 모드"
+
+msgid "INTERNAL USB (BUILT-IN STORAGE)"
+msgstr "내부 USB (내장 저장소)"
+
+msgid "EXTERNAL USB (OTG DEVICE)"
+msgstr "외부 USB (OTG 기기)"
