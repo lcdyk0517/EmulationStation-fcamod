@@ -403,6 +403,7 @@ void processAudioTitles(Window* window)
 
 #include "ApiSystem.h"
 #include "guis/GuiArkOS4CloneSettings.h"
+#include "components/BatteryIndicatorComponent.h"
 
 int main(int argc, char* argv[])
 {
@@ -422,6 +423,9 @@ int main(int argc, char* argv[])
 
 	// Apply joystick LED on startup (for supported devices)
 	GuiArkOS4CloneSettings::checkAndApplyLedOnStartup();
+	
+	// Apply power LED on startup (for supported devices)
+	GuiArkOS4CloneSettings::applyPowerLedOnStartup();
 /*
 	ApiSystem::checkUpdateVersion();
 	ApiSystem::updateSystem(nullptr);
@@ -504,6 +508,11 @@ int main(int argc, char* argv[])
 			LOG(LogError) << "Window failed to initialize!";
 			return 1;
 		}
+
+		// Set battery state callback for power LED updates
+		window.getBatteryIndicator()->setBatteryStateCallback([](int level, bool charging) {
+			GuiArkOS4CloneSettings::applyPowerLed();
+		});
 
 		if (splashScreen)
 			window.renderLoadingScreen(_("Loading..."));

@@ -1714,6 +1714,12 @@ msgstr "HIỆU ỨNG DÒNG CHẢY"
 msgid "SCROLLING EFFECT"
 msgstr "HIỆU ỨNG CUỘN"
 
+msgid "LEFT JOYSTICK LED"
+msgstr "LED cần gạt trái"
+
+msgid "RIGHT JOYSTICK LED"
+msgstr "LED cần gạt phải"
+
 msgid "BRIGHTNESS"
 msgstr "Độ sáng"
 
@@ -1769,4 +1775,25 @@ msgid "TIME SYNCED SUCCESSFULLY"
 msgstr "Time Synced Successfully"
 
 msgid "NO NETWORK CONNECTION"
-msgstr "No Network Connection"
+msgstr "Không có kết nối mạng"
+
+msgid "POWER LED"
+msgstr "LED nguồn"
+
+msgid "RED LED"
+msgstr "LED đỏ"
+
+msgid "BLUE LED"
+msgstr "LED xanh"
+
+msgid "BELOW"
+msgstr "Dưới"
+
+msgid "ABOVE"
+msgstr "Trên"
+
+msgid "BLUE"
+msgstr "Xanh dương"
+
+msgid "RED"
+msgstr "Đỏ"

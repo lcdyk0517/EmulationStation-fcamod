@@ -2585,6 +2585,12 @@ msgstr "EFECTO FLUJO"
 msgid "SCROLLING EFFECT"
 msgstr "EFECTO DESPLAZAMIENTO"
 
+msgid "LEFT JOYSTICK LED"
+msgstr "LED joystick izquierdo"
+
+msgid "RIGHT JOYSTICK LED"
+msgstr "LED joystick derecho"
+
 msgid "BRIGHTNESS"
 msgstr "Brillo"
 
@@ -2641,3 +2647,24 @@ msgstr "Hora sincronizada correctamente"
 
 msgid "NO NETWORK CONNECTION"
 msgstr "Sin conexión de red"
+
+msgid "POWER LED"
+msgstr "LED de encendido"
+
+msgid "RED LED"
+msgstr "LED rojo"
+
+msgid "BLUE LED"
+msgstr "LED azul"
+
+msgid "BELOW"
+msgstr "Por debajo de"
+
+msgid "ABOVE"
+msgstr "Por encima de"
+
+msgid "BLUE"
+msgstr "Azul"
+
+msgid "RED"
+msgstr "Rojo"

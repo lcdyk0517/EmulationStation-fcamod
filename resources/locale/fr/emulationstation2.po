@@ -1604,6 +1604,12 @@ msgstr "EFFET FLUX"
 msgid "SCROLLING EFFECT"
 msgstr "EFFET DÉFILANT"
 
+msgid "LEFT JOYSTICK LED"
+msgstr "LED joystick gauche"
+
+msgid "RIGHT JOYSTICK LED"
+msgstr "LED joystick droit"
+
 msgid "BRIGHTNESS"
 msgstr "Luminosité"
 
@@ -1660,3 +1666,24 @@ msgstr "Heure synchronisée avec succès"
 
 msgid "NO NETWORK CONNECTION"
 msgstr "Pas de connexion réseau"
+
+msgid "POWER LED"
+msgstr "LED d'alimentation"
+
+msgid "RED LED"
+msgstr "LED rouge"
+
+msgid "BLUE LED"
+msgstr "LED bleue"
+
+msgid "BELOW"
+msgstr "Inférieur à"
+
+msgid "ABOVE"
+msgstr "Supérieur à"
+
+msgid "BLUE"
+msgstr "Bleu"
+
+msgid "RED"
+msgstr "Rouge"

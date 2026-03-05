@@ -1175,6 +1175,12 @@ msgstr "FLÖDESEFFEKT"
 msgid "SCROLLING EFFECT"
 msgstr "RULLNINGSEFFEKT"
 
+msgid "LEFT JOYSTICK LED"
+msgstr "Vänster joystick-LED"
+
+msgid "RIGHT JOYSTICK LED"
+msgstr "Höger joystick-LED"
+
 msgid "BRIGHTNESS"
 msgstr "Ljusstyrka"
 
@@ -3444,4 +3450,25 @@ msgid "TIME SYNCED SUCCESSFULLY"
 msgstr "Time Synced Successfully"
 
 msgid "NO NETWORK CONNECTION"
-msgstr "No Network Connection"
+msgstr "Ingen nätverksanslutning"
+
+msgid "POWER LED"
+msgstr "Strömindikator"
+
+msgid "RED LED"
+msgstr "Röd LED"
+
+msgid "BLUE LED"
+msgstr "Blå LED"
+
+msgid "BELOW"
+msgstr "Under"
+
+msgid "ABOVE"
+msgstr "Över"
+
+msgid "BLUE"
+msgstr "Blå"
+
+msgid "RED"
+msgstr "Röd"

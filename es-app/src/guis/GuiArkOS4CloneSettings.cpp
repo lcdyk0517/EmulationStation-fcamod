@@ -14,6 +14,7 @@
 #include "Log.h"
 #include "AudioManager.h"
 #include "VolumeControl.h"
+#include "platform.h"
 #include "utils/StringUtil.h"
 
 #include <fstream>
@@ -26,8 +27,12 @@
 // Static Constants
 // ============================================================================
 
-// LED Configuration file path
-static const std::string LED_CONFIG_FILE = "/home/ark/.es_joyled";
+// Power LED sysfs paths (separate red/blue LEDs)
+static const std::string POWER_LED_RED = "/sys/class/leds/led-red/brightness";
+static const std::string POWER_LED_BLUE = "/sys/class/leds/led-blue/brightness";
+
+// Dual-color power LED (ArkOS4Clone devices: 0=blue/green, 1=red)
+static const std::string ARKOS4CLONE_LED = "/sys/class/leds/arkos4clone-led/brightness";
 
 // MCU LED mode names (for mcu_led backend)
 static const std::map<std::string, std::string> MCU_MODES = {
@@ -54,21 +59,17 @@ static const std::vector<std::pair<std::string, std::string>> WS2812_BRIGHTNESS 
     {"HIGH", "HIGH"}, {"MEDIUM", "MEDIUM"}, {"LOW", "LOW"}
 };
 
+// Dual GPIO LED paths (left/right joystick LEDs)
+static const std::string DUAL_GPIO_LED_LEFT = "/sys/class/leds/joy-left/brightness";
+static const std::string DUAL_GPIO_LED_RIGHT = "/sys/class/leds/joy-right/brightness";
+
 static std::string getSavedWs2812Brightness()
 {
-    std::ifstream file(LED_CONFIG_FILE);
-    if (file.is_open()) {
-        std::string line;
-        while (std::getline(file, line)) {
-            if (line.find("BRIGHTNESS=") == 0) {
-                std::string brightness = line.substr(11);
-                // Validate brightness value
-                for (const auto& b : WS2812_BRIGHTNESS) {
-                    if (b.first == brightness) {
-                        return brightness;
-                    }
-                }
-            }
+    std::string brightness = Settings::getInstance()->getString("JoyLedBrightness");
+    // Validate brightness value
+    for (const auto& b : WS2812_BRIGHTNESS) {
+        if (b.first == brightness) {
+            return brightness;
         }
     }
     return "HIGH"; // Default brightness
@@ -141,6 +142,13 @@ GuiArkOS4CloneSettings::GuiArkOS4CloneSettings(Window* window)
     if (!detectLedType().empty()) {
         mMenu.addEntry(_("JOYSTICK LED"), true, [this] {
             openJoystickLedSettings();
+        }, "");
+    }
+
+    // Power LED Settings submenu (only for supported devices)
+    if (hasPowerLed()) {
+        mMenu.addEntry(_("POWER LED"), true, [this] {
+            openPowerLedSettings();
         }, "");
     }
 
@@ -716,6 +724,255 @@ void GuiArkOS4CloneSettings::openUsbSwitchSettings()
 }
 
 // ============================================================================
+// Power LED Functions
+// ============================================================================
+
+bool GuiArkOS4CloneSettings::hasPowerLedRed()
+{
+    return Utils::FileSystem::exists(POWER_LED_RED);
+}
+
+bool GuiArkOS4CloneSettings::hasPowerLedBlue()
+{
+    return Utils::FileSystem::exists(POWER_LED_BLUE);
+}
+
+bool GuiArkOS4CloneSettings::hasArkOS4CloneLed()
+{
+    return Utils::FileSystem::exists(ARKOS4CLONE_LED);
+}
+
+bool GuiArkOS4CloneSettings::hasPowerLed()
+{
+    return hasPowerLedRed() || hasPowerLedBlue() || hasArkOS4CloneLed();
+}
+
+void GuiArkOS4CloneSettings::applyPowerLed()
+{
+    if (!hasPowerLed()) {
+        return;
+    }
+    
+    // Read settings from es_settings.cfg
+    // Mode: 0 = off, 1 = on, 2 = auto (battery controlled)
+    int redMode = Settings::getInstance()->getInt("PowerLedRedMode");
+    int blueMode = Settings::getInstance()->getInt("PowerLedBlueMode");
+    int redThreshold = Settings::getInstance()->getInt("PowerLedRedThreshold");
+    int blueThreshold = Settings::getInstance()->getInt("PowerLedBlueThreshold");
+    
+    // Defaults if not set
+    if (redMode < 0 || redMode > 2) redMode = 0;
+    if (blueMode < 0 || blueMode > 2) blueMode = 0;
+    if (redThreshold < 10 || redThreshold > 90) redThreshold = 20;
+    if (blueThreshold < 10 || blueThreshold > 90) blueThreshold = 80;
+    
+    int batteryLevel = queryBatteryLevel();
+    
+    // Handle RED LED if exists
+    if (hasPowerLedRed()) {
+        // Disable trigger first to allow manual control
+        executeCommand("sudo sh -c 'echo none > " + POWER_LED_RED.substr(0, POWER_LED_RED.rfind('/')) + "/trigger 2>/dev/null'");
+        
+        // Get max brightness
+        int maxBrightness = 1;
+        std::string maxPath = POWER_LED_RED.substr(0, POWER_LED_RED.rfind('/')) + "/max_brightness";
+        if (Utils::FileSystem::exists(maxPath)) {
+            maxBrightness = atoi(executeCommand("cat " + maxPath).c_str());
+            if (maxBrightness < 1) maxBrightness = 1;
+        }
+        
+        bool ledOn = false;
+        if (redMode == 1) {
+            ledOn = true; // Always on
+        } else if (redMode == 2 && batteryLevel >= 0) {
+            ledOn = (batteryLevel < redThreshold);
+        }
+        
+        executeCommand("sudo sh -c 'echo " + std::string(ledOn ? std::to_string(maxBrightness) : "0") + " > " + POWER_LED_RED + "'");
+    }
+    
+    // Handle BLUE LED if exists
+    if (hasPowerLedBlue()) {
+        // Disable trigger first to allow manual control
+        executeCommand("sudo sh -c 'echo none > " + POWER_LED_BLUE.substr(0, POWER_LED_BLUE.rfind('/')) + "/trigger 2>/dev/null'");
+        
+        // Get max brightness
+        int maxBrightness = 1;
+        std::string maxPath = POWER_LED_BLUE.substr(0, POWER_LED_BLUE.rfind('/')) + "/max_brightness";
+        if (Utils::FileSystem::exists(maxPath)) {
+            maxBrightness = atoi(executeCommand("cat " + maxPath).c_str());
+            if (maxBrightness < 1) maxBrightness = 1;
+        }
+        
+        bool ledOn = false;
+        if (blueMode == 1) {
+            ledOn = true; // Always on
+        } else if (blueMode == 2 && batteryLevel >= 0) {
+            ledOn = (batteryLevel >= blueThreshold);
+        }
+        
+        executeCommand("sudo sh -c 'echo " + std::string(ledOn ? std::to_string(maxBrightness) : "0") + " > " + POWER_LED_BLUE + "'");
+    }
+    
+    // Handle ArkOS4Clone dual-color LED if exists
+    // Value: 0 = blue/green, 1 = red
+    if (hasArkOS4CloneLed()) {
+        // Disable trigger first to allow manual control
+        executeCommand("sudo sh -c 'echo none > " + ARKOS4CLONE_LED.substr(0, ARKOS4CLONE_LED.rfind('/')) + "/trigger 2>/dev/null'");
+        
+        int mode = Settings::getInstance()->getInt("PowerLedArkOS4CloneMode");
+        int threshold = Settings::getInstance()->getInt("PowerLedArkOS4CloneThreshold");
+        
+        // Defaults: 0 = blue, 1 = red, 2 = auto
+        if (mode < 0 || mode > 2) mode = 2;
+        if (threshold < 10 || threshold > 90) threshold = 20;
+        
+        int batteryLevel = queryBatteryLevel();
+        int ledValue = 0; // Default blue
+        
+        if (mode == 1) {
+            ledValue = 1; // Always red
+        } else if (mode == 2 && batteryLevel >= 0) {
+            // Auto: >= threshold = blue, < threshold = red
+            ledValue = (batteryLevel < threshold) ? 1 : 0;
+        }
+        
+        executeCommand("sudo sh -c 'echo " + std::to_string(ledValue) + " > " + ARKOS4CLONE_LED + "'");
+    }
+}
+
+void GuiArkOS4CloneSettings::openPowerLedSettings()
+{
+    auto s = new GuiSettings(mWindow, _("POWER LED"));
+    
+    std::shared_ptr<OptionListComponent<std::string>> redList;
+    std::shared_ptr<OptionListComponent<std::string>> blueList;
+    std::shared_ptr<OptionListComponent<std::string>> arkosList;
+    
+    // Handle ArkOS4Clone dual-color LED (mutually exclusive with separate red/blue)
+    if (hasArkOS4CloneLed()) {
+        int mode = Settings::getInstance()->getInt("PowerLedArkOS4CloneMode");
+        int threshold = Settings::getInstance()->getInt("PowerLedArkOS4CloneThreshold");
+        
+        // Defaults: 0 = blue, 1 = red, 2 = auto
+        if (mode < 0 || mode > 2) mode = 2;
+        if (threshold < 10 || threshold > 90) threshold = 20;
+        
+        // Build selection value
+        std::string selected = (mode == 0) ? "blue" : (mode == 1) ? "red" : ("auto:" + std::to_string(threshold));
+        
+        arkosList = std::make_shared<OptionListComponent<std::string>>(mWindow, _("POWER LED"), false);
+        arkosList->add(_("BLUE"), "blue", selected == "blue");
+        arkosList->add(_("RED"), "red", selected == "red");
+        for (int t = 90; t >= 10; t -= 10) {
+            std::string val = "auto:" + std::to_string(t);
+            std::string label = _("ABOVE") + std::string(" ") + std::to_string(t) + "% " + _("BLUE");
+            arkosList->add(label, val, selected == val);
+        }
+        s->addWithLabel(_("POWER LED"), arkosList);
+    }
+    else {
+        // Handle separate RED/BLUE LEDs
+        int redMode = Settings::getInstance()->getInt("PowerLedRedMode");
+        int blueMode = Settings::getInstance()->getInt("PowerLedBlueMode");
+        int redThreshold = Settings::getInstance()->getInt("PowerLedRedThreshold");
+        int blueThreshold = Settings::getInstance()->getInt("PowerLedBlueThreshold");
+        
+        // Defaults
+        if (redMode < 0 || redMode > 2) redMode = 0;
+        if (blueMode < 0 || blueMode > 2) blueMode = 0;
+        if (redThreshold < 10 || redThreshold > 90) redThreshold = 20;
+        if (blueThreshold < 10 || blueThreshold > 90) blueThreshold = 80;
+        
+        // Build selection values: mode and threshold combined
+        std::string redSelected = (redMode == 0) ? "off" : (redMode == 1) ? "on" : ("auto:" + std::to_string(redThreshold));
+        std::string blueSelected = (blueMode == 0) ? "off" : (blueMode == 1) ? "on" : ("auto:" + std::to_string(blueThreshold));
+        
+        // RED LED: OFF / ON / Below X% (only if exists)
+        if (hasPowerLedRed()) {
+            redList = std::make_shared<OptionListComponent<std::string>>(mWindow, _("RED LED"), false);
+            redList->add(_("OFF"), "off", redSelected == "off");
+            redList->add(_("ON"), "on", redSelected == "on");
+            for (int t = 90; t >= 10; t -= 10) {
+                std::string val = "auto:" + std::to_string(t);
+                std::string label = _("BELOW") + std::string(" ") + std::to_string(t) + "%";
+                redList->add(label, val, redSelected == val);
+            }
+            s->addWithLabel(_("RED LED"), redList);
+        }
+        
+        // BLUE LED: OFF / ON / Above X% (only if exists)
+        if (hasPowerLedBlue()) {
+            blueList = std::make_shared<OptionListComponent<std::string>>(mWindow, _("BLUE LED"), false);
+            blueList->add(_("OFF"), "off", blueSelected == "off");
+            blueList->add(_("ON"), "on", blueSelected == "on");
+            for (int t = 10; t <= 90; t += 10) {
+                std::string val = "auto:" + std::to_string(t);
+                std::string label = _("ABOVE") + std::string(" ") + std::to_string(t) + "%";
+                blueList->add(label, val, blueSelected == val);
+            }
+            s->addWithLabel(_("BLUE LED"), blueList);
+        }
+    }
+    
+    // Save callback
+    s->addSaveFunc([this, redList, blueList, arkosList] {
+        // Handle ArkOS4Clone dual-color LED
+        if (arkosList) {
+            std::string val = arkosList->getSelected();
+            int newMode = 2, newThreshold = 20;
+            if (val == "blue") {
+                newMode = 0;
+            } else if (val == "red") {
+                newMode = 1;
+            } else if (val.substr(0, 5) == "auto:") {
+                newMode = 2;
+                newThreshold = atoi(val.substr(5).c_str());
+            }
+            Settings::getInstance()->setInt("PowerLedArkOS4CloneMode", newMode);
+            Settings::getInstance()->setInt("PowerLedArkOS4CloneThreshold", newThreshold);
+        }
+        
+        // Parse RED selection (only if exists)
+        if (redList) {
+            std::string redVal = redList->getSelected();
+            int newRedMode = 0, newRedThreshold = 20;
+            if (redVal == "off") {
+                newRedMode = 0;
+            } else if (redVal == "on") {
+                newRedMode = 1;
+            } else if (redVal.substr(0, 5) == "auto:") {
+                newRedMode = 2;
+                newRedThreshold = atoi(redVal.substr(5).c_str());
+            }
+            Settings::getInstance()->setInt("PowerLedRedMode", newRedMode);
+            Settings::getInstance()->setInt("PowerLedRedThreshold", newRedThreshold);
+        }
+        
+        // Parse BLUE selection (only if exists)
+        if (blueList) {
+            std::string blueVal = blueList->getSelected();
+            int newBlueMode = 0, newBlueThreshold = 80;
+            if (blueVal == "off") {
+                newBlueMode = 0;
+            } else if (blueVal == "on") {
+                newBlueMode = 1;
+            } else if (blueVal.substr(0, 5) == "auto:") {
+                newBlueMode = 2;
+                newBlueThreshold = atoi(blueVal.substr(5).c_str());
+            }
+            Settings::getInstance()->setInt("PowerLedBlueMode", newBlueMode);
+            Settings::getInstance()->setInt("PowerLedBlueThreshold", newBlueThreshold);
+        }
+        
+        Settings::getInstance()->saveFile();
+        applyPowerLed();
+    });
+    
+    mWindow->pushGui(s);
+}
+
+// ============================================================================
 // LED Functions - Detection & Configuration
 // ============================================================================
 
@@ -729,7 +986,7 @@ std::string GuiArkOS4CloneSettings::detectLedType()
         return cachedLedType;
     }
     
-    // Try console_detect first
+    // Try console_detect -s for LED type
     std::string output = executeCommand("/usr/local/bin/console_detect -s 2>/dev/null");
     if (!output.empty()) {
         std::istringstream stream(output);
@@ -779,16 +1036,8 @@ std::string GuiArkOS4CloneSettings::getDeviceName()
 
 std::string GuiArkOS4CloneSettings::getCurrentLedColor()
 {
-    std::ifstream file(LED_CONFIG_FILE);
-    if (file.is_open()) {
-        std::string line;
-        while (std::getline(file, line)) {
-            if (line.find("COLOR=") == 0) {
-                return line.substr(6);
-            }
-        }
-    }
-    return "off";
+    std::string color = Settings::getInstance()->getString("JoyLedColor");
+    return color.empty() ? "off" : color;
 }
 
 std::vector<std::pair<std::string, std::string>> GuiArkOS4CloneSettings::getLedMenuItems(const std::string& ledType)
@@ -904,18 +1153,18 @@ void GuiArkOS4CloneSettings::applyGpioLed(const std::string& color)
         return;
     }
     
-    std::string ledBlue = "/sys/class/leds/blue:joy/brightness";
-    std::string ledGreen = "/sys/class/leds/green:joy/brightness";
-    std::string ledRed = "/sys/class/leds/red:joy/brightness";
+    std::string ledBlue = "/sys/class/leds/joy-blue/brightness";
+    std::string ledGreen = "/sys/class/leds/joy-green/brightness";
+    std::string ledRed = "/sys/class/leds/joy-red/brightness";
     
     // Disable triggers only for joystick LEDs
-    executeCommand("sudo sh -c 'echo none > /sys/class/leds/blue:joy/trigger 2>/dev/null; echo none > /sys/class/leds/green:joy/trigger 2>/dev/null; echo none > /sys/class/leds/red:joy/trigger 2>/dev/null'");
+    executeCommand("sudo sh -c 'echo none > /sys/class/leds/joy-blue/trigger 2>/dev/null; echo none > /sys/class/leds/joy-green/trigger 2>/dev/null; echo none > /sys/class/leds/joy-red/trigger 2>/dev/null'");
     
     // Get max brightness
     int maxB = 1, maxG = 1, maxR = 1;
-    std::string maxBPath = "/sys/class/leds/blue:joy/max_brightness";
-    std::string maxGPath = "/sys/class/leds/green:joy/max_brightness";
-    std::string maxRPath = "/sys/class/leds/red:joy/max_brightness";
+    std::string maxBPath = "/sys/class/leds/joy-blue/max_brightness";
+    std::string maxGPath = "/sys/class/leds/joy-green/max_brightness";
+    std::string maxRPath = "/sys/class/leds/joy-red/max_brightness";
     
     if (Utils::FileSystem::exists(maxBPath)) {
         maxB = atoi(executeCommand("cat " + maxBPath).c_str());
@@ -953,6 +1202,37 @@ void GuiArkOS4CloneSettings::applyGpioLed(const std::string& color)
     }
     if (Utils::FileSystem::exists(ledRed)) {
         executeCommand("sudo sh -c 'echo " + std::to_string(r) + " > " + ledRed + "'");
+    }
+}
+
+bool GuiArkOS4CloneSettings::hasDualGpioLed()
+{
+    return Utils::FileSystem::exists(DUAL_GPIO_LED_LEFT) && Utils::FileSystem::exists(DUAL_GPIO_LED_RIGHT);
+}
+
+void GuiArkOS4CloneSettings::applyDualGpioLed(bool leftOn, bool rightOn)
+{
+    // Disable triggers for both LEDs
+    executeCommand("sudo sh -c 'echo none > /sys/class/leds/joy-left/trigger 2>/dev/null; echo none > /sys/class/leds/joy-right/trigger 2>/dev/null'");
+    
+    // Get max brightness
+    int maxLeft = 1, maxRight = 1;
+    std::string maxLeftPath = "/sys/class/leds/joy-left/max_brightness";
+    std::string maxRightPath = "/sys/class/leds/joy-right/max_brightness";
+    
+    if (Utils::FileSystem::exists(maxLeftPath)) {
+        maxLeft = atoi(executeCommand("cat " + maxLeftPath).c_str());
+    }
+    if (Utils::FileSystem::exists(maxRightPath)) {
+        maxRight = atoi(executeCommand("cat " + maxRightPath).c_str());
+    }
+    
+    // Apply LED states
+    if (Utils::FileSystem::exists(DUAL_GPIO_LED_LEFT)) {
+        executeCommand("sudo sh -c 'echo " + std::to_string(leftOn ? maxLeft : 0) + " > " + DUAL_GPIO_LED_LEFT + "'");
+    }
+    if (Utils::FileSystem::exists(DUAL_GPIO_LED_RIGHT)) {
+        executeCommand("sudo sh -c 'echo " + std::to_string(rightOn ? maxRight : 0) + " > " + DUAL_GPIO_LED_RIGHT + "'");
     }
 }
 
@@ -999,57 +1279,35 @@ void GuiArkOS4CloneSettings::applyWs2812Led(const std::string& color, const std:
 
 void GuiArkOS4CloneSettings::saveLedConfig(const std::string& color, const std::string& brightness)
 {
-    std::string deviceName = getDeviceName();
-    
-    std::ofstream file(LED_CONFIG_FILE);
-    if (file.is_open()) {
-        file << "DEVICE=" << deviceName << "\n";
-        file << "COLOR=" << color << "\n";
-        if (!brightness.empty()) {
-            file << "BRIGHTNESS=" << brightness << "\n";
-        }
-        file.close();
+    Settings::getInstance()->setString("JoyLedColor", color);
+    if (!brightness.empty()) {
+        Settings::getInstance()->setString("JoyLedBrightness", brightness);
     }
+    Settings::getInstance()->saveFile();
 }
 
 bool GuiArkOS4CloneSettings::checkAndApplyLedOnStartup()
 {
-    // Early exit if no config file
-    if (!Utils::FileSystem::exists(LED_CONFIG_FILE)) {
-        return false;
+    std::string ledType = detectLedType();
+    
+    // Special handling for dual-gpio
+    if (ledType == "dual-gpio") {
+        bool leftOn = Settings::getInstance()->getBool("JoyLedLeft");
+        bool rightOn = Settings::getInstance()->getBool("JoyLedRight");
+        applyDualGpioLed(leftOn, rightOn);
+        return leftOn || rightOn;
     }
     
-    // Read saved device, color and brightness
-    std::string savedDevice, savedColor, savedBrightness;
-    std::ifstream file(LED_CONFIG_FILE);
-    if (file.is_open()) {
-        std::string line;
-        while (std::getline(file, line)) {
-            if (line.find("DEVICE=") == 0) {
-                savedDevice = line.substr(7);
-            } else if (line.find("COLOR=") == 0) {
-                savedColor = line.substr(6);
-            } else if (line.find("BRIGHTNESS=") == 0) {
-                savedBrightness = line.substr(11);
-            }
-        }
-        file.close();
-    }
+    // Read saved color and brightness from Settings
+    std::string savedColor = Settings::getInstance()->getString("JoyLedColor");
+    std::string savedBrightness = Settings::getInstance()->getString("JoyLedBrightness");
     
     // Early exit if no color or off
     if (savedColor.empty() || savedColor == "off") {
         return false;
     }
     
-    // Check if device matches
-    std::string currentDevice = getDeviceName();
-    if (savedDevice != currentDevice) {
-        Utils::FileSystem::removeFile(LED_CONFIG_FILE);
-        return false;
-    }
-    
     // Apply the saved color
-    std::string ledType = detectLedType();
     if (ledType == "mcu_led") {
         applyMcuLed(savedColor);
     } else if (ledType == "gpio") {
@@ -1060,6 +1318,13 @@ bool GuiArkOS4CloneSettings::checkAndApplyLedOnStartup()
     }
     
     return true;
+}
+
+void GuiArkOS4CloneSettings::applyPowerLedOnStartup()
+{
+    if (hasPowerLed()) {
+        applyPowerLed();
+    }
 }
 
 void GuiArkOS4CloneSettings::openJoystickLedSettings()
@@ -1073,6 +1338,51 @@ void GuiArkOS4CloneSettings::openJoystickLedSettings()
         return;
     }
     
+    auto s = new GuiSettings(mWindow, _("JOYSTICK LED"));
+    
+    // Special handling for dual-gpio: two switches for left/right joystick
+    if (ledType == "dual-gpio") {
+        // Read current LED states
+        bool leftOn = false, rightOn = false;
+        if (Utils::FileSystem::exists(DUAL_GPIO_LED_LEFT)) {
+            std::string leftVal = executeCommand("cat " + DUAL_GPIO_LED_LEFT);
+            leftOn = (atoi(leftVal.c_str()) > 0);
+        }
+        if (Utils::FileSystem::exists(DUAL_GPIO_LED_RIGHT)) {
+            std::string rightVal = executeCommand("cat " + DUAL_GPIO_LED_RIGHT);
+            rightOn = (atoi(rightVal.c_str()) > 0);
+        }
+        
+        // Left joystick LED switch
+        auto leftSwitch = std::make_shared<SwitchComponent>(mWindow);
+        leftSwitch->setState(leftOn);
+        s->addWithLabel(_("LEFT JOYSTICK LED"), leftSwitch);
+        
+        // Right joystick LED switch
+        auto rightSwitch = std::make_shared<SwitchComponent>(mWindow);
+        rightSwitch->setState(rightOn);
+        s->addWithLabel(_("RIGHT JOYSTICK LED"), rightSwitch);
+        
+        // Apply immediately when switch changes
+        leftSwitch->setOnChangedCallback([this, leftSwitch, rightSwitch]() {
+            applyDualGpioLed(leftSwitch->getState(), rightSwitch->getState());
+            Settings::getInstance()->setBool("JoyLedLeft", leftSwitch->getState());
+            Settings::getInstance()->setBool("JoyLedRight", rightSwitch->getState());
+            Settings::getInstance()->saveFile();
+        });
+        
+        rightSwitch->setOnChangedCallback([this, leftSwitch, rightSwitch]() {
+            applyDualGpioLed(leftSwitch->getState(), rightSwitch->getState());
+            Settings::getInstance()->setBool("JoyLedLeft", leftSwitch->getState());
+            Settings::getInstance()->setBool("JoyLedRight", rightSwitch->getState());
+            Settings::getInstance()->saveFile();
+        });
+        
+        mWindow->pushGui(s);
+        return;
+    }
+    
+    // Standard handling for other LED types
     auto items = getLedMenuItems(ledType);
     
     if (items.empty()) {
@@ -1081,8 +1391,6 @@ void GuiArkOS4CloneSettings::openJoystickLedSettings()
             _("OK")));
         return;
     }
-    
-    auto s = new GuiSettings(mWindow, _("JOYSTICK LED"));
     
     std::string currentColor = getCurrentLedColor();
     

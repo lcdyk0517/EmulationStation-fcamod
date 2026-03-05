@@ -1,4 +1,5 @@
 #include <string>
+#include <functional>
 #pragma once
 #ifndef ES_APP_COMPONENTS_CONTROLLERACTIVITY_COMPONENT_H
 #define ES_APP_COMPONENTS_CONTROLLERACTIVITY_COMPONENT_H
@@ -9,6 +10,9 @@
 #include "platform.h"
 
 class TextureResource;
+
+// Battery state change callback type: level (0-100), charging (true/false)
+using BatteryStateCallback = std::function<void(int level, bool charging)>;
 
 class ControllerActivityComponent : public GuiComponent
 {
@@ -42,6 +46,8 @@ public:
 	void setHotkeyColor(unsigned int color) { mHotkeyColor = color; }
 	
 	bool hasBattery() { return mBatteryInfo.hasBattery; }
+
+	void setBatteryStateCallback(BatteryStateCallback callback) { mBatteryStateCallback = callback; }
 
 protected:
 	virtual void	init();
@@ -120,6 +126,8 @@ protected:
 	std::string mAt50;
 	std::string mAt25;
 	std::string mEmpty;
+
+	BatteryStateCallback mBatteryStateCallback;
 };
 
 #endif // ES_APP_COMPONENTS_RATING_COMPONENT_H

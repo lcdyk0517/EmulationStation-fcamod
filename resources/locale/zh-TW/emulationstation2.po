@@ -3566,6 +3566,12 @@ msgstr "不支援的裝置"
 msgid "Joystick LED is not supported on this device."
 msgstr "此裝置不支援搖桿燈功能。"
 
+msgid "LEFT JOYSTICK LED"
+msgstr "左搖桿燈"
+
+msgid "RIGHT JOYSTICK LED"
+msgstr "右搖桿燈"
+
 msgid "LED MODE"
 msgstr "LED 模式"
 
@@ -3694,3 +3700,24 @@ msgstr "時間同步成功"
 
 msgid "NO NETWORK CONNECTION"
 msgstr "無網絡連接"
+
+msgid "POWER LED"
+msgstr "電源燈"
+
+msgid "RED LED"
+msgstr "紅燈"
+
+msgid "BLUE LED"
+msgstr "藍燈"
+
+msgid "BELOW"
+msgstr "低於"
+
+msgid "ABOVE"
+msgstr "高於"
+
+msgid "BLUE"
+msgstr "藍色"
+
+msgid "RED"
+msgstr "紅色"

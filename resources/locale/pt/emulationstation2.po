@@ -1633,6 +1633,12 @@ msgstr "EFEITO FLUXO"
 msgid "SCROLLING EFFECT"
 msgstr "EFEITO ROLAGEM"
 
+msgid "LEFT JOYSTICK LED"
+msgstr "LED do joystick esquerdo"
+
+msgid "RIGHT JOYSTICK LED"
+msgstr "LED do joystick direito"
+
 msgid "BRIGHTNESS"
 msgstr "Brilho"
 
@@ -1689,3 +1695,24 @@ msgstr "Hora sincronizada com sucesso"
 
 msgid "NO NETWORK CONNECTION"
 msgstr "Sem conexão de rede"
+
+msgid "POWER LED"
+msgstr "LED de energia"
+
+msgid "RED LED"
+msgstr "LED vermelho"
+
+msgid "BLUE LED"
+msgstr "LED azul"
+
+msgid "BELOW"
+msgstr "Abaixo de"
+
+msgid "ABOVE"
+msgstr "Acima de"
+
+msgid "BLUE"
+msgstr "Azul"
+
+msgid "RED"
+msgstr "Vermelho"

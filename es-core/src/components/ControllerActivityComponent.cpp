@@ -421,6 +421,12 @@ void ControllerActivityComponent::updateBatteryInfo()
 
 	mBatteryInfo = info;
 
+	// Notify callback about battery state change
+	if (mBatteryStateCallback && mBatteryInfo.hasBattery)
+	{
+		mBatteryStateCallback(mBatteryInfo.level, mBatteryInfo.isCharging);
+	}
+
 	if (mBatteryInfo.hasBattery)
 	{
 		std::string txName = mIncharge;

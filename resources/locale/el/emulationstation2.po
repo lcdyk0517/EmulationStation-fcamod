@@ -2117,6 +2117,12 @@ msgstr "ΕΦΕ ΡΟΗΣ"
 msgid "SCROLLING EFFECT"
 msgstr "ΕΦΕ ΚΥΛΙΣΗΣ"
 
+msgid "LEFT JOYSTICK LED"
+msgstr "LED αριστερού joystick"
+
+msgid "RIGHT JOYSTICK LED"
+msgstr "LED δεξιού joystick"
+
 msgid "BRIGHTNESS"
 msgstr "Φωτεινότητα"
 
@@ -2172,4 +2178,25 @@ msgid "TIME SYNCED SUCCESSFULLY"
 msgstr "Time Synced Successfully"
 
 msgid "NO NETWORK CONNECTION"
-msgstr "No Network Connection"
+msgstr "Χωρίς σύνδεση δικτύου"
+
+msgid "POWER LED"
+msgstr "LED ισχύος"
+
+msgid "RED LED"
+msgstr "Κόκκινο LED"
+
+msgid "BLUE LED"
+msgstr "Μπλε LED"
+
+msgid "BELOW"
+msgstr "Κάτω από"
+
+msgid "ABOVE"
+msgstr "Πάνω από"
+
+msgid "BLUE"
+msgstr "Μπλε"
+
+msgid "RED"
+msgstr "Κόκκινο"

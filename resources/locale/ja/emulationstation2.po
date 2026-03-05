@@ -1481,6 +1481,12 @@ msgstr "フローエフェクト"
 msgid "SCROLLING EFFECT"
 msgstr "スクロールエフェクト"
 
+msgid "LEFT JOYSTICK LED"
+msgstr "左ジョイスティックLED"
+
+msgid "RIGHT JOYSTICK LED"
+msgstr "右ジョイスティックLED"
+
 msgid "BRIGHTNESS"
 msgstr "明るさ"
 
@@ -1536,3 +1542,24 @@ msgstr "時刻を同期しました"
 
 msgid "NO NETWORK CONNECTION"
 msgstr "ネットワーク接続なし"
+
+msgid "POWER LED"
+msgstr "電源LED"
+
+msgid "RED LED"
+msgstr "赤色LED"
+
+msgid "BLUE LED"
+msgstr "青色LED"
+
+msgid "BELOW"
+msgstr "以下"
+
+msgid "ABOVE"
+msgstr "以上"
+
+msgid "BLUE"
+msgstr "青"
+
+msgid "RED"
+msgstr "赤"

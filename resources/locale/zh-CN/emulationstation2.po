@@ -3726,6 +3726,13 @@ msgstr "流动效果"
 
 msgid "SCROLLING EFFECT"
 msgstr "滚动效果"
+
+msgid "LEFT JOYSTICK LED"
+msgstr "左摇杆灯"
+
+msgid "RIGHT JOYSTICK LED"
+msgstr "右摇杆灯"
+
 msgid "USB SWITCH"
 msgstr "USB 切换"
 
@@ -3770,3 +3777,24 @@ msgstr "时间同步成功"
 
 msgid "NO NETWORK CONNECTION"
 msgstr "无网络连接"
+
+msgid "POWER LED"
+msgstr "电源灯"
+
+msgid "RED LED"
+msgstr "红灯"
+
+msgid "BLUE LED"
+msgstr "蓝灯"
+
+msgid "BELOW"
+msgstr "低于"
+
+msgid "ABOVE"
+msgstr "高于"
+
+msgid "BLUE"
+msgstr "蓝色"
+
+msgid "RED"
+msgstr "红色"

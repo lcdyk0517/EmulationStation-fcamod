@@ -2417,6 +2417,12 @@ msgstr "FLUSS-EFFEKT"
 msgid "SCROLLING EFFECT"
 msgstr "SCROLL-EFFEKT"
 
+msgid "LEFT JOYSTICK LED"
+msgstr "Linke Joystick-LED"
+
+msgid "RIGHT JOYSTICK LED"
+msgstr "Rechte Joystick-LED"
+
 msgid "BRIGHTNESS"
 msgstr "Helligkeit"
 
@@ -2473,3 +2479,24 @@ msgstr "Uhrzeit erfolgreich synchronisiert"
 
 msgid "NO NETWORK CONNECTION"
 msgstr "Keine Netzwerkverbindung"
+
+msgid "POWER LED"
+msgstr "Power LED"
+
+msgid "RED LED"
+msgstr "Rote LED"
+
+msgid "BLUE LED"
+msgstr "Blaue LED"
+
+msgid "BELOW"
+msgstr "Unter"
+
+msgid "ABOVE"
+msgstr "Über"
+
+msgid "BLUE"
+msgstr "Blau"
+
+msgid "RED"
+msgstr "Rot"

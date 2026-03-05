@@ -3652,6 +3652,12 @@ msgstr "ЭФФЕКТ ПОТОКА"
 msgid "SCROLLING EFFECT"
 msgstr "ЭФФЕКТ ПРОКРУТКИ"
 
+msgid "LEFT JOYSTICK LED"
+msgstr "Светодиод левого джойстика"
+
+msgid "RIGHT JOYSTICK LED"
+msgstr "Светодиод правого джойстика"
+
 msgid "BRIGHTNESS"
 msgstr "Яркость"
 
@@ -3714,3 +3720,24 @@ msgstr "Время успешно синхронизировано"
 
 msgid "NO NETWORK CONNECTION"
 msgstr "Нет подключения к сети"
+
+msgid "POWER LED"
+msgstr "Индикатор питания"
+
+msgid "RED LED"
+msgstr "Красный LED"
+
+msgid "BLUE LED"
+msgstr "Синий LED"
+
+msgid "BELOW"
+msgstr "Ниже"
+
+msgid "ABOVE"
+msgstr "Выше"
+
+msgid "BLUE"
+msgstr "Синий"
+
+msgid "RED"
+msgstr "Красный"

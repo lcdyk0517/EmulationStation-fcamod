@@ -21,6 +21,8 @@ public:
     
     // Static function for startup - public for main.cpp access
     static bool checkAndApplyLedOnStartup();
+    static void applyPowerLedOnStartup();
+    static void applyPowerLed();
 
 private:
     // WiFi functions
@@ -49,6 +51,8 @@ private:
     static void applyMcuLed(const std::string& color);
     static void applyGpioLed(const std::string& color);
     static void applyWs2812Led(const std::string& color, const std::string& brightness = "HIGH");
+    static void applyDualGpioLed(bool leftOn, bool rightOn);
+    static bool hasDualGpioLed();
     static void saveLedConfig(const std::string& color, const std::string& brightness = "");
     static std::vector<std::pair<std::string, std::string>> getLedMenuItems(const std::string& ledType);
     
@@ -57,6 +61,13 @@ private:
     static bool isR36Max2();
     static bool isUsbInternal();
     static void setUsbInternal(bool internal);
+    
+    // Power LED functions
+    void openPowerLedSettings();
+    static bool hasPowerLed();
+    static bool hasPowerLedRed();
+    static bool hasPowerLedBlue();
+    static bool hasArkOS4CloneLed();
     
     // Date & Time functions
     void openDateTimeSettings();

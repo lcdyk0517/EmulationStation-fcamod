@@ -2849,6 +2849,12 @@ msgstr "EFEKT PRZEPŁYWU"
 msgid "SCROLLING EFFECT"
 msgstr "EFEKT PRZEWIJANIA"
 
+msgid "LEFT JOYSTICK LED"
+msgstr "LED lewego joysticka"
+
+msgid "RIGHT JOYSTICK LED"
+msgstr "LED prawego joysticka"
+
 msgid "BRIGHTNESS"
 msgstr "Jasność"
 
@@ -2905,4 +2911,25 @@ msgid "TIME SYNCED SUCCESSFULLY"
 msgstr "Time Synced Successfully"
 
 msgid "NO NETWORK CONNECTION"
-msgstr "No Network Connection"
+msgstr "Brak połączenia sieciowego"
+
+msgid "POWER LED"
+msgstr "Dioda zasilania"
+
+msgid "RED LED"
+msgstr "Czerwona dioda"
+
+msgid "BLUE LED"
+msgstr "Niebieska dioda"
+
+msgid "BELOW"
+msgstr "Poniżej"
+
+msgid "ABOVE"
+msgstr "Powyżej"
+
+msgid "BLUE"
+msgstr "Niebieski"
+
+msgid "RED"
+msgstr "Czerwony"

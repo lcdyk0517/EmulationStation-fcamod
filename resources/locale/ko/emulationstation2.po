@@ -1858,6 +1858,12 @@ msgstr "흐름 효과"
 msgid "SCROLLING EFFECT"
 msgstr "스크롤 효과"
 
+msgid "LEFT JOYSTICK LED"
+msgstr "왼쪽 조이스틱 LED"
+
+msgid "RIGHT JOYSTICK LED"
+msgstr "오른쪽 조이스틱 LED"
+
 msgid "BRIGHTNESS"
 msgstr "밝기"
 
@@ -1914,3 +1920,24 @@ msgstr "시간 동기화 완료"
 
 msgid "NO NETWORK CONNECTION"
 msgstr "네트워크 연결 없음"
+
+msgid "POWER LED"
+msgstr "전원 LED"
+
+msgid "RED LED"
+msgstr "빨간 LED"
+
+msgid "BLUE LED"
+msgstr "파란 LED"
+
+msgid "BELOW"
+msgstr "미만"
+
+msgid "ABOVE"
+msgstr "이상"
+
+msgid "BLUE"
+msgstr "파랑"
+
+msgid "RED"
+msgstr "빨강"
