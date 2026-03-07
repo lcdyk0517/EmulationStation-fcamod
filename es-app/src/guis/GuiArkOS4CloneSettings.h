@@ -52,6 +52,7 @@ private:
     static void applyGpioLed(const std::string& color);
     static void applyWs2812Led(const std::string& color, const std::string& brightness = "HIGH");
     static void applyDualGpioLed(bool leftOn, bool rightOn);
+    static void applyR36UltraV2Led(const std::string& color);
     static bool hasDualGpioLed();
     static void saveLedConfig(const std::string& color, const std::string& brightness = "");
     static std::vector<std::pair<std::string, std::string>> getLedMenuItems(const std::string& ledType);

@@ -986,7 +986,9 @@ std::string GuiArkOS4CloneSettings::detectLedType()
         return cachedLedType;
     }
     
-    // Try console_detect -s for LED type
+    cached = true;
+    
+    // Use console_detect -s for LED type
     std::string output = executeCommand("/usr/local/bin/console_detect -s 2>/dev/null");
     if (!output.empty()) {
         std::istringstream stream(output);
@@ -996,27 +998,13 @@ std::string GuiArkOS4CloneSettings::detectLedType()
                 std::string ledType = line.substr(9);
                 if (!ledType.empty() && ledType != "unsupported") {
                     cachedLedType = ledType;
-                    cached = true;
                     return cachedLedType;
                 }
             }
         }
     }
     
-    // Fallback: read from /boot/.console
-    std::string deviceName = executeCommand("cat /boot/.console 2>/dev/null");
-    deviceName = Utils::String::trim(deviceName);
-    
-    if (deviceName == "xf35h" || deviceName == "xf40h" || deviceName == "k36s" || deviceName == "r36tmax") {
-        cachedLedType = "mcu_led";
-    } else if (deviceName == "mymini" || deviceName == "r36ultra" || deviceName == "xgb36" || deviceName == "mini40") {
-        cachedLedType = "gpio";
-    } else if (deviceName == "dc40v" || deviceName == "dc35v" || deviceName == "xf28" || deviceName == "r36max2") {
-        cachedLedType = "ws2812";
-    }
-    
-    cached = true;
-    return cachedLedType;
+    return cachedLedType; // empty if not detected
 }
 
 std::string GuiArkOS4CloneSettings::getDeviceName()
@@ -1088,6 +1076,18 @@ std::vector<std::pair<std::string, std::string>> GuiArkOS4CloneSettings::getLedM
         items.push_back({"green_blue", _("SOLID CYAN")});
         items.push_back({"blue_red", _("SOLID MAGENTA")});
         items.push_back({"red_green_blue", _("SOLID WHITE")});
+    } else if (ledType == "r36ultra_v2") {
+        // R36Ultra V2 joystick LED via /sys/class/leds/joyled/mode
+        items.push_back({"off", _("TURN OFF LED")});
+        items.push_back({"red", _("SOLID RED")});
+        items.push_back({"red_green", _("SOLID YELLOW")});
+        items.push_back({"green", _("SOLID GREEN")});
+        items.push_back({"green_blue", _("SOLID CYAN")});
+        items.push_back({"blue", _("SOLID BLUE")});
+        items.push_back({"blue_red", _("SOLID MAGENTA")});
+        items.push_back({"red_green_blue", _("SOLID WHITE")});
+        items.push_back({"breathing", _("BREATHING")});
+        items.push_back({"scrolling", _("SCROLLING EFFECT")});
     }
     
     return items;
@@ -1100,6 +1100,19 @@ std::vector<std::pair<std::string, std::string>> GuiArkOS4CloneSettings::getLedM
 void GuiArkOS4CloneSettings::applyLedColor(const std::string& color, const std::string& brightness)
 {
     std::string ledType = detectLedType();
+    std::string deviceName = getDeviceName();
+    
+    // Special handling for r36ultra: check saved version
+    if (deviceName == "r36ultra") {
+        int version = Settings::getInstance()->getInt("R36UltraLedVersion");
+        if (version == 2) {
+            applyR36UltraV2Led(color);
+        } else {
+            applyGpioLed(color);
+        }
+        saveLedConfig(color);
+        return;
+    }
     
     if (ledType == "mcu_led") {
         applyMcuLed(color);
@@ -1111,6 +1124,9 @@ void GuiArkOS4CloneSettings::applyLedColor(const std::string& color, const std::
         std::string bri = brightness.empty() ? "HIGH" : brightness;
         applyWs2812Led(color, bri);
         saveLedConfig(color, bri);
+    } else if (ledType == "r36ultra_v2") {
+        applyR36UltraV2Led(color);
+        saveLedConfig(color);
     }
 }
 
@@ -1273,6 +1289,31 @@ void GuiArkOS4CloneSettings::applyWs2812Led(const std::string& color, const std:
     }
 }
 
+void GuiArkOS4CloneSettings::applyR36UltraV2Led(const std::string& color)
+{
+    // R36Ultra V2 joystick LED via /sys/class/leds/joyled/mode
+    static const std::string JOYLED_MODE_PATH = "/sys/class/leds/joyled/mode";
+    
+    // Security: validate color string
+    if (!color.empty() && color.find_first_not_of("abcdefghijklmnopqrstuvwxyz_") != std::string::npos) {
+        return;
+    }
+    
+    if (!Utils::FileSystem::exists(JOYLED_MODE_PATH)) {
+        return;
+    }
+    
+    // Always turn off first before changing color
+    executeCommand("sudo sh -c 'echo off > " + JOYLED_MODE_PATH + "'");
+    
+    if (color == "off") {
+        return; // Already off
+    }
+    
+    // Apply new color
+    executeCommand("sudo sh -c 'echo " + color + " > " + JOYLED_MODE_PATH + "'");
+}
+
 // ============================================================================
 // LED Functions - Config & Startup
 // ============================================================================
@@ -1289,6 +1330,7 @@ void GuiArkOS4CloneSettings::saveLedConfig(const std::string& color, const std::
 bool GuiArkOS4CloneSettings::checkAndApplyLedOnStartup()
 {
     std::string ledType = detectLedType();
+    std::string deviceName = getDeviceName();
     
     // Special handling for dual-gpio
     if (ledType == "dual-gpio") {
@@ -1296,6 +1338,23 @@ bool GuiArkOS4CloneSettings::checkAndApplyLedOnStartup()
         bool rightOn = Settings::getInstance()->getBool("JoyLedRight");
         applyDualGpioLed(leftOn, rightOn);
         return leftOn || rightOn;
+    }
+    
+    // Special handling for r36ultra (V1/V2 version)
+    if (deviceName == "r36ultra") {
+        int version = Settings::getInstance()->getInt("R36UltraLedVersion");
+        std::string savedColor = Settings::getInstance()->getString("JoyLedColor");
+        
+        if (savedColor.empty() || savedColor == "off") {
+            return false;
+        }
+        
+        if (version == 2) {
+            applyR36UltraV2Led(savedColor);
+        } else {
+            applyGpioLed(savedColor);
+        }
+        return true;
     }
     
     // Read saved color and brightness from Settings
@@ -1330,6 +1389,7 @@ void GuiArkOS4CloneSettings::applyPowerLedOnStartup()
 void GuiArkOS4CloneSettings::openJoystickLedSettings()
 {
     std::string ledType = detectLedType();
+    std::string deviceName = getDeviceName();
     
     if (ledType.empty()) {
         mWindow->pushGui(new GuiMsgBox(mWindow, 
@@ -1339,6 +1399,90 @@ void GuiArkOS4CloneSettings::openJoystickLedSettings()
     }
     
     auto s = new GuiSettings(mWindow, _("JOYSTICK LED"));
+    
+    // Special handling for r36ultra: let user choose V1 or V2 version
+    if (deviceName == "r36ultra") {
+        int savedVersion = Settings::getInstance()->getInt("R36UltraLedVersion");
+        
+        auto versionOptions = std::make_shared<OptionListComponent<std::string>>(mWindow, _("VERSION"), false);
+        versionOptions->add(_("R36Ultra V1"), "v1", savedVersion == 1);
+        versionOptions->add(_("R36Ultra V2"), "v2", savedVersion == 2);
+        
+        s->addWithLabel(_("VERSION"), versionOptions);
+        
+        // Determine current effective LED type based on saved version
+        std::string currentLedType = (savedVersion == 2) ? "r36ultra_v2" : "gpio";
+        
+        // Get menu items for current version
+        auto items = getLedMenuItems(currentLedType);
+        std::string currentColor = getCurrentLedColor();
+        
+        // Check if currentColor is valid for current version
+        bool colorFound = false;
+        for (auto& item : items) {
+            if (item.first == currentColor) {
+                colorFound = true;
+                break;
+            }
+        }
+        if (!colorFound) {
+            currentColor = "off";
+        }
+        
+        auto ledOptions = std::make_shared<OptionListComponent<std::string>>(mWindow, _("LED MODE"), false);
+        for (auto& item : items) {
+            ledOptions->add(item.second, item.first, item.first == currentColor);
+        }
+        s->addWithLabel(_("LED MODE"), ledOptions);
+        
+        // Shared version variable for callbacks
+        auto currentVersion = std::make_shared<int>(savedVersion);
+        
+        // Handle LED color change - set callback first
+        ledOptions->setSelectedChangedCallback([this, currentVersion](const std::string& selectedColor) {
+            if (*currentVersion == 2) {
+                applyR36UltraV2Led(selectedColor);
+            } else {
+                applyGpioLed(selectedColor);
+            }
+            Settings::getInstance()->setString("JoyLedColor", selectedColor);
+            Settings::getInstance()->saveFile();
+        });
+        
+        // Handle version change - dynamically refresh LED options
+        versionOptions->setSelectedChangedCallback([this, ledOptions, currentVersion](const std::string& selectedVersion) {
+            int newVersion = (selectedVersion == "v2") ? 2 : 1;
+            int oldVersion = *currentVersion;
+            
+            // If version changed, turn off LED using OLD version's method first
+            if (oldVersion != newVersion) {
+                if (oldVersion == 2) {
+                    applyR36UltraV2Led("off");
+                } else {
+                    applyGpioLed("off");
+                }
+            }
+            
+            // Update version
+            *currentVersion = newVersion;
+            
+            // Save settings
+            Settings::getInstance()->setInt("R36UltraLedVersion", newVersion);
+            Settings::getInstance()->setString("JoyLedColor", "off");
+            Settings::getInstance()->saveFile();
+            
+            // Update UI with new LED options
+            ledOptions->clear();
+            std::string newLedType = (newVersion == 2) ? "r36ultra_v2" : "gpio";
+            auto newItems = getLedMenuItems(newLedType);
+            for (auto& item : newItems) {
+                ledOptions->add(item.second, item.first, item.first == "off");
+            }
+        });
+        
+        mWindow->pushGui(s);
+        return;
+    }
     
     // Special handling for dual-gpio: two switches for left/right joystick
     if (ledType == "dual-gpio") {
