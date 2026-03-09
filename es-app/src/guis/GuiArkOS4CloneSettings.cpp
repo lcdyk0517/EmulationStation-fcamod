@@ -94,31 +94,73 @@ static std::string executeCommand(const std::string& cmd)
     return Utils::String::trim(result);
 }
 
-static std::string getCurrentWifiSSID()
+// Get active WiFi interface (wlan0, p2p0, etc.)
+static std::string getActiveWifiInterface()
 {
-    // Method 1: nmcli active connection
-    std::string result = executeCommand("nmcli -t -f NAME,DEVICE connection show --active 2>/dev/null");
+    // Check for connected wifi devices via nmcli
+    std::string result = executeCommand("nmcli -t -f DEVICE,TYPE,STATE dev 2>/dev/null");
     if (!result.empty()) {
         std::istringstream stream(result);
         std::string line;
         while (std::getline(stream, line)) {
-            if (line.find(":wlan") != std::string::npos || line.find("wlan") != std::string::npos) {
+            // Format: device:type:state
+            if (line.find(":wifi:") != std::string::npos && line.find(":connected") != std::string::npos) {
                 size_t colonPos = line.find(':');
                 if (colonPos != std::string::npos) {
-                    std::string ssid = line.substr(0, colonPos);
-                    if (!ssid.empty()) return ssid;
+                    std::string iface = line.substr(0, colonPos);
+                    if (!iface.empty()) return iface;
                 }
             }
         }
     }
     
-    // Method 2: iw dev
-    std::string ssid = executeCommand("iw dev wlan0 info 2>/dev/null | grep ssid");
+    // Fallback: check operstate of common wifi interfaces
+    std::vector<std::string> wifiInterfaces = {"p2p0", "wlan0", "wlan1"};
+    for (const auto& iface : wifiInterfaces) {
+        std::string operstate = executeCommand("cat /sys/class/net/" + iface + "/operstate 2>/dev/null");
+        if (operstate == "up") return iface;
+    }
+    
+    return "wlan0"; // Default fallback
+}
+
+
+
+static std::string getCurrentWifiSSID()
+{
+    // Method 1: nmcli active connection - check all wifi interfaces
+    std::string result = executeCommand("nmcli -t -f NAME,DEVICE connection show --active 2>/dev/null");
+    if (!result.empty()) {
+        std::istringstream stream(result);
+        std::string line;
+        while (std::getline(stream, line)) {
+            // Check for wlan, p2p, or any wifi interface
+            if (line.find(":wlan") != std::string::npos || 
+                line.find(":p2p") != std::string::npos ||
+                line.find("wlan") != std::string::npos ||
+                line.find("p2p") != std::string::npos) {
+                size_t colonPos = line.find(':');
+                if (colonPos != std::string::npos) {
+                    std::string connName = line.substr(0, colonPos);
+                    if (!connName.empty() && connName != "lo") {
+                        return connName;
+                    }
+                }
+            }
+        }
+    }
+    
+    // Method 2: iw dev - check active interface
+    std::string iface = getActiveWifiInterface();
+    std::string ssid = executeCommand("iw dev " + iface + " info 2>/dev/null | grep ssid");
     if (!ssid.empty()) {
         size_t pos = ssid.find("ssid ");
         if (pos != std::string::npos) {
             ssid = ssid.substr(pos + 5);
-            if (!ssid.empty() && ssid != "off/any") return ssid;
+            ssid.erase(std::remove_if(ssid.begin(), ssid.end(), ::isspace), ssid.end());
+            if (!ssid.empty() && ssid != "off/any") {
+                return ssid;
+            }
         }
     }
     
@@ -282,13 +324,6 @@ void GuiArkOS4CloneSettings::createWifiSettingsMenu()
     s->addEntry(_("DELETE EXISTING CONNECTIONS"), true, [this] {
         deleteConnections();
     }, "");
-
-    // Hotspot Settings (only if supported)
-    if (isHotspotSupported()) {
-        s->addEntry(_("HOTSPOT SETTINGS"), true, [this] {
-            showHotspotSettings();
-        }, "");
-    }
 
     s->addEntry(_("NETWORK INFO"), true, [this] {
         showNetworkInfo();
@@ -569,12 +604,19 @@ void GuiArkOS4CloneSettings::deleteConnections()
 
 void GuiArkOS4CloneSettings::showNetworkInfo()
 {
+    std::string iface = getActiveWifiInterface();
     std::string ssid = getCurrentWifiSSID();
-    std::string ip = executeCommand("ip -f inet addr show wlan0 2>/dev/null | sed -En 's/.*inet ([0-9.]+).*/\\1/p'");
+    std::string ip = executeCommand("ip -f inet addr show " + iface + " 2>/dev/null | sed -En 's/.*inet ([0-9.]+).*/\\1/p'");
     std::string gateway = executeCommand("ip r 2>/dev/null | grep default | awk '{print $3}'");
-    std::string dns = executeCommand("nmcli dev show wlan0 2>/dev/null | grep DNS | awk '{print $2}' | head -1");
+    std::string dns = executeCommand("nmcli dev show " + iface + " 2>/dev/null | grep DNS | awk '{print $2}' | head -1");
+    
+    // Trim whitespace
+    ip.erase(std::remove_if(ip.begin(), ip.end(), ::isspace), ip.end());
+    gateway.erase(std::remove_if(gateway.begin(), gateway.end(), ::isspace), gateway.end());
+    dns.erase(std::remove_if(dns.begin(), dns.end(), ::isspace), dns.end());
 
     std::string info;
+    info += _("INTERFACE") + ": " + iface + "\n";
     info += _("SSID") + ": " + (ssid.empty() ? _("NOT CONNECTED") : ssid) + "\n";
     info += _("IP") + ": " + (ip.empty() ? "-" : ip) + "\n";
     info += _("GATEWAY") + ": " + (gateway.empty() ? "-" : gateway) + "\n";
@@ -617,7 +659,7 @@ void GuiArkOS4CloneSettings::connectWifi(const std::string& ssid, const std::str
     mWindow->removeGui(busy);
     delete busy;
 
-    std::string status = executeCommand("nmcli -t -f DEVICE,STATE dev 2>/dev/null | grep wlan");
+    std::string status = executeCommand("nmcli -t -f DEVICE,TYPE,STATE dev 2>/dev/null | grep wifi");
     bool connected = (status.find(":connected") != std::string::npos);
     
     std::string connectedSSID = getCurrentWifiSSID();
@@ -2241,112 +2283,6 @@ void GuiArkOS4CloneSettings::openZramSettings()
     
     mWindow->pushGui(s);
 }
-
-// ============================================================================
-// Hotspot Settings
-// ============================================================================
-
-std::string GuiArkOS4CloneSettings::getHotspotSsid()
-{
-    std::string ssid = Settings::getInstance()->getString("hotspot.ssid");
-    return ssid.empty() ? "arkos4clone" : ssid;
-}
-
-bool GuiArkOS4CloneSettings::isHotspotSupported()
-{
-    std::string result = executeCommand("ls /sys/class/net/wlan0 2>/dev/null");
-    return !Utils::String::trim(result).empty();
-}
-
-bool GuiArkOS4CloneSettings::isHotspotEnabled()
-{
-    std::string result = executeCommand("nmcli -t -f NAME,DEVICE connection show --active 2>/dev/null | grep -i hotspot");
-    return !Utils::String::trim(result).empty();
-}
-
-void GuiArkOS4CloneSettings::toggleHotspot(bool enable, const std::string& ssid, const std::string& password)
-{
-    if (enable) {
-        // Disconnect existing WiFi connection
-        executeCommand("sudo nmcli device disconnect wlan0 2>/dev/null || true");
-        
-        // Delete existing hotspot if any
-        executeCommand("sudo nmcli connection delete \"Hotspot\" 2>/dev/null || true");
-        
-        // Create new hotspot
-        std::string ssidToUse = ssid.empty() ? "arkos4clone" : ssid;
-        std::string passToUse = password.empty() ? "lcdyk0517" : password;
-        
-        executeCommand("sudo nmcli connection add type wifi ifname wlan0 con-name \"Hotspot\" autoconnect no ssid \"" + ssidToUse + "\"");
-        executeCommand("sudo nmcli connection modify \"Hotspot\" 802-11-wireless.mode ap 802-11-wireless.band bg ipv4.method shared");
-        executeCommand("sudo nmcli connection modify \"Hotspot\" wifi-sec.key-mgmt wpa-psk");
-        executeCommand("sudo nmcli connection modify \"Hotspot\" wifi-sec.psk \"" + passToUse + "\"");
-        executeCommand("sudo nmcli connection up \"Hotspot\"");
-        
-        // Save settings
-        Settings::getInstance()->setString("hotspot.ssid", ssidToUse);
-        Settings::getInstance()->setString("hotspot.password", passToUse);
-    } else {
-        executeCommand("sudo nmcli connection down \"Hotspot\" 2>/dev/null || true");
-        executeCommand("sudo nmcli connection delete \"Hotspot\" 2>/dev/null || true");
-    }
-}
-
-void GuiArkOS4CloneSettings::showHotspotSettings()
-{
-    auto s = new GuiSettings(mWindow, _("HOTSPOT SETTINGS"));
-    
-    // Check if hotspot is supported
-    if (!isHotspotSupported()) {
-        mWindow->pushGui(new GuiMsgBox(mWindow, _("UNSUPPORTED DEVICE"), _("OK")));
-        return;
-    }
-    
-    // Hotspot Enable/Disable
-    bool hotspotEnabled = isHotspotEnabled();
-    auto hotspotSwitch = std::make_shared<SwitchComponent>(mWindow);
-    hotspotSwitch->setState(hotspotEnabled);
-    s->addWithLabel(_("WIFI HOTSPOT"), hotspotSwitch);
-    
-    // Hotspot SSID
-    std::string currentSsid = getHotspotSsid();
-    auto ssidText = std::make_shared<TextComponent>(mWindow, currentSsid, ThemeData::getMenuTheme()->TextSmall.font, ThemeData::getMenuTheme()->TextSmall.color, ALIGN_RIGHT);
-    s->addWithLabel(_("HOTSPOT SSID"), ssidText);
-    
-    // Hotspot Password
-    std::string currentPassword = Settings::getInstance()->getString("hotspot.password");
-    if (currentPassword.empty()) currentPassword = "lcdyk0517";
-    auto passText = std::make_shared<TextComponent>(mWindow, currentPassword, ThemeData::getMenuTheme()->TextSmall.font, ThemeData::getMenuTheme()->TextSmall.color, ALIGN_RIGHT);
-    s->addWithLabel(_("HOTSPOT PASSWORD"), passText);
-    
-    // Edit SSID
-    s->addEntry(_("EDIT SSID"), true, [this, ssidText] {
-        mWindow->pushGui(new GuiTextEditPopupKeyboard(mWindow, _("HOTSPOT SSID"), 
-            ssidText->getValue(), 
-            [this, ssidText](const std::string& newSsid) {
-                ssidText->setValue(newSsid);
-                Settings::getInstance()->setString("hotspot.ssid", newSsid);
-            }, false));
-    }, "");
-    
-    // Edit Password
-    s->addEntry(_("EDIT PASSWORD"), true, [this, passText] {
-        mWindow->pushGui(new GuiTextEditPopupKeyboard(mWindow, _("HOTSPOT PASSWORD"), 
-            passText->getValue(), 
-            [this, passText](const std::string& newPass) {
-                passText->setValue(newPass);
-                Settings::getInstance()->setString("hotspot.password", newPass);
-            }, false));
-    }, "");
-    
-    hotspotSwitch->setOnChangedCallback([this, hotspotSwitch, ssidText, passText] {
-        toggleHotspot(hotspotSwitch->getState(), ssidText->getValue(), passText->getValue());
-    });
-    
-    mWindow->pushGui(s);
-}
-
-// ============================================================================
 // Remote Services Auto-Start
 // ============================================================================
 

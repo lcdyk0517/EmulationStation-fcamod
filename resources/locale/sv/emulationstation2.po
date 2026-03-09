@@ -3472,3 +3472,78 @@ msgstr "Blå"
 
 msgid "RED"
 msgstr "Röd"
+
+msgid "ARKOS4CLONE TOOLS"
+msgstr "ArkOS4Clone Verktyg"
+
+msgid "CPU SETTINGS"
+msgstr "CPU-inställningar"
+
+msgid "CPU CORES"
+msgstr "CPU-kärnor"
+
+msgid "CPU GOVERNOR"
+msgstr "CPU-guvernör"
+
+msgid "CPU MAX FREQ"
+msgstr "CPU Max Frekvens"
+
+msgid "GPU SETTINGS"
+msgstr "GPU-inställningar"
+
+msgid "GPU MAX FREQ"
+msgstr "GPU Max Frekvens"
+
+msgid "DMC SETTINGS"
+msgstr "DMC-inställningar"
+
+msgid "DMC MAX FREQ"
+msgstr "DMC Max Frekvens"
+
+msgid "ZRAM SETTINGS"
+msgstr "ZRAM-inställningar"
+
+msgid "ZRAM ENABLE"
+msgstr "Aktivera ZRAM"
+
+msgid "ZRAM SIZE"
+msgstr "ZRAM-storlek"
+
+msgid "MAX FREQ"
+msgstr "Max Frekvens"
+
+msgid "GOVERNOR"
+msgstr "Guvernör"
+
+msgid "DAY"
+msgstr "Dag"
+
+msgid "HOUR"
+msgstr "Timme"
+
+msgid "MINUTE"
+msgstr "Minut"
+
+msgid "MONTH"
+msgstr "Månad"
+
+msgid "YEAR"
+msgstr "År"
+
+msgid "SIZE"
+msgstr "Storlek"
+
+msgid "INTERFACE"
+msgstr "Gränssnitt"
+
+msgid "EXTERNAL USB"
+msgstr "Extern USB"
+
+msgid "REMOTE SERVICES AUTO-START"
+msgstr "Autostart Fjärrtjänster"
+
+msgid "R36Ultra V1"
+msgstr "R36Ultra V1"
+
+msgid "R36Ultra V2"
+msgstr "R36Ultra V2"

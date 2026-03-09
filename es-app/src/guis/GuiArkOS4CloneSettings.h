@@ -44,12 +44,6 @@ private:
     static bool isRemoteServicesAutoStart();
     static void toggleRemoteServicesAutoStart(bool enable);
     
-    // Hotspot functions
-    void showHotspotSettings();
-    static std::string getHotspotSsid();
-    static bool isHotspotSupported();
-    static bool isHotspotEnabled();
-    static void toggleHotspot(bool enable, const std::string& ssid = "", const std::string& password = "");
     
     // ArkOS4Clone Tools functions
     void openToolsMenu();

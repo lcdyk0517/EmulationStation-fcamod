@@ -3841,23 +3841,21 @@ msgstr "最大频率"
 msgid "GOVERNOR"
 msgstr "调度模式"
 
-msgid "HOTSPOT SETTINGS"
-msgstr "热点设置"
 
-msgid "HOTSPOT SSID"
-msgstr "热点 SSID"
+msgstr "(实验性功能)"
 
-msgid "HOTSPOT PASSWORD"
-msgstr "热点密码"
+msgstr "(实验性功能)"
 
-msgid "WIFI HOTSPOT"
-msgstr "Wi-Fi 热点"
 
-msgid "EDIT SSID"
-msgstr "编辑 SSID"
 
-msgid "EDIT PASSWORD"
-msgstr "编辑密码"
+
+
+
+
+
+
+
+
 
 msgid "REMOTE SERVICES AUTO-START"
 msgstr "远程服务开机自启"
@@ -3867,3 +3865,24 @@ msgstr "R36Ultra V1"
 
 msgid "R36Ultra V2"
 msgstr "R36Ultra V2"
+
+msgid "DAY"
+msgstr "日"
+
+msgid "HOUR"
+msgstr "时"
+
+msgid "MINUTE"
+msgstr "分"
+
+msgid "MONTH"
+msgstr "月"
+
+msgid "YEAR"
+msgstr "年"
+
+msgid "SIZE"
+msgstr "大小"
+
+msgid "INTERFACE"
+msgstr "接口"

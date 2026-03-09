@@ -2200,3 +2200,78 @@ msgstr "Μπλε"
 
 msgid "RED"
 msgstr "Κόκκινο"
+
+msgid "ARKOS4CLONE TOOLS"
+msgstr "Εργαλεία ArkOS4Clone"
+
+msgid "CPU SETTINGS"
+msgstr "Ρυθμίσεις CPU"
+
+msgid "CPU CORES"
+msgstr "Πυρήνες CPU"
+
+msgid "CPU GOVERNOR"
+msgstr "Κυβερνήτης CPU"
+
+msgid "CPU MAX FREQ"
+msgstr "Μέγιστη Συχνότητα CPU"
+
+msgid "GPU SETTINGS"
+msgstr "Ρυθμίσεις GPU"
+
+msgid "GPU MAX FREQ"
+msgstr "Μέγιστη Συχνότητα GPU"
+
+msgid "DMC SETTINGS"
+msgstr "Ρυθμίσεις DMC"
+
+msgid "DMC MAX FREQ"
+msgstr "Μέγιστη Συχνότητα DMC"
+
+msgid "ZRAM SETTINGS"
+msgstr "Ρυθμίσεις ZRAM"
+
+msgid "ZRAM ENABLE"
+msgstr "Ενεργοποίηση ZRAM"
+
+msgid "ZRAM SIZE"
+msgstr "Μέγεθος ZRAM"
+
+msgid "MAX FREQ"
+msgstr "Μέγιστη Συχνότητα"
+
+msgid "GOVERNOR"
+msgstr "Κυβερνήτης"
+
+msgid "DAY"
+msgstr "Ημέρα"
+
+msgid "HOUR"
+msgstr "Ώρα"
+
+msgid "MINUTE"
+msgstr "Λεπτό"
+
+msgid "MONTH"
+msgstr "Μήνας"
+
+msgid "YEAR"
+msgstr "Έτος"
+
+msgid "SIZE"
+msgstr "Μέγεθος"
+
+msgid "INTERFACE"
+msgstr "Διεπαφή"
+
+msgid "EXTERNAL USB"
+msgstr "Εξωτερικό USB"
+
+msgid "REMOTE SERVICES AUTO-START"
+msgstr "Αυτόματη Εκκίνηση Απομακρυσμένων Υπηρεσιών"
+
+msgid "R36Ultra V1"
+msgstr "R36Ultra V1"
+
+msgid "R36Ultra V2"
+msgstr "R36Ultra V2"

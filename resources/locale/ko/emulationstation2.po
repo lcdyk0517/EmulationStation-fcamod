@@ -1941,3 +1941,75 @@ msgstr "파랑"
 
 msgid "RED"
 msgstr "빨강"
+
+msgid "ARKOS4CLONE TOOLS"
+msgstr "ArkOS4Clone 도구"
+
+msgid "CPU SETTINGS"
+msgstr "CPU 설정"
+
+msgid "CPU CORES"
+msgstr "CPU 코어"
+
+msgid "CPU GOVERNOR"
+msgstr "CPU 거버너"
+
+msgid "CPU MAX FREQ"
+msgstr "CPU 최대 주파수"
+
+msgid "GPU SETTINGS"
+msgstr "GPU 설정"
+
+msgid "GPU MAX FREQ"
+msgstr "GPU 최대 주파수"
+
+msgid "DMC SETTINGS"
+msgstr "DMC 설정"
+
+msgid "DMC MAX FREQ"
+msgstr "DMC 최대 주파수"
+
+msgid "ZRAM SETTINGS"
+msgstr "ZRAM 설정"
+
+msgid "ZRAM ENABLE"
+msgstr "ZRAM 활성화"
+
+msgid "ZRAM SIZE"
+msgstr "ZRAM 크기"
+
+msgid "MAX FREQ"
+msgstr "최대 주파수"
+
+msgid "DAY"
+msgstr "일"
+
+msgid "HOUR"
+msgstr "시"
+
+msgid "MINUTE"
+msgstr "분"
+
+msgid "MONTH"
+msgstr "월"
+
+msgid "YEAR"
+msgstr "년"
+
+msgid "SIZE"
+msgstr "크기"
+
+msgid "INTERFACE"
+msgstr "인터페이스"
+
+msgid "EXTERNAL USB"
+msgstr "외부 USB"
+
+msgid "REMOTE SERVICES AUTO-START"
+msgstr "원격 서비스 자동 시작"
+
+msgid "R36Ultra V1"
+msgstr "R36Ultra V1"
+
+msgid "R36Ultra V2"
+msgstr "R36Ultra V2"

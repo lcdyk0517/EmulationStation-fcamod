@@ -1797,3 +1797,78 @@ msgstr "Xanh dương"
 
 msgid "RED"
 msgstr "Đỏ"
+
+msgid "ARKOS4CLONE TOOLS"
+msgstr "Công cụ ArkOS4Clone"
+
+msgid "CPU SETTINGS"
+msgstr "Cài đặt CPU"
+
+msgid "CPU CORES"
+msgstr "Nhân CPU"
+
+msgid "CPU GOVERNOR"
+msgstr "Quản lý CPU"
+
+msgid "CPU MAX FREQ"
+msgstr "Tần số tối đa CPU"
+
+msgid "GPU SETTINGS"
+msgstr "Cài đặt GPU"
+
+msgid "GPU MAX FREQ"
+msgstr "Tần số tối đa GPU"
+
+msgid "DMC SETTINGS"
+msgstr "Cài đặt DMC"
+
+msgid "DMC MAX FREQ"
+msgstr "Tần số tối đa DMC"
+
+msgid "ZRAM SETTINGS"
+msgstr "Cài đặt ZRAM"
+
+msgid "ZRAM ENABLE"
+msgstr "Bật ZRAM"
+
+msgid "ZRAM SIZE"
+msgstr "Kích thước ZRAM"
+
+msgid "MAX FREQ"
+msgstr "Tần số tối đa"
+
+msgid "GOVERNOR"
+msgstr "Quản lý"
+
+msgid "DAY"
+msgstr "Ngày"
+
+msgid "HOUR"
+msgstr "Giờ"
+
+msgid "MINUTE"
+msgstr "Phút"
+
+msgid "MONTH"
+msgstr "Tháng"
+
+msgid "YEAR"
+msgstr "Năm"
+
+msgid "SIZE"
+msgstr "Kích thước"
+
+msgid "INTERFACE"
+msgstr "Giao diện"
+
+msgid "EXTERNAL USB"
+msgstr "USB ngoài"
+
+msgid "REMOTE SERVICES AUTO-START"
+msgstr "Tự động dịch vụ từ xa"
+
+msgid "R36Ultra V1"
+msgstr "R36Ultra V1"
+
+msgid "R36Ultra V2"
+msgstr "R36Ultra V2"

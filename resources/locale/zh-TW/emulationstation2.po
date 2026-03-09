@@ -3721,3 +3721,72 @@ msgstr "藍色"
 
 msgid "RED"
 msgstr "紅色"
+
+msgid "ARKOS4CLONE TOOLS"
+msgstr "ArkOS4Clone 工具"
+
+msgid "CPU SETTINGS"
+msgstr "CPU 設定"
+
+msgid "CPU CORES"
+msgstr "CPU 核心"
+
+msgid "CPU GOVERNOR"
+msgstr "CPU 調度模式"
+
+msgid "CPU MAX FREQ"
+msgstr "CPU 最大頻率"
+
+msgid "GPU SETTINGS"
+msgstr "GPU 設定"
+
+msgid "GPU MAX FREQ"
+msgstr "GPU 最大頻率"
+
+msgid "DMC SETTINGS"
+msgstr "DMC 設定"
+
+msgid "DMC MAX FREQ"
+msgstr "DMC 最大頻率"
+
+msgid "ZRAM SETTINGS"
+msgstr "ZRAM 設定"
+
+msgid "ZRAM ENABLE"
+msgstr "啟用 ZRAM"
+
+msgid "ZRAM SIZE"
+msgstr "ZRAM 大小"
+
+msgid "MAX FREQ"
+msgstr "最大頻率"
+
+msgid "DAY"
+msgstr "日"
+
+msgid "HOUR"
+msgstr "時"
+
+msgid "MINUTE"
+msgstr "分"
+
+msgid "MONTH"
+msgstr "月"
+
+msgid "SIZE"
+msgstr "大小"
+
+msgid "INTERFACE"
+msgstr "介面"
+
+msgid "EXTERNAL USB"
+msgstr "外部 USB"
+
+msgid "REMOTE SERVICES AUTO-START"
+msgstr "遠端服務開機自啟"
+
+msgid "R36Ultra V1"
+msgstr "R36Ultra V1"
+
+msgid "R36Ultra V2"
+msgstr "R36Ultra V2"

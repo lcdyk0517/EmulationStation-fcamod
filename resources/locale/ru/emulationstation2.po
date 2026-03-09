@@ -3741,3 +3741,72 @@ msgstr "Синий"
 
 msgid "RED"
 msgstr "Красный"
+
+msgid "ARKOS4CLONE TOOLS"
+msgstr "Инструменты ArkOS4Clone"
+
+msgid "CPU SETTINGS"
+msgstr "Настройки CPU"
+
+msgid "CPU CORES"
+msgstr "Ядра CPU"
+
+msgid "CPU GOVERNOR"
+msgstr "Губернатор CPU"
+
+msgid "CPU MAX FREQ"
+msgstr "Макс частота CPU"
+
+msgid "GPU SETTINGS"
+msgstr "Настройки GPU"
+
+msgid "GPU MAX FREQ"
+msgstr "Макс частота GPU"
+
+msgid "DMC SETTINGS"
+msgstr "Настройки DMC"
+
+msgid "DMC MAX FREQ"
+msgstr "Макс частота DMC"
+
+msgid "ZRAM SETTINGS"
+msgstr "Настройки ZRAM"
+
+msgid "ZRAM ENABLE"
+msgstr "Включить ZRAM"
+
+msgid "ZRAM SIZE"
+msgstr "Размер ZRAM"
+
+msgid "MAX FREQ"
+msgstr "Макс частота"
+
+msgid "DAY"
+msgstr "День"
+
+msgid "HOUR"
+msgstr "Час"
+
+msgid "MINUTE"
+msgstr "Минута"
+
+msgid "MONTH"
+msgstr "Месяц"
+
+msgid "SIZE"
+msgstr "Размер"
+
+msgid "INTERFACE"
+msgstr "Интерфейс"
+
+msgid "EXTERNAL USB"
+msgstr "Внешний USB"
+
+msgid "REMOTE SERVICES AUTO-START"
+msgstr "Автозапуск удалённых служб"
+
+msgid "R36Ultra V1"
+msgstr "R36Ultra V1"
+
+msgid "R36Ultra V2"
+msgstr "R36Ultra V2"

@@ -2933,3 +2933,78 @@ msgstr "Niebieski"
 
 msgid "RED"
 msgstr "Czerwony"
+
+msgid "ARKOS4CLONE TOOLS"
+msgstr "Narzędzia ArkOS4Clone"
+
+msgid "CPU SETTINGS"
+msgstr "Ustawienia CPU"
+
+msgid "CPU CORES"
+msgstr "Rdzenie CPU"
+
+msgid "CPU GOVERNOR"
+msgstr "Zarządca CPU"
+
+msgid "CPU MAX FREQ"
+msgstr "Maks Częstotliwość CPU"
+
+msgid "GPU SETTINGS"
+msgstr "Ustawienia GPU"
+
+msgid "GPU MAX FREQ"
+msgstr "Maks Częstotliwość GPU"
+
+msgid "DMC SETTINGS"
+msgstr "Ustawienia DMC"
+
+msgid "DMC MAX FREQ"
+msgstr "Maks Częstotliwość DMC"
+
+msgid "ZRAM SETTINGS"
+msgstr "Ustawienia ZRAM"
+
+msgid "ZRAM ENABLE"
+msgstr "Włącz ZRAM"
+
+msgid "ZRAM SIZE"
+msgstr "Rozmiar ZRAM"
+
+msgid "MAX FREQ"
+msgstr "Maks Częstotliwość"
+
+msgid "GOVERNOR"
+msgstr "Zarządca"
+
+msgid "DAY"
+msgstr "Dzień"
+
+msgid "HOUR"
+msgstr "Godzina"
+
+msgid "MINUTE"
+msgstr "Minuta"
+
+msgid "MONTH"
+msgstr "Miesiąc"
+
+msgid "YEAR"
+msgstr "Rok"
+
+msgid "SIZE"
+msgstr "Rozmiar"
+
+msgid "INTERFACE"
+msgstr "Interfejs"
+
+msgid "EXTERNAL USB"
+msgstr "Zewnętrzne USB"
+
+msgid "REMOTE SERVICES AUTO-START"
+msgstr "Autostart Usług Zdalnych"
+
+msgid "R36Ultra V1"
+msgstr "R36Ultra V1"
+
+msgid "R36Ultra V2"
+msgstr "R36Ultra V2"
