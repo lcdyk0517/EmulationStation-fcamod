@@ -3798,3 +3798,72 @@ msgstr "蓝色"
 
 msgid "RED"
 msgstr "红色"
+
+msgid "ARKOS4CLONE TOOLS"
+msgstr "ArkOS4Clone 工具"
+
+msgid "CPU SETTINGS"
+msgstr "CPU 设置"
+
+msgid "CPU CORES"
+msgstr "CPU 核心"
+
+msgid "CPU GOVERNOR"
+msgstr "CPU 调度模式"
+
+msgid "CPU MAX FREQ"
+msgstr "CPU 最大频率"
+
+msgid "GPU SETTINGS"
+msgstr "GPU 设置"
+
+msgid "GPU MAX FREQ"
+msgstr "GPU 最大频率"
+
+msgid "DMC SETTINGS"
+msgstr "DMC 设置"
+
+msgid "DMC MAX FREQ"
+msgstr "DMC 最大频率"
+
+msgid "ZRAM SETTINGS"
+msgstr "ZRAM 设置"
+
+msgid "ZRAM ENABLE"
+msgstr "启用 ZRAM"
+
+msgid "ZRAM SIZE"
+msgstr "ZRAM 大小"
+
+msgid "MAX FREQ"
+msgstr "最大频率"
+
+msgid "GOVERNOR"
+msgstr "调度模式"
+
+msgid "HOTSPOT SETTINGS"
+msgstr "热点设置"
+
+msgid "HOTSPOT SSID"
+msgstr "热点 SSID"
+
+msgid "HOTSPOT PASSWORD"
+msgstr "热点密码"
+
+msgid "WIFI HOTSPOT"
+msgstr "Wi-Fi 热点"
+
+msgid "EDIT SSID"
+msgstr "编辑 SSID"
+
+msgid "EDIT PASSWORD"
+msgstr "编辑密码"
+
+msgid "REMOTE SERVICES AUTO-START"
+msgstr "远程服务开机自启"
+
+msgid "R36Ultra V1"
+msgstr "R36Ultra V1"
+
+msgid "R36Ultra V2"
+msgstr "R36Ultra V2"

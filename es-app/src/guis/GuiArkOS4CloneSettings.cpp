@@ -22,6 +22,7 @@
 #include <regex>
 #include <chrono>
 #include <algorithm>
+#include <cctype>
 
 // ============================================================================
 // Static Constants
@@ -145,6 +146,13 @@ GuiArkOS4CloneSettings::GuiArkOS4CloneSettings(Window* window)
         }, "");
     }
 
+    // ArkOS4Clone Tools submenu (CPU/GPU/DMC/ZRAM settings)
+    if (hasGpuFreqControl() || hasDmcFreqControl() || getCpuCoreCount() > 1) {
+        mMenu.addEntry(_("ARKOS4CLONE TOOLS"), true, [this] {
+            openToolsMenu();
+        }, "");
+    }
+
     // Power LED Settings submenu (only for supported devices)
     if (hasPowerLed()) {
         mMenu.addEntry(_("POWER LED"), true, [this] {
@@ -242,6 +250,15 @@ void GuiArkOS4CloneSettings::createWifiSettingsMenu()
     });
     s->addWithLabel(_("REMOTE SERVICES"), remoteSwitch);
 
+    // Remote Services Auto-Start toggle
+    bool autoStartEnabled = isRemoteServicesAutoStart();
+    auto autoStartSwitch = std::make_shared<SwitchComponent>(mWindow);
+    autoStartSwitch->setState(autoStartEnabled);
+    autoStartSwitch->setOnChangedCallback([this, autoStartSwitch] {
+        toggleRemoteServicesAutoStart(autoStartSwitch->getState());
+    });
+    s->addWithLabel(_("REMOTE SERVICES AUTO-START"), autoStartSwitch);
+
     // IP Address display
     std::string ipAddress = getIpAddress();
     if (ipAddress.empty()) {
@@ -265,6 +282,13 @@ void GuiArkOS4CloneSettings::createWifiSettingsMenu()
     s->addEntry(_("DELETE EXISTING CONNECTIONS"), true, [this] {
         deleteConnections();
     }, "");
+
+    // Hotspot Settings (only if supported)
+    if (isHotspotSupported()) {
+        s->addEntry(_("HOTSPOT SETTINGS"), true, [this] {
+            showHotspotSettings();
+        }, "");
+    }
 
     s->addEntry(_("NETWORK INFO"), true, [this] {
         showNetworkInfo();
@@ -1780,4 +1804,568 @@ std::vector<HelpPrompt> GuiArkOS4CloneSettings::getHelpPrompts()
     std::vector<HelpPrompt> prompts = mMenu.getHelpPrompts();
     prompts.push_back(HelpPrompt(BUTTON_BACK, _("BACK")));
     return prompts;
+}
+
+// ============================================================================
+// ArkOS4Clone Tools Menu
+// ============================================================================
+
+void GuiArkOS4CloneSettings::openToolsMenu()
+{
+    auto s = new GuiSettings(mWindow, _("ARKOS4CLONE TOOLS"));
+    
+    // CPU Settings (always available on multi-core systems)
+    if (getCpuCoreCount() > 1 || !getAvailableGovernors().empty()) {
+        s->addEntry(_("CPU SETTINGS"), true, [this] {
+            openCpuSettings();
+        }, "");
+    }
+    
+    // GPU Settings (only if GPU freq control is available)
+    if (hasGpuFreqControl()) {
+        s->addEntry(_("GPU SETTINGS"), true, [this] {
+            openGpuSettings();
+        }, "");
+    }
+    
+    // DMC Settings (only if DMC freq control is available)
+    if (hasDmcFreqControl()) {
+        s->addEntry(_("DMC SETTINGS"), true, [this] {
+            openDmcSettings();
+        }, "");
+    }
+    
+    // ZRAM Settings
+    s->addEntry(_("ZRAM SETTINGS"), true, [this] {
+        openZramSettings();
+    }, "");
+    
+    mWindow->pushGui(s);
+}
+
+// ============================================================================
+// CPU Settings
+// ============================================================================
+
+int GuiArkOS4CloneSettings::getCpuCoreCount()
+{
+    std::string result = executeCommand("ls -d /sys/devices/system/cpu/cpu[0-9]* 2>/dev/null | wc -l");
+    return atoi(result.c_str());
+}
+
+int GuiArkOS4CloneSettings::getOnlineCpuCount()
+{
+    int count = 0;
+    int total = getCpuCoreCount();
+    for (int i = 0; i < total; i++) {
+        std::string result = executeCommand("cat /sys/devices/system/cpu/cpu" + std::to_string(i) + "/online 2>/dev/null");
+        // Remove all whitespace including newlines
+        result.erase(std::remove_if(result.begin(), result.end(), ::isspace), result.end());
+        if (result == "1" || result.empty()) {  // cpu0 has no online file but is always on
+            count++;
+        }
+    }
+    return count;
+}
+
+std::string GuiArkOS4CloneSettings::getCpuGovernor()
+{
+    std::string result = executeCommand("cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor 2>/dev/null");
+    // Remove all whitespace including newlines
+    result.erase(std::remove_if(result.begin(), result.end(), ::isspace), result.end());
+    return result;
+}
+
+void GuiArkOS4CloneSettings::setCpuGovernor(const std::string& governor)
+{
+    int cores = getCpuCoreCount();
+    for (int i = 0; i < cores; i++) {
+        executeCommand("echo " + governor + " | sudo tee /sys/devices/system/cpu/cpu" + std::to_string(i) + "/cpufreq/scaling_governor >/dev/null 2>&1");
+    }
+}
+
+std::string GuiArkOS4CloneSettings::getCpuMaxFreq()
+{
+    std::string result = executeCommand("cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq 2>/dev/null");
+    result.erase(std::remove_if(result.begin(), result.end(), ::isspace), result.end());
+    return result;
+}
+
+void GuiArkOS4CloneSettings::setCpuMaxFreq(const std::string& freq)
+{
+    int cores = getCpuCoreCount();
+    for (int i = 0; i < cores; i++) {
+        executeCommand("echo " + freq + " | sudo tee /sys/devices/system/cpu/cpu" + std::to_string(i) + "/cpufreq/scaling_max_freq >/dev/null 2>&1");
+    }
+}
+
+std::vector<std::string> GuiArkOS4CloneSettings::getCpuAvailableFreqs()
+{
+    std::string result = executeCommand("cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies 2>/dev/null");
+    std::vector<std::string> freqs;
+    std::istringstream stream(result);
+    std::string freq;
+    while (stream >> freq) {
+        freq.erase(std::remove_if(freq.begin(), freq.end(), ::isspace), freq.end());
+        if (!freq.empty()) freqs.push_back(freq);
+    }
+    return freqs;
+}
+
+std::vector<std::string> GuiArkOS4CloneSettings::getAvailableGovernors()
+{
+    std::string result = executeCommand("cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors 2>/dev/null");
+    std::vector<std::string> governors;
+    std::istringstream stream(result);
+    std::string gov;
+    while (stream >> gov) {
+        gov.erase(std::remove_if(gov.begin(), gov.end(), ::isspace), gov.end());
+        if (!gov.empty()) governors.push_back(gov);
+    }
+    return governors;
+}
+
+void GuiArkOS4CloneSettings::setCpuCores(int count)
+{
+    int totalCores = getCpuCoreCount();
+    // Enable all cores first
+    for (int i = 0; i < totalCores; i++) {
+        executeCommand("echo 1 | sudo tee /sys/devices/system/cpu/cpu" + std::to_string(i) + "/online >/dev/null 2>&1");
+    }
+    // Disable cores beyond count (keep cpu0 always on)
+    for (int i = count; i < totalCores; i++) {
+        executeCommand("echo 0 | sudo tee /sys/devices/system/cpu/cpu" + std::to_string(i) + "/online >/dev/null 2>&1");
+    }
+}
+
+void GuiArkOS4CloneSettings::openCpuSettings()
+{
+    auto s = new GuiSettings(mWindow, _("CPU SETTINGS"));
+    
+    // CPU Cores
+    int coreCount = getCpuCoreCount();
+    int onlineCount = getOnlineCpuCount();
+    LOG(LogDebug) << "CPU totalCores: " << coreCount << " onlineCores: " << onlineCount;
+    if (coreCount > 1) {
+        auto coreList = std::make_shared<OptionListComponent<std::string>>(mWindow, _("CPU CORES"), false);
+        for (int i = 1; i <= coreCount; i++) {
+            coreList->add(std::to_string(i), std::to_string(i), i == onlineCount);
+        }
+        s->addWithLabel(_("CPU CORES"), coreList);
+        
+        coreList->setSelectedChangedCallback([this](const std::string& val) {
+            setCpuCores(atoi(val.c_str()));
+        });
+    }
+    
+    // CPU Governor
+    auto governors = getAvailableGovernors();
+    if (!governors.empty()) {
+        auto govList = std::make_shared<OptionListComponent<std::string>>(mWindow, _("GOVERNOR"), false);
+        std::string currentGov = getCpuGovernor();
+        LOG(LogDebug) << "CPU currentGov: '" << currentGov << "'";
+        bool found = false;
+        for (const auto& gov : governors) {
+            bool isSelected = (gov == currentGov);
+            LOG(LogDebug) << "CPU gov option: '" << gov << "' selected: " << isSelected;
+            if (isSelected) found = true;
+            govList->add(gov, gov, isSelected);
+        }
+        if (!found && !governors.empty()) {
+            govList->selectFirstItem();
+        }
+        s->addWithLabel(_("CPU GOVERNOR"), govList);
+        
+        govList->setSelectedChangedCallback([this](const std::string& val) {
+            setCpuGovernor(val);
+        });
+    }
+    
+    // CPU Max Frequency
+    auto freqs = getCpuAvailableFreqs();
+    if (!freqs.empty()) {
+        auto freqList = std::make_shared<OptionListComponent<std::string>>(mWindow, _("MAX FREQ"), false);
+        std::string currentFreq = getCpuMaxFreq();
+        LOG(LogDebug) << "CPU currentFreq: '" << currentFreq << "'";
+        bool found = false;
+        for (const auto& freq : freqs) {
+            // Convert kHz to MHz for display
+            int mhz = atoi(freq.c_str()) / 1000;
+            bool isSelected = (freq == currentFreq);
+            LOG(LogDebug) << "CPU freq option: '" << freq << "' selected: " << isSelected;
+            if (isSelected) found = true;
+            freqList->add(std::to_string(mhz) + " MHz", freq, isSelected);
+        }
+        if (!found && !freqs.empty()) {
+            freqList->selectFirstItem();
+        }
+        s->addWithLabel(_("CPU MAX FREQ"), freqList);
+        
+        freqList->setSelectedChangedCallback([this](const std::string& val) {
+            setCpuMaxFreq(val);
+        });
+    }
+    
+    mWindow->pushGui(s);
+}
+
+// ============================================================================
+// GPU Settings
+// ============================================================================
+
+bool GuiArkOS4CloneSettings::hasGpuFreqControl()
+{
+    std::string result = executeCommand("ls -d /sys/class/devfreq/ff400000.gpu 2>/dev/null");
+    return !Utils::String::trim(result).empty();
+}
+
+std::string GuiArkOS4CloneSettings::getGpuDevPath()
+{
+    return "/sys/class/devfreq/ff400000.gpu/";
+}
+
+std::string GuiArkOS4CloneSettings::getGpuMaxFreq()
+{
+    std::string gpuPath = getGpuDevPath();
+    if (gpuPath.empty()) return "";
+    std::string result = executeCommand("cat " + gpuPath + "max_freq 2>/dev/null");
+    result.erase(std::remove_if(result.begin(), result.end(), ::isspace), result.end());
+    return result;
+}
+
+void GuiArkOS4CloneSettings::setGpuMaxFreq(const std::string& freq)
+{
+    std::string gpuPath = getGpuDevPath();
+    if (gpuPath.empty()) return;
+    executeCommand("echo " + freq + " | sudo tee " + gpuPath + "max_freq >/dev/null 2>&1");
+}
+
+std::vector<std::string> GuiArkOS4CloneSettings::getGpuAvailableFreqs()
+{
+    std::string gpuPath = getGpuDevPath();
+    if (gpuPath.empty()) return {};
+    std::string result = executeCommand("cat " + gpuPath + "available_frequencies 2>/dev/null");
+    std::vector<std::string> freqs;
+    std::istringstream stream(result);
+    std::string freq;
+    while (stream >> freq) {
+        freq.erase(std::remove_if(freq.begin(), freq.end(), ::isspace), freq.end());
+        if (!freq.empty()) freqs.push_back(freq);
+    }
+    return freqs;
+}
+
+void GuiArkOS4CloneSettings::openGpuSettings()
+{
+    auto s = new GuiSettings(mWindow, _("GPU SETTINGS"));
+    
+    auto freqs = getGpuAvailableFreqs();
+    if (!freqs.empty()) {
+        auto freqList = std::make_shared<OptionListComponent<std::string>>(mWindow, _("MAX FREQ"), false);
+        std::string currentFreq = getGpuMaxFreq();
+        LOG(LogDebug) << "GPU currentFreq: '" << currentFreq << "'";
+        bool found = false;
+        for (const auto& freq : freqs) {
+            // Convert Hz to MHz for display
+            int mhz = atoi(freq.c_str()) / 1000000;
+            bool isSelected = (freq == currentFreq);
+            LOG(LogDebug) << "GPU freq option: '" << freq << "' selected: " << isSelected;
+            if (isSelected) found = true;
+            freqList->add(std::to_string(mhz) + " MHz", freq, isSelected);
+        }
+        if (!found && !freqs.empty()) {
+            freqList->selectFirstItem();
+        }
+        s->addWithLabel(_("GPU MAX FREQ"), freqList);
+        
+        freqList->setSelectedChangedCallback([this](const std::string& val) {
+            setGpuMaxFreq(val);
+        });
+    }
+    
+    mWindow->pushGui(s);
+}
+
+// ============================================================================
+// DMC Settings
+// ============================================================================
+
+bool GuiArkOS4CloneSettings::hasDmcFreqControl()
+{
+    std::string result = executeCommand("ls /sys/class/devfreq/dmc/available_frequencies 2>/dev/null");
+    return !Utils::String::trim(result).empty();
+}
+
+std::string GuiArkOS4CloneSettings::getDmcMaxFreq()
+{
+    std::string result = executeCommand("cat /sys/class/devfreq/dmc/max_freq 2>/dev/null");
+    result.erase(std::remove_if(result.begin(), result.end(), ::isspace), result.end());
+    return result;
+}
+
+void GuiArkOS4CloneSettings::setDmcMaxFreq(const std::string& freq)
+{
+    executeCommand("echo " + freq + " | sudo tee /sys/class/devfreq/dmc/max_freq >/dev/null 2>&1");
+}
+
+std::vector<std::string> GuiArkOS4CloneSettings::getDmcAvailableFreqs()
+{
+    std::string result = executeCommand("cat /sys/class/devfreq/dmc/available_frequencies 2>/dev/null");
+    std::vector<std::string> freqs;
+    std::istringstream stream(result);
+    std::string freq;
+    while (stream >> freq) {
+        freq.erase(std::remove_if(freq.begin(), freq.end(), ::isspace), freq.end());
+        if (!freq.empty()) freqs.push_back(freq);
+    }
+    return freqs;
+}
+
+void GuiArkOS4CloneSettings::openDmcSettings()
+{
+    auto s = new GuiSettings(mWindow, _("DMC SETTINGS"));
+    
+    auto freqs = getDmcAvailableFreqs();
+    if (!freqs.empty()) {
+        auto freqList = std::make_shared<OptionListComponent<std::string>>(mWindow, _("MAX FREQ"), false);
+        std::string currentFreq = getDmcMaxFreq();
+        LOG(LogDebug) << "DMC currentFreq: '" << currentFreq << "'";
+        bool found = false;
+        for (const auto& freq : freqs) {
+            // Convert Hz to MHz for display
+            int mhz = atoi(freq.c_str()) / 1000000;
+            bool isSelected = (freq == currentFreq);
+            LOG(LogDebug) << "DMC freq option: '" << freq << "' selected: " << isSelected;
+            if (isSelected) found = true;
+            freqList->add(std::to_string(mhz) + " MHz", freq, isSelected);
+        }
+        if (!found && !freqs.empty()) {
+            freqList->selectFirstItem();
+        }
+        s->addWithLabel(_("DMC MAX FREQ"), freqList);
+        
+        freqList->setSelectedChangedCallback([this](const std::string& val) {
+            setDmcMaxFreq(val);
+        });
+    }
+    
+    mWindow->pushGui(s);
+}
+
+// ============================================================================
+// ZRAM Settings
+// ============================================================================
+
+std::string GuiArkOS4CloneSettings::getZramSize()
+{
+    std::string result = executeCommand("cat /sys/block/zram0/disksize 2>/dev/null");
+    result.erase(std::remove_if(result.begin(), result.end(), ::isspace), result.end());
+    if (result.empty()) return "0";
+    long size = atol(result.c_str());
+    // Convert to MB
+    long mb = size / (1024 * 1024);
+    return std::to_string(mb) + "M";
+}
+
+bool GuiArkOS4CloneSettings::isZramEnabled()
+{
+    std::string result = executeCommand("grep -q '^/dev/zram0' /proc/swaps 2>/dev/null && echo yes || echo no");
+    result.erase(std::remove_if(result.begin(), result.end(), ::isspace), result.end());
+    return result == "yes";
+}
+
+void GuiArkOS4CloneSettings::toggleZram(bool enable, const std::string& size)
+{
+    if (enable) {
+        // Disable first if already enabled
+        executeCommand("sudo swapoff /dev/zram0 2>/dev/null || true");
+        // Reset zram
+        executeCommand("echo 1 | sudo tee /sys/block/zram0/reset >/dev/null 2>&1");
+        
+        // Convert size string (e.g., "512M") to bytes
+        long bytes = 536870912; // default 512M
+        if (size == "128M") bytes = 134217728;
+        else if (size == "256M") bytes = 268435456;
+        else if (size == "512M") bytes = 536870912;
+        else if (size == "1024M") bytes = 1073741824;
+        
+        // Set size in bytes
+        executeCommand("echo " + std::to_string(bytes) + " | sudo tee /sys/block/zram0/disksize >/dev/null 2>&1");
+        // Create swap and enable
+        executeCommand("sudo mkswap /dev/zram0 >/dev/null 2>&1");
+        executeCommand("sudo swapon -p 5 /dev/zram0 >/dev/null 2>&1");
+    } else {
+        executeCommand("sudo swapoff /dev/zram0 2>/dev/null || true");
+        executeCommand("echo 1 | sudo tee /sys/block/zram0/reset >/dev/null 2>&1 || true");
+    }
+}
+
+void GuiArkOS4CloneSettings::openZramSettings()
+{
+    auto s = new GuiSettings(mWindow, _("ZRAM SETTINGS"));
+    
+    // ZRAM Enable/Disable
+    bool zramEnabled = isZramEnabled();
+    auto zramSwitch = std::make_shared<SwitchComponent>(mWindow);
+    zramSwitch->setState(zramEnabled);
+    s->addWithLabel(_("ZRAM ENABLE"), zramSwitch);
+    
+    // ZRAM Size options
+    auto sizeList = std::make_shared<OptionListComponent<std::string>>(mWindow, _("SIZE"), false);
+    std::vector<std::string> sizes = {"128M", "256M", "512M", "1024M"};
+    std::string currentSize = getZramSize();
+    // If current size is not in list (e.g., "0M" when disabled), default to 512M
+    bool found = false;
+    for (const auto& size : sizes) {
+        if (size == currentSize) found = true;
+    }
+    if (!found) currentSize = "512M";
+    for (const auto& size : sizes) {
+        sizeList->add(size, size, size == currentSize);
+    }
+    s->addWithLabel(_("ZRAM SIZE"), sizeList);
+    
+    zramSwitch->setOnChangedCallback([this, s, zramSwitch, sizeList] {
+        std::string selectedSize = sizeList->getSelected();
+        if (selectedSize.empty()) selectedSize = "512M";
+        toggleZram(zramSwitch->getState(), selectedSize);
+    });
+    
+    sizeList->setSelectedChangedCallback([this, s, zramSwitch]([[maybe_unused]] const std::string& val) {
+        // If zram is enabled, re-enable with new size
+        if (zramSwitch->getState()) {
+            toggleZram(false);
+            toggleZram(true, val);
+        }
+    });
+    
+    mWindow->pushGui(s);
+}
+
+// ============================================================================
+// Hotspot Settings
+// ============================================================================
+
+std::string GuiArkOS4CloneSettings::getHotspotSsid()
+{
+    std::string ssid = Settings::getInstance()->getString("hotspot.ssid");
+    return ssid.empty() ? "arkos4clone" : ssid;
+}
+
+bool GuiArkOS4CloneSettings::isHotspotSupported()
+{
+    std::string result = executeCommand("ls /sys/class/net/wlan0 2>/dev/null");
+    return !Utils::String::trim(result).empty();
+}
+
+bool GuiArkOS4CloneSettings::isHotspotEnabled()
+{
+    std::string result = executeCommand("nmcli -t -f NAME,DEVICE connection show --active 2>/dev/null | grep -i hotspot");
+    return !Utils::String::trim(result).empty();
+}
+
+void GuiArkOS4CloneSettings::toggleHotspot(bool enable, const std::string& ssid, const std::string& password)
+{
+    if (enable) {
+        // Disconnect existing WiFi connection
+        executeCommand("sudo nmcli device disconnect wlan0 2>/dev/null || true");
+        
+        // Delete existing hotspot if any
+        executeCommand("sudo nmcli connection delete \"Hotspot\" 2>/dev/null || true");
+        
+        // Create new hotspot
+        std::string ssidToUse = ssid.empty() ? "arkos4clone" : ssid;
+        std::string passToUse = password.empty() ? "lcdyk0517" : password;
+        
+        executeCommand("sudo nmcli connection add type wifi ifname wlan0 con-name \"Hotspot\" autoconnect no ssid \"" + ssidToUse + "\"");
+        executeCommand("sudo nmcli connection modify \"Hotspot\" 802-11-wireless.mode ap 802-11-wireless.band bg ipv4.method shared");
+        executeCommand("sudo nmcli connection modify \"Hotspot\" wifi-sec.key-mgmt wpa-psk");
+        executeCommand("sudo nmcli connection modify \"Hotspot\" wifi-sec.psk \"" + passToUse + "\"");
+        executeCommand("sudo nmcli connection up \"Hotspot\"");
+        
+        // Save settings
+        Settings::getInstance()->setString("hotspot.ssid", ssidToUse);
+        Settings::getInstance()->setString("hotspot.password", passToUse);
+    } else {
+        executeCommand("sudo nmcli connection down \"Hotspot\" 2>/dev/null || true");
+        executeCommand("sudo nmcli connection delete \"Hotspot\" 2>/dev/null || true");
+    }
+}
+
+void GuiArkOS4CloneSettings::showHotspotSettings()
+{
+    auto s = new GuiSettings(mWindow, _("HOTSPOT SETTINGS"));
+    
+    // Check if hotspot is supported
+    if (!isHotspotSupported()) {
+        mWindow->pushGui(new GuiMsgBox(mWindow, _("UNSUPPORTED DEVICE"), _("OK")));
+        return;
+    }
+    
+    // Hotspot Enable/Disable
+    bool hotspotEnabled = isHotspotEnabled();
+    auto hotspotSwitch = std::make_shared<SwitchComponent>(mWindow);
+    hotspotSwitch->setState(hotspotEnabled);
+    s->addWithLabel(_("WIFI HOTSPOT"), hotspotSwitch);
+    
+    // Hotspot SSID
+    std::string currentSsid = getHotspotSsid();
+    auto ssidText = std::make_shared<TextComponent>(mWindow, currentSsid, ThemeData::getMenuTheme()->TextSmall.font, ThemeData::getMenuTheme()->TextSmall.color, ALIGN_RIGHT);
+    s->addWithLabel(_("HOTSPOT SSID"), ssidText);
+    
+    // Hotspot Password
+    std::string currentPassword = Settings::getInstance()->getString("hotspot.password");
+    if (currentPassword.empty()) currentPassword = "lcdyk0517";
+    auto passText = std::make_shared<TextComponent>(mWindow, currentPassword, ThemeData::getMenuTheme()->TextSmall.font, ThemeData::getMenuTheme()->TextSmall.color, ALIGN_RIGHT);
+    s->addWithLabel(_("HOTSPOT PASSWORD"), passText);
+    
+    // Edit SSID
+    s->addEntry(_("EDIT SSID"), true, [this, ssidText] {
+        mWindow->pushGui(new GuiTextEditPopupKeyboard(mWindow, _("HOTSPOT SSID"), 
+            ssidText->getValue(), 
+            [this, ssidText](const std::string& newSsid) {
+                ssidText->setValue(newSsid);
+                Settings::getInstance()->setString("hotspot.ssid", newSsid);
+            }, false));
+    }, "");
+    
+    // Edit Password
+    s->addEntry(_("EDIT PASSWORD"), true, [this, passText] {
+        mWindow->pushGui(new GuiTextEditPopupKeyboard(mWindow, _("HOTSPOT PASSWORD"), 
+            passText->getValue(), 
+            [this, passText](const std::string& newPass) {
+                passText->setValue(newPass);
+                Settings::getInstance()->setString("hotspot.password", newPass);
+            }, false));
+    }, "");
+    
+    hotspotSwitch->setOnChangedCallback([this, hotspotSwitch, ssidText, passText] {
+        toggleHotspot(hotspotSwitch->getState(), ssidText->getValue(), passText->getValue());
+    });
+    
+    mWindow->pushGui(s);
+}
+
+// ============================================================================
+// Remote Services Auto-Start
+// ============================================================================
+
+bool GuiArkOS4CloneSettings::isRemoteServicesAutoStart()
+{
+    std::string result = executeCommand("systemctl is-enabled ssh.service 2>/dev/null");
+    result.erase(std::remove_if(result.begin(), result.end(), ::isspace), result.end());
+    return result.find("enabled") != std::string::npos;
+}
+
+void GuiArkOS4CloneSettings::toggleRemoteServicesAutoStart(bool enable)
+{
+    if (enable) {
+        executeCommand("sudo systemctl enable ssh.service 2>/dev/null || true");
+        executeCommand("sudo systemctl enable smbd 2>/dev/null || true");
+        executeCommand("sudo systemctl enable nmbd 2>/dev/null || true");
+    } else {
+        executeCommand("sudo systemctl disable ssh.service 2>/dev/null || true");
+        executeCommand("sudo systemctl disable smbd 2>/dev/null || true");
+        executeCommand("sudo systemctl disable nmbd 2>/dev/null || true");
+    }
 }

@@ -41,6 +41,51 @@ private:
     static bool isRemoteServicesEnabled();
     static std::string getIpAddress();
     static void toggleRemoteServices(bool enable);
+    static bool isRemoteServicesAutoStart();
+    static void toggleRemoteServicesAutoStart(bool enable);
+    
+    // Hotspot functions
+    void showHotspotSettings();
+    static std::string getHotspotSsid();
+    static bool isHotspotSupported();
+    static bool isHotspotEnabled();
+    static void toggleHotspot(bool enable, const std::string& ssid = "", const std::string& password = "");
+    
+    // ArkOS4Clone Tools functions
+    void openToolsMenu();
+    void openCpuSettings();
+    void openGpuSettings();
+    void openDmcSettings();
+    void openZramSettings();
+    
+    // CPU helpers
+    static int getCpuCoreCount();
+    static int getOnlineCpuCount();
+    static std::string getCpuGovernor();
+    static void setCpuGovernor(const std::string& governor);
+    static std::string getCpuMaxFreq();
+    static void setCpuMaxFreq(const std::string& freq);
+    static std::vector<std::string> getCpuAvailableFreqs();
+    static std::vector<std::string> getAvailableGovernors();
+    static void setCpuCores(int count);
+    
+    // GPU helpers
+    static bool hasGpuFreqControl();
+    static std::string getGpuDevPath();
+    static std::string getGpuMaxFreq();
+    static void setGpuMaxFreq(const std::string& freq);
+    static std::vector<std::string> getGpuAvailableFreqs();
+    
+    // DMC helpers
+    static bool hasDmcFreqControl();
+    static std::string getDmcMaxFreq();
+    static void setDmcMaxFreq(const std::string& freq);
+    static std::vector<std::string> getDmcAvailableFreqs();
+    
+    // ZRAM helpers
+    static std::string getZramSize();
+    static bool isZramEnabled();
+    static void toggleZram(bool enable, const std::string& size = "512M");
     
     // Joystick LED functions
     void openJoystickLedSettings();
