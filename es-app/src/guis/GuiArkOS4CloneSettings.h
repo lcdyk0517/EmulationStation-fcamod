@@ -115,6 +115,13 @@ private:
     static bool setSystemTime(int year, int month, int day, int hour, int minute);
     static bool syncNetworkTime();
     
+    // View Info functions
+    void openViewInfo();
+    static std::string getSdCardSpeed(const std::string& device);
+    static std::string getSdCardName(const std::string& device);
+    static std::string getCpuBinning();
+    static std::string getCpuTemp();
+    
     MenuComponent mMenu;
     std::vector<std::pair<std::string, int>> mWifiNetworks; // ssid, signal
     std::shared_ptr<TextComponent> mWifiStatusText;

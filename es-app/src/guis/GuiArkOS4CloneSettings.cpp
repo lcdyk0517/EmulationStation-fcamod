@@ -245,6 +245,11 @@ GuiArkOS4CloneSettings::GuiArkOS4CloneSettings(Window* window)
             }, _("NO"), nullptr));
     }, "iconControllers");
 
+    // View Info (SD Card Speed and CPU Binning)
+    mMenu.addEntry(_("VIEW INFO"), true, [this] {
+        openViewInfo();
+    }, "");
+
     mMenu.addButton(_("BACK"), "back", [this] {
         delete this;
     });
@@ -2304,4 +2309,180 @@ void GuiArkOS4CloneSettings::toggleRemoteServicesAutoStart(bool enable)
         executeCommand("sudo systemctl disable smbd 2>/dev/null || true");
         executeCommand("sudo systemctl disable nmbd 2>/dev/null || true");
     }
+}
+
+// ============================================================================
+// View Info Functions
+// ============================================================================
+
+std::string GuiArkOS4CloneSettings::getSdCardName(const std::string& device)
+{
+    std::string name = executeCommand("cat /sys/block/" + device + "/device/name 2>/dev/null");
+    name.erase(std::remove_if(name.begin(), name.end(), ::isspace), name.end());
+    if (name.empty()) {
+        name = executeCommand("cat /sys/block/" + device + "/device/cid 2>/dev/null | cut -c1-8");
+        name.erase(std::remove_if(name.begin(), name.end(), ::isspace), name.end());
+    }
+    return name.empty() ? _("UNKNOWN") : name;
+}
+
+std::string GuiArkOS4CloneSettings::getSdCardSpeed(const std::string& device)
+{
+    // Map device name to dmesg host name (mmcblk0 -> mmc0, mmcblk1 -> mmc1)
+    std::string hostNum = (device == "mmcblk0") ? "mmc0" : "mmc1";
+    
+    // Parse existing kernel dmesg output
+    // Format: "mmc0: new high speed SDXC card at address 0001"
+    // Format: "mmc0: new ultra high speed SDR104 SDHC card at address 0001"
+    std::string dmesgLine = executeCommand("dmesg | grep '" + hostNum + ": new' | tail -1");
+    
+    if (!dmesgLine.empty()) {
+        // Check for UHS (ultra high speed)
+        if (dmesgLine.find("ultra high speed") != std::string::npos) {
+            // UHS Speed Grade: U3 (SDR104), U1 (SDR50/DDR50), Class 10 (SDR25/SDR12)
+            if (dmesgLine.find("SDR104") != std::string::npos) return "UHS-I U3 (104MB/s)";
+            if (dmesgLine.find("SDR50") != std::string::npos) return "UHS-I U1 (50MB/s)";
+            if (dmesgLine.find("DDR50") != std::string::npos) return "UHS-I U1 DDR (50MB/s)";
+            if (dmesgLine.find("SDR25") != std::string::npos) return "UHS-I Class 10 (25MB/s)";
+            if (dmesgLine.find("SDR12") != std::string::npos) return "UHS-I Class 4 (12MB/s)";
+            return "UHS-I";
+        }
+        // Check for High Speed
+        if (dmesgLine.find("high speed") != std::string::npos) {
+            return "Class 10 (25MB/s)";
+        }
+    }
+    
+    return _("N/A");
+}
+
+std::string GuiArkOS4CloneSettings::getCpuBinning()
+{
+    // Try to get CPU binning info from dmesg (added by rockchip-cpufreq.c)
+    // Format: es_info: cpu_bin=X process=X scale=X volt_sel=X
+    // volt_sel is the actual quality grade based on CPU leakage:
+    // - lower volt_sel = lower leakage = better quality = can run at lower voltage
+    // - higher volt_sel = higher leakage = worse quality = needs higher voltage
+    std::string dmesgBin = executeCommand("dmesg | grep 'es_info: cpu_bin=' | tail -1");
+    
+    if (!dmesgBin.empty()) {
+        // Parse the volt_sel value (actual quality indicator)
+        std::string voltSel = executeCommand("echo '" + dmesgBin + "' | sed 's/.*volt_sel=\\(-*[0-9]*\\).*/\\1/'");
+        voltSel.erase(std::remove_if(voltSel.begin(), voltSel.end(), ::isspace), voltSel.end());
+        
+        int voltVal = atoi(voltSel.c_str());
+        
+        // Rockchip CPU quality grades based on volt_sel:
+        // volt_sel=0: L0 最佳体质 - lowest leakage, can run at lowest voltage
+        // volt_sel=1: L1 良好体质 - good quality
+        // volt_sel=2: L2 标准体质 - standard quality
+        // volt_sel=3+: L3+ 一般体质 - higher leakage, needs more voltage
+        // negative value: N/A - not detected
+        
+        if (voltVal < 0) return "N/A";
+        if (voltVal == 0) return "L0 (最佳)";
+        if (voltVal == 1) return "L1 (良好)";
+        if (voltVal == 2) return "L2 (标准)";
+        if (voltVal == 3) return "L3 (一般)";
+        
+        return "L" + std::to_string(voltVal) + " (一般)";
+    }
+    
+    return "N/A";
+}
+
+std::string GuiArkOS4CloneSettings::getCpuTemp()
+{
+    std::string temp = executeCommand("cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null");
+    temp.erase(std::remove_if(temp.begin(), temp.end(), ::isspace), temp.end());
+    
+    if (!temp.empty()) {
+        // Convert millidegree to degree
+        int tempVal = atoi(temp.c_str());
+        if (tempVal > 1000) {
+            tempVal = tempVal / 1000;
+        }
+        return std::to_string(tempVal) + "°C";
+    }
+    
+    return _("N/A");
+}
+
+void GuiArkOS4CloneSettings::openViewInfo()
+{
+    auto s = new GuiSettings(mWindow, _("VIEW INFO"));
+    
+    // Check for SD card devices
+    std::string sd1Exists = executeCommand("ls /dev/mmcblk0 2>/dev/null");
+    std::string sd2Exists = executeCommand("ls /dev/mmcblk1 2>/dev/null");
+    
+    bool hasSd1 = !sd1Exists.empty();
+    bool hasSd2 = !sd2Exists.empty();
+    
+    // SD Card 1 Info
+    if (hasSd1) {
+        std::string sd1Name = getSdCardName("mmcblk0");
+        std::string sd1Size = executeCommand("cat /sys/block/mmcblk0/size 2>/dev/null | awk '{printf \"%.1fGB\", $1/2048/1024}'");
+        sd1Size.erase(std::remove_if(sd1Size.begin(), sd1Size.end(), ::isspace), sd1Size.end());
+        
+        auto sd1Text = std::make_shared<TextComponent>(mWindow, 
+            sd1Name + " (" + sd1Size + ")", 
+            Font::get(FONT_SIZE_SMALL), 0x777777FF);
+        s->addWithLabel(_("SD CARD 1"), sd1Text);
+        
+        auto sd1SpeedText = std::make_shared<TextComponent>(mWindow, 
+            getSdCardSpeed("mmcblk0"), 
+            Font::get(FONT_SIZE_SMALL), 0x777777FF);
+        s->addWithLabel(_("SPEED"), sd1SpeedText);
+    }
+    
+    // SD Card 2 Info
+    if (hasSd2) {
+        std::string sd2Name = getSdCardName("mmcblk1");
+        std::string sd2Size = executeCommand("cat /sys/block/mmcblk1/size 2>/dev/null | awk '{printf \"%.1fGB\", $1/2048/1024}'");
+        sd2Size.erase(std::remove_if(sd2Size.begin(), sd2Size.end(), ::isspace), sd2Size.end());
+        
+        auto sd2Text = std::make_shared<TextComponent>(mWindow, 
+            sd2Name + " (" + sd2Size + ")", 
+            Font::get(FONT_SIZE_SMALL), 0x777777FF);
+        s->addWithLabel(_("SD CARD 2"), sd2Text);
+        
+        auto sd2SpeedText = std::make_shared<TextComponent>(mWindow, 
+            getSdCardSpeed("mmcblk1"), 
+            Font::get(FONT_SIZE_SMALL), 0x777777FF);
+        s->addWithLabel(_("SPEED"), sd2SpeedText);
+    }
+    
+    // Hardware Name - trim only leading/trailing whitespace, keep internal spaces
+    std::string hardwareName = executeCommand("grep 'Hardware' /proc/cpuinfo 2>/dev/null | awk -F': ' '{print $2}'");
+    // Trim leading whitespace
+    size_t start = hardwareName.find_first_not_of(" \t\n\r");
+    if (start != std::string::npos) {
+        // Trim trailing whitespace
+        size_t end = hardwareName.find_last_not_of(" \t\n\r");
+        hardwareName = hardwareName.substr(start, end - start + 1);
+    } else {
+        hardwareName.clear();
+    }
+    if (!hardwareName.empty()) {
+        auto hardwareText = std::make_shared<TextComponent>(mWindow, 
+            hardwareName, 
+            Font::get(FONT_SIZE_SMALL), 0x777777FF);
+        s->addWithLabel(_("DEVICE"), hardwareText);
+    }
+    
+    // CPU Binning (体制)
+    std::string cpuBinning = getCpuBinning();
+    auto cpuText = std::make_shared<TextComponent>(mWindow, 
+        cpuBinning, 
+        Font::get(FONT_SIZE_SMALL), 0x777777FF);
+    s->addWithLabel(_("CPU GRADE"), cpuText);
+    
+    // CPU Temperature
+    auto cpuTempText = std::make_shared<TextComponent>(mWindow, 
+        getCpuTemp(), 
+        Font::get(FONT_SIZE_SMALL), 0x777777FF);
+    s->addWithLabel(_("CPU TEMP"), cpuTempText);
+    
+    mWindow->pushGui(s);
 }

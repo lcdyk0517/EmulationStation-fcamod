@@ -1051,6 +1051,30 @@ msgstr "您确定要配置按键吗？"
 
 msgid "JOYPAD TEST"
 msgstr "手柄测试"
+msgid "VIEW INFO"
+msgstr "查看信息"
+
+msgid "SD CARD 1"
+msgstr "SD卡1"
+
+msgid "SD CARD 2"
+msgstr "SD卡2"
+
+msgid "SPEED"
+msgstr "速度"
+
+msgid "CPU INFO"
+msgstr "CPU信息"
+
+msgid "CPU TEMP"
+msgstr "CPU温度"
+
+msgid "TEST SD SPEED"
+msgstr "测试SD卡速度"
+
+msgid "SD CARD SPEED TEST RESULTS:"
+msgstr "SD卡速度测试结果："
+msgstr "手柄测试"
 
 msgid "ARE YOU SURE YOU WANT TO TEST JOYPAD?"
 msgstr "您确定要测试手柄吗？"
@@ -3886,3 +3910,36 @@ msgstr "大小"
 
 msgid "INTERFACE"
 msgstr "接口"
+
+msgid "VIEW INFO"
+msgstr "查看信息"
+
+msgid "SD CARD 1"
+msgstr "SD卡1"
+
+msgid "SD CARD 2"
+msgstr "SD卡2"
+
+msgid "SPEED"
+msgstr "速度"
+
+msgid "CPU INFO"
+msgstr "CPU信息"
+
+msgid "CPU TEMP"
+msgstr "CPU温度"
+
+msgid "TEST SD SPEED"
+msgstr "测试SD卡速度"
+
+msgid "SD CARD SPEED TEST RESULTS:"
+msgstr "SD卡速度测试结果："
+
+msgid "UNKNOWN"
+msgstr "未知"
+
+msgid "DEVICE"
+msgstr "设备名"
+
+msgid "CPU GRADE"
+msgstr "CPU体质"
