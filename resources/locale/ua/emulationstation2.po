@@ -18,6 +18,9 @@ msgstr "СКАНУВАТИ ПАПКУ PORTS"
 msgid "GOVERNOR"
 msgstr "ПОЛІТИКА ШВИДКОСТІ"
 
+msgid "WIFI ENABLED"
+msgstr "WiFi увімкнено"
+
 msgid "Default Emulator Governor"
 msgstr "ПОЛІТИКА ШВИДКОДІЇ"
 

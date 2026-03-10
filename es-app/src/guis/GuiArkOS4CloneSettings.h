@@ -36,6 +36,8 @@ private:
     void deleteConnections();
     void showNetworkInfo();
     void updateWifiStatusText();
+    static bool isWifiEnabled();
+    static void toggleWifi(bool enable);
     
     // Remote Services functions
     static bool isRemoteServicesEnabled();

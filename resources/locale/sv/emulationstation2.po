@@ -570,6 +570,9 @@ msgstr "AUTOMATISKT"
 msgid "GOVERNOR"
 msgstr "PRESTANDALÄGE"
 
+msgid "WIFI ENABLED"
+msgstr "WiFi aktiverat"
+
 msgid "THEME INSTALLER"
 msgstr "TEMAINSTALLERARE"
 

@@ -16,7 +16,10 @@ msgid "Scan Ports folder on boot"
 msgstr "開機時掃描 Ports 資料夾"
 
 msgid "GOVERNOR"
-msgstr "處理器調節模式"
+msgstr "調度模式"
+
+msgid "WIFI ENABLED"
+msgstr "WiFi 已啟用"
 
 msgid "Default Emulator Governor"
 msgstr "預設模擬器調節模式"

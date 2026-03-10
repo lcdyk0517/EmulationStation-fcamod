@@ -737,6 +737,10 @@ msgid "GOVERNOR"
 msgstr "GOVERNADOR"
 
 #:
+msgid "WIFI ENABLED"
+msgstr "WiFi ativado"
+
+#:
 msgid "THEME INSTALLER"
 msgstr "INSTALADOR DE TEMAS"
 

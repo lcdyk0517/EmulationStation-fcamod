@@ -3865,21 +3865,8 @@ msgstr "最大频率"
 msgid "GOVERNOR"
 msgstr "调度模式"
 
-
-msgstr "(实验性功能)"
-
-msgstr "(实验性功能)"
-
-
-
-
-
-
-
-
-
-
-
+msgid "WIFI ENABLED"
+msgstr "WiFi 已启用"
 
 msgid "REMOTE SERVICES AUTO-START"
 msgstr "远程服务开机自启"

@@ -8,6 +8,7 @@
 #include "components/SwitchComponent.h"
 #include "components/BusyComponent.h"
 #include "components/TextComponent.h"
+#include "components/BatteryIndicatorComponent.h"
 #include "Window.h"
 #include "ApiSystem.h"
 #include "SystemConf.h"
@@ -92,6 +93,13 @@ static std::string executeCommand(const std::string& cmd)
     }
     pclose(pipe);
     return Utils::String::trim(result);
+}
+
+// Check if WiFi is enabled (not blocked by rfkill)
+static bool isWifiRfkillBlocked()
+{
+    std::string result = executeCommand("rfkill list wifi 2>/dev/null | grep -i 'Soft blocked' | head -1");
+    return result.find("yes") != std::string::npos;
 }
 
 // Get active WiFi interface (wlan0, p2p0, etc.)
@@ -280,6 +288,17 @@ void GuiArkOS4CloneSettings::createWifiSettingsMenu()
 {
     auto s = new GuiSettings(mWindow, _("WIFI SETTINGS"));
 
+    // WiFi enable/disable toggle
+    bool wifiEnabled = !isWifiRfkillBlocked();
+    auto wifiSwitch = std::make_shared<SwitchComponent>(mWindow);
+    wifiSwitch->setState(wifiEnabled);
+    wifiSwitch->setOnChangedCallback([this, wifiSwitch] {
+        toggleWifi(wifiSwitch->getState());
+        // Update WiFi status text and refresh network icon
+        updateWifiStatusText();
+    });
+    s->addWithLabel(_("WIFI ENABLED"), wifiSwitch);
+
     std::string wifiStatus = getCurrentWifiSSID();
     if (wifiStatus.empty()) {
         wifiStatus = _("NOT CONNECTED");
@@ -341,10 +360,30 @@ void GuiArkOS4CloneSettings::updateWifiStatusText()
 {
     if (mWifiStatusText) {
         std::string wifiStatus = getCurrentWifiSSID();
+        // Remove all whitespace including newlines
+        wifiStatus.erase(std::remove_if(wifiStatus.begin(), wifiStatus.end(), ::isspace), wifiStatus.end());
         if (wifiStatus.empty()) {
             wifiStatus = _("NOT CONNECTED");
         }
         mWifiStatusText->setText(wifiStatus);
+    }
+    // Also refresh network icon in status bar
+    if (mWindow->getBatteryIndicator()) {
+        mWindow->getBatteryIndicator()->refreshNetworkState();
+    }
+}
+
+bool GuiArkOS4CloneSettings::isWifiEnabled()
+{
+    return !isWifiRfkillBlocked();
+}
+
+void GuiArkOS4CloneSettings::toggleWifi(bool enable)
+{
+    if (enable) {
+        executeCommand("sudo rfkill unblock wifi 2>/dev/null");
+    } else {
+        executeCommand("sudo rfkill block wifi 2>/dev/null");
     }
 }
 

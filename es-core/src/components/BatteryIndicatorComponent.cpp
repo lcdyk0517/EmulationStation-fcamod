@@ -56,5 +56,6 @@ void BatteryIndicatorComponent::init()
 		mNetworkImage = TextureResource::get(ResourceManager::getInstance()->getResourcePath(":/network.svg"), false, true);
 	}
 
+	updateNetworkInfo();
 	updateBatteryInfo();
 }

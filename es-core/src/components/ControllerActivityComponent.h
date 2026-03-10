@@ -48,6 +48,12 @@ public:
 	bool hasBattery() { return mBatteryInfo.hasBattery; }
 
 	void setBatteryStateCallback(BatteryStateCallback callback) { mBatteryStateCallback = callback; }
+	
+	// Force refresh network state (call after WiFi toggle)
+	void refreshNetworkState() { updateNetworkInfo(); }
+	
+	// Start fast network checking (after WiFi enabled, check every second until connected)
+	void startFastNetworkCheck();
 
 protected:
 	virtual void	init();

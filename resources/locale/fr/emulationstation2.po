@@ -737,6 +737,10 @@ msgid "GOVERNOR"
 msgstr "PERFORMANCES AUTO DU CPU"
 
 #:
+msgid "WIFI ENABLED"
+msgstr "WiFi activé"
+
+#:
 msgid "THEME INSTALLER"
 msgstr "INSTALLATEUR DE THÈME"
 

@@ -31,6 +31,7 @@ void ControllerActivityComponent::init()
 	mBatteryCheckTime = UPDATE_BATTERY_DELAY;
 
 	mNetworkCheckTime = UPDATE_NETWORK_DELAY;
+	mNetworkConnected = false;
 
 	mColorShift = 0xFFFFFF99;
 	mActivityColor = 0xFF000066;
@@ -47,9 +48,9 @@ void ControllerActivityComponent::init()
 	mPosition = Vector3f(margin, Renderer::getScreenHeight() - mSize.y() - margin, 0.0f);
 
 	/*for (int i = 0; i < MAX_PLAYERS; i++)
-		mPads[i].reset();
+		mPads[i].reset();*/
 
-	updateNetworkInfo();*/
+	updateNetworkInfo();
 	updateBatteryInfo();
 }
 
@@ -124,7 +125,7 @@ void ControllerActivityComponent::update(int deltaTime)
 		mNetworkCheckTime += deltaTime;
 		if (mNetworkCheckTime >= UPDATE_NETWORK_DELAY)
 		{
-			//updateNetworkInfo();
+			updateNetworkInfo();
 			mNetworkCheckTime = 0;
 		}
 	}
@@ -388,10 +389,30 @@ void ControllerActivityComponent::applyTheme(const std::shared_ptr<ThemeData>& t
 	onSizeChanged();
 }
 
-/*void ControllerActivityComponent::updateNetworkInfo()
+void ControllerActivityComponent::updateNetworkInfo()
 {
-	mNetworkConnected = Settings::getInstance()->getBool("ShowNetworkIndicator") && !queryIPAddress().empty();
-}*/
+	// Check if WiFi is enabled (not blocked by rfkill) and has IP address
+	std::string rfkillStatus = getShOutput("rfkill list wifi 2>/dev/null | grep -i 'Soft blocked' | head -1");
+	bool wifiBlocked = (rfkillStatus.find("yes") != std::string::npos);
+	
+	if (wifiBlocked) {
+		mNetworkConnected = false;
+		return;
+	}
+	
+	// Method 1: Check if nmcli shows WiFi connected
+	std::string nmcliStatus = getShOutput("nmcli -t -f DEVICE,STATE dev 2>/dev/null | grep -E '^wlan.*:connected'");
+	if (!nmcliStatus.empty()) {
+		mNetworkConnected = true;
+		return;
+	}
+	
+	// Method 2: Check if we have an IP address
+	std::string ip = getShOutput("ip route | awk '/src/ { print $9; exit }' 2>/dev/null");
+	ip = Utils::String::trim(ip);
+	
+	mNetworkConnected = !ip.empty();
+}
 
 void ControllerActivityComponent::updateBatteryInfo()
 {
