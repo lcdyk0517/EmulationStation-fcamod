@@ -1763,3 +1763,18 @@ msgstr "R36Ultra V1"
 
 msgid "R36Ultra V2"
 msgstr "R36Ultra V2"
+
+msgid "OTA UPGRADE DETECTED.\nWOULD YOU LIKE TO RESTORE YOUR PREVIOUS CONFIGURATION?"
+msgstr "MISE À JOUR OTA DÉTECTÉE.\nVOULEZ-VOUS RESTAURER VOTRE CONFIGURATION PRÉCÉDENTE ?"
+
+msgid "BEST"
+msgstr "Meilleur"
+
+msgid "GOOD"
+msgstr "Bon"
+
+msgid "STANDARD"
+msgstr "Standard"
+
+msgid "AVERAGE"
+msgstr "Moyen"

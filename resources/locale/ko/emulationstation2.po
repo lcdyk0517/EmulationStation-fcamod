@@ -2013,3 +2013,18 @@ msgstr "R36Ultra V1"
 
 msgid "R36Ultra V2"
 msgstr "R36Ultra V2"
+
+msgid "OTA UPGRADE DETECTED.\nWOULD YOU LIKE TO RESTORE YOUR PREVIOUS CONFIGURATION?"
+msgstr "OTA 업그레이드가 감지되었습니다.\n이전 설정을 복원하시겠습니까?"
+
+msgid "BEST"
+msgstr "최고"
+
+msgid "GOOD"
+msgstr "양호"
+
+msgid "STANDARD"
+msgstr "표준"
+
+msgid "AVERAGE"
+msgstr "보통"

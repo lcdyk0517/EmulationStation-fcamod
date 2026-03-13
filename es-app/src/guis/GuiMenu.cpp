@@ -36,6 +36,62 @@
 //#include <go2/display.h>
 #include "SystemConf.h"
 
+static std::string getWifiStatusText()
+{
+	// 方法1：检查rfkill状态（判断WiFi是否被禁用）
+	FILE* pipe = popen("rfkill list wifi 2>/dev/null | grep -i 'Soft blocked' | head -1", "r");
+	if (pipe) {
+		char buffer[256];
+		if (fgets(buffer, sizeof(buffer), pipe)) {
+			std::string result = Utils::String::trim(buffer);
+			pclose(pipe);
+			if (result.find("yes") != std::string::npos) {
+				return "OFF";  // WiFi被禁用
+			}
+		} else {
+			pclose(pipe);
+		}
+	}
+	
+	// 方法2：检查是否有活跃的WiFi连接
+	// 使用nmcli检查活动连接
+	pipe = popen("nmcli -t -f NAME,DEVICE connection show --active 2>/dev/null", "r");
+	if (pipe) {
+		char buffer[256];
+		std::string result;
+		while (fgets(buffer, sizeof(buffer), pipe)) {
+			result += buffer;
+		}
+		pclose(pipe);
+		
+		// 检查结果中是否包含WiFi接口
+		if (result.find(":wlan") != std::string::npos || 
+			result.find(":p2p") != std::string::npos ||
+			result.find("wlan") != std::string::npos ||
+			result.find("p2p") != std::string::npos) {
+			return "UP";  // WiFi已连接
+		}
+	}
+	
+	// 方法3：备用方案 - 检查接口operstate
+	pipe = popen("cat /sys/class/net/wlan0/operstate 2>/dev/null", "r");
+	if (pipe) {
+		char buffer[256];
+		if (fgets(buffer, sizeof(buffer), pipe)) {
+			std::string operstate = Utils::String::trim(buffer);
+			pclose(pipe);
+			if (operstate == "up") {
+				// 接口是up状态，但没有活跃连接，返回ON
+				return "ON";
+			}
+		} else {
+			pclose(pipe);
+		}
+	}
+	
+	return "ON";  // 默认返回ON（未禁用但未连接）
+}
+
 GuiMenu::GuiMenu(Window* window, bool animate) : GuiComponent(window), mMenu(window, _("MAIN MENU")), mVersion(window)
 {
 
@@ -87,7 +143,7 @@ GuiMenu::GuiMenu(Window* window, bool animate) : GuiComponent(window), mMenu(win
 	
 	addEntry(_("QUIT"), !Settings::getInstance()->getBool("ShowOnlyExit"), [this] {openQuitMenu(); }, "iconQuit");
 
-	addEntry(_("BAT") + ": " + std::string(getShOutput(R"(cat /sys/class/power_supply/battery/capacity)")) + "%" + " | " + _("SND") + ": " + std::string(getShOutput(R"(current_volume)")) + " | " + _("BRT") + ": " + std::to_string(ApiSystem::getInstance()->getBrightnessLevel()) + "% | " + _("WIFI") + ": " + std::string(getShOutput(R"(if [ -z $(cat /sys/class/net/wlan0/operstate) ]; then echo "Off"; else cat /sys/class/net/wlan0/operstate; fi)")), false, [this] {  });
+	addEntry(_("BAT") + ": " + std::string(getShOutput(R"(cat /sys/class/power_supply/battery/capacity)")) + "%" + " | " + _("SND") + ": " + std::string(getShOutput(R"(current_volume)")) + " | " + _("BRT") + ": " + std::to_string(ApiSystem::getInstance()->getBrightnessLevel()) + "% | " + _("WIFI") + ": " + getWifiStatusText(), false, [this] {  });
 
 	addEntry(_("Distro Version") + ": " + std::string(getShOutput(R"(cat /usr/share/plymouth/themes/text.plymouth | grep title | cut -c 7-50)")), false, [this] {  });
 

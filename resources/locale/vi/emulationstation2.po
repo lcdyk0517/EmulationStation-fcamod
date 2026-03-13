@@ -1872,3 +1872,18 @@ msgstr "R36Ultra V1"
 
 msgid "R36Ultra V2"
 msgstr "R36Ultra V2"
+
+msgid "OTA UPGRADE DETECTED.\nWOULD YOU LIKE TO RESTORE YOUR PREVIOUS CONFIGURATION?"
+msgstr "PHÁT HIỆN NÂNG CẤP OTA.\nBẠN CÓ MUỐN KHÔI PHỤC CẤU HÌNH TRƯỚC ĐÓ KHÔNG?"
+
+msgid "BEST"
+msgstr "Tốt nhất"
+
+msgid "GOOD"
+msgstr "Tốt"
+
+msgid "STANDARD"
+msgstr "Tiêu chuẩn"
+
+msgid "AVERAGE"
+msgstr "Trung bình"

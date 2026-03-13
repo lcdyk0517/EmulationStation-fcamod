@@ -3793,3 +3793,18 @@ msgstr "R36Ultra V1"
 
 msgid "R36Ultra V2"
 msgstr "R36Ultra V2"
+
+msgid "OTA UPGRADE DETECTED.\nWOULD YOU LIKE TO RESTORE YOUR PREVIOUS CONFIGURATION?"
+msgstr "檢測到 OTA 升級。\n是否恢復升級前的配置？"
+
+msgid "BEST"
+msgstr "最佳"
+
+msgid "GOOD"
+msgstr "良好"
+
+msgid "STANDARD"
+msgstr "標準"
+
+msgid "AVERAGE"
+msgstr "一般"

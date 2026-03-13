@@ -2419,12 +2419,12 @@ std::string GuiArkOS4CloneSettings::getCpuBinning()
         // negative value: N/A - not detected
         
         if (voltVal < 0) return "N/A";
-        if (voltVal == 0) return "L0 (最佳)";
-        if (voltVal == 1) return "L1 (良好)";
-        if (voltVal == 2) return "L2 (标准)";
-        if (voltVal == 3) return "L3 (一般)";
+        if (voltVal == 0) return "L0 (" + std::string(_("BEST")) + ")";
+        if (voltVal == 1) return "L1 (" + std::string(_("GOOD")) + ")";
+        if (voltVal == 2) return "L2 (" + std::string(_("STANDARD")) + ")";
+        if (voltVal == 3) return "L3 (" + std::string(_("AVERAGE")) + ")";
         
-        return "L" + std::to_string(voltVal) + " (一般)";
+        return "L" + std::to_string(voltVal) + " (" + std::string(_("AVERAGE")) + ")";
     }
     
     return "N/A";

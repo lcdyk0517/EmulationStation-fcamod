@@ -3930,3 +3930,18 @@ msgstr "设备名"
 
 msgid "CPU GRADE"
 msgstr "CPU体质"
+
+msgid "OTA UPGRADE DETECTED.\nWOULD YOU LIKE TO RESTORE YOUR PREVIOUS CONFIGURATION?"
+msgstr "检测到 OTA 升级。\n是否恢复升级前的配置？"
+
+msgid "BEST"
+msgstr "最佳"
+
+msgid "GOOD"
+msgstr "良好"
+
+msgid "STANDARD"
+msgstr "标准"
+
+msgid "AVERAGE"
+msgstr "一般"

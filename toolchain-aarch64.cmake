@@ -3,7 +3,7 @@
 #
 # Usage:
 #   cmake -DCMAKE_TOOLCHAIN_FILE=toolchain-aarch64.cmake \
-#         -DTOOLCHAIN_ROOT=/opt/toolchains/gcc-linaro-6.3.1-2017.05-x86_64_aarch64-linux-gnu \
+#         -DTOOLCHAIN_ROOT=/opt/toolchains/gcc-arm-10.3-2021.07-x86_64-aarch64-none-linux-gnu \
 #         -DTARGET_SYSROOT=/path/to/sysroot \
 #         -DGLES=ON ..
 
@@ -11,16 +11,17 @@ set(CMAKE_SYSTEM_NAME Linux)
 set(CMAKE_SYSTEM_PROCESSOR aarch64)
 
 # Toolchain path (can be overridden via command line)
+# Using GCC 7.5.0 for better compatibility (chroot uses GCC 8.3.0)
 if(NOT DEFINED TOOLCHAIN_ROOT)
-    set(TOOLCHAIN_ROOT "/opt/toolchains/gcc-linaro-6.3.1-2017.05-x86_64_aarch64-linux-gnu")
+    set(TOOLCHAIN_ROOT "/opt/toolchains/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu")
 endif()
 
-# Sysroot path (can be overridden via command line)
+# Sysroot path - use sysroot-all by default for cross-compilation
 if(NOT DEFINED TARGET_SYSROOT)
-    set(TARGET_SYSROOT "${CMAKE_CURRENT_LIST_DIR}/sysroot")
+    set(TARGET_SYSROOT "/home/lcdyk/cross-build/sysroot-all")
 endif()
 
-# Specify the cross compiler
+# Specify the cross compiler (Linaro uses aarch64-linux-gnu prefix)
 set(CMAKE_C_COMPILER "${TOOLCHAIN_ROOT}/bin/aarch64-linux-gnu-gcc")
 set(CMAKE_CXX_COMPILER "${TOOLCHAIN_ROOT}/bin/aarch64-linux-gnu-g++")
 

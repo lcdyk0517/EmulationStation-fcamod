@@ -4021,3 +4021,18 @@ msgstr "R36Ultra V1"
 
 msgid "R36Ultra V2"
 msgstr "R36Ultra V2"
+
+msgid "OTA UPGRADE DETECTED.\nWOULD YOU LIKE TO RESTORE YOUR PREVIOUS CONFIGURATION?"
+msgstr "OTA UPGRADE DETECTED.\nWOULD YOU LIKE TO RESTORE YOUR PREVIOUS CONFIGURATION?"
+
+msgid "BEST"
+msgstr "Best"
+
+msgid "GOOD"
+msgstr "Good"
+
+msgid "STANDARD"
+msgstr "Standard"
+
+msgid "AVERAGE"
+msgstr "Average"

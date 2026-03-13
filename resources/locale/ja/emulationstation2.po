@@ -1639,3 +1639,18 @@ msgstr "R36Ultra V1"
 
 msgid "R36Ultra V2"
 msgstr "R36Ultra V2"
+
+msgid "OTA UPGRADE DETECTED.\nWOULD YOU LIKE TO RESTORE YOUR PREVIOUS CONFIGURATION?"
+msgstr "OTAアップグレードが検出されました。\n以前の設定を復元しますか？"
+
+msgid "BEST"
+msgstr "最高"
+
+msgid "GOOD"
+msgstr "良好"
+
+msgid "STANDARD"
+msgstr "標準"
+
+msgid "AVERAGE"
+msgstr "普通"

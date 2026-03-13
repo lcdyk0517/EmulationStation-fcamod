@@ -3810,3 +3810,18 @@ msgstr "R36Ultra V1"
 
 msgid "R36Ultra V2"
 msgstr "R36Ultra V2"
+
+msgid "OTA UPGRADE DETECTED.\nWOULD YOU LIKE TO RESTORE YOUR PREVIOUS CONFIGURATION?"
+msgstr "ОБНАРУЖЕНО OTA-ОБНОВЛЕНИЕ.\nХОТИТЕ ВОССТАНОВИТЬ ПРЕДЫДУЩУЮ КОНФИГУРАЦИЮ?"
+
+msgid "BEST"
+msgstr "Лучший"
+
+msgid "GOOD"
+msgstr "Хороший"
+
+msgid "STANDARD"
+msgstr "Стандарт"
+
+msgid "AVERAGE"
+msgstr "Средний"

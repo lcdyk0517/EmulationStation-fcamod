@@ -90,6 +90,8 @@ if(${GLSystem} MATCHES "Desktop OpenGL")
 else()
     pkg_check_modules(EGL REQUIRED egl)
     pkg_check_modules(GLES2 REQUIRED glesv2)
+    # Wayland EGL support (required by SDL2's wayland backend)
+    pkg_check_modules(WAYLAND_EGL wayland-egl)
 endif()
 
 # ALSA for Linux
@@ -240,13 +242,11 @@ if(DEFINED BCMHOST)
         bcm_host
         brcmEGL
         ${GLES2_LIBRARIES}
-        mali-bifrost-g31-rxp0-wayland-gbm
     )
 elseif(DEFINED VERO4K)
     LIST(APPEND COMMON_LIBRARIES
         ${EGL_LIBRARIES}
         ${GLES2_LIBRARIES}
-        mali-bifrost-g31-rxp0-wayland-gbm
     )
 elseif(${GLSystem} MATCHES "Desktop OpenGL")
     LIST(APPEND COMMON_LIBRARIES ${OPENGL_LIBRARIES})
@@ -254,8 +254,11 @@ else()
     LIST(APPEND COMMON_LIBRARIES
         ${EGL_LIBRARIES}
         ${GLES2_LIBRARIES}
-        mali-bifrost-g31-rxp0-wayland-gbm
     )
+    # Add wayland-egl for SDL2's wayland backend support
+    if(WAYLAND_EGL_FOUND)
+        LIST(APPEND COMMON_LIBRARIES ${WAYLAND_EGL_LIBRARIES})
+    endif()
 endif()
 
 #-------------------------------------------------------------------------------
