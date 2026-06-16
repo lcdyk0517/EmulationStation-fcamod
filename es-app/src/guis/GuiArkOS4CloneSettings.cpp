@@ -836,6 +836,7 @@ void GuiArkOS4CloneSettings::openUsbSwitchSettings()
 // ============================================================================
 // Power LED Functions
 // ============================================================================
+// 驱动层处理充电监控和阈值逻辑，用户态只需设置阈值
 
 bool GuiArkOS4CloneSettings::hasPowerLedRed()
 {
@@ -863,113 +864,93 @@ void GuiArkOS4CloneSettings::applyPowerLed()
         return;
     }
     
-    // Read settings from es_settings.cfg
-    // Mode: 0 = off, 1 = on, 2 = auto (battery controlled)
+    // 新驱动架构：
+    // - 阈值>0：驱动自动根据电量阈值控制LED（充电/充满优先级最高）
+    // - 阈值=0：用户控制，需要手动写 brightness
+    
     int redMode = Settings::getInstance()->getInt("PowerLedRedMode");
     int blueMode = Settings::getInstance()->getInt("PowerLedBlueMode");
+    int arkosMode = Settings::getInstance()->getInt("PowerLedArkOS4CloneMode");
     int redThreshold = Settings::getInstance()->getInt("PowerLedRedThreshold");
     int blueThreshold = Settings::getInstance()->getInt("PowerLedBlueThreshold");
+    int arkosThreshold = Settings::getInstance()->getInt("PowerLedArkOS4CloneThreshold");
     
-    // Defaults if not set
+    // Defaults
     if (redMode < 0 || redMode > 2) redMode = 0;
     if (blueMode < 0 || blueMode > 2) blueMode = 0;
-    if (redThreshold < 10 || redThreshold > 90) redThreshold = 20;
-    if (blueThreshold < 10 || blueThreshold > 90) blueThreshold = 80;
+    if (arkosMode < 0 || arkosMode > 2) arkosMode = 0;
+    if (redThreshold < 0 || redThreshold > 90) redThreshold = 0;
+    if (blueThreshold < 0 || blueThreshold > 90) blueThreshold = 0;
+    if (arkosThreshold < 0 || arkosThreshold > 90) arkosThreshold = 0;
     
-    int batteryLevel = queryBatteryLevel();
-    
-    // Handle RED LED if exists
+    // RED LED
     if (hasPowerLedRed()) {
-        // Disable trigger first to allow manual control
-        executeCommand("sudo sh -c 'echo none > " + POWER_LED_RED.substr(0, POWER_LED_RED.rfind('/')) + "/trigger 2>/dev/null'");
-        
-        // Get max brightness
-        int maxBrightness = 1;
-        std::string maxPath = POWER_LED_RED.substr(0, POWER_LED_RED.rfind('/')) + "/max_brightness";
-        if (Utils::FileSystem::exists(maxPath)) {
-            maxBrightness = atoi(executeCommand("cat " + maxPath).c_str());
-            if (maxBrightness < 1) maxBrightness = 1;
+        std::string thresholdPath = POWER_LED_RED.substr(0, POWER_LED_RED.rfind('/')) + "/battery_threshold";
+        if (Utils::FileSystem::exists(thresholdPath)) {
+            executeCommand("sudo sh -c 'echo " + std::to_string(redThreshold) + " > " + thresholdPath + "'");
         }
-        
-        bool ledOn = false;
-        if (redMode == 1) {
-            ledOn = true; // Always on
-        } else if (redMode == 2 && batteryLevel >= 0) {
-            ledOn = (batteryLevel < redThreshold);
+        // 阈值=0时，用户控制 brightness
+        if (redThreshold == 0) {
+            int brightness = (redMode == 1) ? 1 : 0; // ON=1, OFF=0
+            executeCommand("sudo sh -c 'echo " + std::to_string(brightness) + " > " + POWER_LED_RED + "'");
         }
-        
-        executeCommand("sudo sh -c 'echo " + std::string(ledOn ? std::to_string(maxBrightness) : "0") + " > " + POWER_LED_RED + "'");
     }
     
-    // Handle BLUE LED if exists
+    // BLUE LED
     if (hasPowerLedBlue()) {
-        // Disable trigger first to allow manual control
-        executeCommand("sudo sh -c 'echo none > " + POWER_LED_BLUE.substr(0, POWER_LED_BLUE.rfind('/')) + "/trigger 2>/dev/null'");
-        
-        // Get max brightness
-        int maxBrightness = 1;
-        std::string maxPath = POWER_LED_BLUE.substr(0, POWER_LED_BLUE.rfind('/')) + "/max_brightness";
-        if (Utils::FileSystem::exists(maxPath)) {
-            maxBrightness = atoi(executeCommand("cat " + maxPath).c_str());
-            if (maxBrightness < 1) maxBrightness = 1;
+        std::string thresholdPath = POWER_LED_BLUE.substr(0, POWER_LED_BLUE.rfind('/')) + "/battery_threshold";
+        if (Utils::FileSystem::exists(thresholdPath)) {
+            executeCommand("sudo sh -c 'echo " + std::to_string(blueThreshold) + " > " + thresholdPath + "'");
         }
-        
-        bool ledOn = false;
-        if (blueMode == 1) {
-            ledOn = true; // Always on
-        } else if (blueMode == 2 && batteryLevel >= 0) {
-            ledOn = (batteryLevel >= blueThreshold);
+        // 阈值=0时，用户控制 brightness
+        if (blueThreshold == 0) {
+            int brightness = (blueMode == 1) ? 1 : 0; // ON=1, OFF=0
+            executeCommand("sudo sh -c 'echo " + std::to_string(brightness) + " > " + POWER_LED_BLUE + "'");
         }
-        
-        executeCommand("sudo sh -c 'echo " + std::string(ledOn ? std::to_string(maxBrightness) : "0") + " > " + POWER_LED_BLUE + "'");
     }
     
-    // Handle ArkOS4Clone dual-color LED if exists
-    // Value: 0 = blue/green, 1 = red
+    // ArkOS4Clone dual-color LED
     if (hasArkOS4CloneLed()) {
-        // Disable trigger first to allow manual control
-        executeCommand("sudo sh -c 'echo none > " + ARKOS4CLONE_LED.substr(0, ARKOS4CLONE_LED.rfind('/')) + "/trigger 2>/dev/null'");
-        
-        int mode = Settings::getInstance()->getInt("PowerLedArkOS4CloneMode");
-        int threshold = Settings::getInstance()->getInt("PowerLedArkOS4CloneThreshold");
-        
-        // Defaults: 0 = blue, 1 = red, 2 = auto
-        if (mode < 0 || mode > 2) mode = 2;
-        if (threshold < 10 || threshold > 90) threshold = 20;
-        
-        int batteryLevel = queryBatteryLevel();
-        int ledValue = 0; // Default blue
-        
-        if (mode == 1) {
-            ledValue = 1; // Always red
-        } else if (mode == 2 && batteryLevel >= 0) {
-            // Auto: >= threshold = blue, < threshold = red
-            ledValue = (batteryLevel < threshold) ? 1 : 0;
+        std::string thresholdPath = ARKOS4CLONE_LED.substr(0, ARKOS4CLONE_LED.rfind('/')) + "/battery_threshold";
+        if (Utils::FileSystem::exists(thresholdPath)) {
+            executeCommand("sudo sh -c 'echo " + std::to_string(arkosThreshold) + " > " + thresholdPath + "'");
         }
-        
-        executeCommand("sudo sh -c 'echo " + std::to_string(ledValue) + " > " + ARKOS4CLONE_LED + "'");
+        // 阈值=0时，用户控制 brightness
+        if (arkosThreshold == 0) {
+            int brightness = (arkosMode == 1) ? 1 : 0; // RED=1, BLUE=0
+            executeCommand("sudo sh -c 'echo " + std::to_string(brightness) + " > " + ARKOS4CLONE_LED + "'");
+        }
     }
 }
 
 void GuiArkOS4CloneSettings::openPowerLedSettings()
 {
+    // 新驱动架构：阈值逻辑由驱动处理
+    // 用户只需设置阈值，驱动自动根据充电状态和阈值控制LED
+    // 保留原有选项文字，内部映射到阈值：
+    //   双色LED: BLUE/RED = 阈值0（用户控制），ABOVE X% BLUE = 阈值X
+    //   独立LED: OFF/ON = 阈值0（用户控制），BELOW/ABOVE X% = 阈值X
+    
     auto s = new GuiSettings(mWindow, _("POWER LED"));
     
     std::shared_ptr<OptionListComponent<std::string>> redList;
     std::shared_ptr<OptionListComponent<std::string>> blueList;
     std::shared_ptr<OptionListComponent<std::string>> arkosList;
     
-    // Handle ArkOS4Clone dual-color LED (mutually exclusive with separate red/blue)
+    // Handle ArkOS4Clone dual-color LED
     if (hasArkOS4CloneLed()) {
         int mode = Settings::getInstance()->getInt("PowerLedArkOS4CloneMode");
         int threshold = Settings::getInstance()->getInt("PowerLedArkOS4CloneThreshold");
+        if (mode < 0 || mode > 2) mode = 0;
+        if (threshold < 0 || threshold > 90) threshold = 0;
         
-        // Defaults: 0 = blue, 1 = red, 2 = auto
-        if (mode < 0 || mode > 2) mode = 2;
-        if (threshold < 10 || threshold > 90) threshold = 20;
-        
-        // Build selection value
-        std::string selected = (mode == 0) ? "blue" : (mode == 1) ? "red" : ("auto:" + std::to_string(threshold));
+        // Build selection value: blue/red = 阈值0, auto:X = 阈值X
+        std::string selected;
+        if (threshold > 0) {
+            selected = "auto:" + std::to_string(threshold);
+        } else {
+            selected = (mode == 1) ? "red" : "blue";
+        }
         
         arkosList = std::make_shared<OptionListComponent<std::string>>(mWindow, _("POWER LED"), false);
         arkosList->add(_("BLUE"), "blue", selected == "blue");
@@ -988,17 +969,21 @@ void GuiArkOS4CloneSettings::openPowerLedSettings()
         int redThreshold = Settings::getInstance()->getInt("PowerLedRedThreshold");
         int blueThreshold = Settings::getInstance()->getInt("PowerLedBlueThreshold");
         
-        // Defaults
         if (redMode < 0 || redMode > 2) redMode = 0;
         if (blueMode < 0 || blueMode > 2) blueMode = 0;
-        if (redThreshold < 10 || redThreshold > 90) redThreshold = 20;
-        if (blueThreshold < 10 || blueThreshold > 90) blueThreshold = 80;
+        if (redThreshold < 0 || redThreshold > 90) redThreshold = 0;
+        if (blueThreshold < 0 || blueThreshold > 90) blueThreshold = 0;
         
-        // Build selection values: mode and threshold combined
-        std::string redSelected = (redMode == 0) ? "off" : (redMode == 1) ? "on" : ("auto:" + std::to_string(redThreshold));
-        std::string blueSelected = (blueMode == 0) ? "off" : (blueMode == 1) ? "on" : ("auto:" + std::to_string(blueThreshold));
+        // Build selection: threshold>0 = auto:X, threshold=0 + mode=0 = off, mode=1 = on
+        std::string redSelected;
+        if (redThreshold > 0) redSelected = "auto:" + std::to_string(redThreshold);
+        else redSelected = (redMode == 1) ? "on" : "off";
         
-        // RED LED: OFF / ON / Below X% (only if exists)
+        std::string blueSelected;
+        if (blueThreshold > 0) blueSelected = "auto:" + std::to_string(blueThreshold);
+        else blueSelected = (blueMode == 1) ? "on" : "off";
+        
+        // RED LED
         if (hasPowerLedRed()) {
             redList = std::make_shared<OptionListComponent<std::string>>(mWindow, _("RED LED"), false);
             redList->add(_("OFF"), "off", redSelected == "off");
@@ -1011,7 +996,7 @@ void GuiArkOS4CloneSettings::openPowerLedSettings()
             s->addWithLabel(_("RED LED"), redList);
         }
         
-        // BLUE LED: OFF / ON / Above X% (only if exists)
+        // BLUE LED
         if (hasPowerLedBlue()) {
             blueList = std::make_shared<OptionListComponent<std::string>>(mWindow, _("BLUE LED"), false);
             blueList->add(_("OFF"), "off", blueSelected == "off");
@@ -1025,54 +1010,48 @@ void GuiArkOS4CloneSettings::openPowerLedSettings()
         }
     }
     
-    // Save callback
+    // Save callback - 保存 mode 和 threshold，驱动自动处理
     s->addSaveFunc([this, redList, blueList, arkosList] {
-        // Handle ArkOS4Clone dual-color LED
         if (arkosList) {
             std::string val = arkosList->getSelected();
-            int newMode = 2, newThreshold = 20;
+            int mode = 0, threshold = 0;
             if (val == "blue") {
-                newMode = 0;
+                mode = 0; threshold = 0;
             } else if (val == "red") {
-                newMode = 1;
+                mode = 1; threshold = 0;
             } else if (val.substr(0, 5) == "auto:") {
-                newMode = 2;
-                newThreshold = atoi(val.substr(5).c_str());
+                mode = 2; threshold = atoi(val.substr(5).c_str());
             }
-            Settings::getInstance()->setInt("PowerLedArkOS4CloneMode", newMode);
-            Settings::getInstance()->setInt("PowerLedArkOS4CloneThreshold", newThreshold);
+            Settings::getInstance()->setInt("PowerLedArkOS4CloneMode", mode);
+            Settings::getInstance()->setInt("PowerLedArkOS4CloneThreshold", threshold);
         }
         
-        // Parse RED selection (only if exists)
         if (redList) {
-            std::string redVal = redList->getSelected();
-            int newRedMode = 0, newRedThreshold = 20;
-            if (redVal == "off") {
-                newRedMode = 0;
-            } else if (redVal == "on") {
-                newRedMode = 1;
-            } else if (redVal.substr(0, 5) == "auto:") {
-                newRedMode = 2;
-                newRedThreshold = atoi(redVal.substr(5).c_str());
+            std::string val = redList->getSelected();
+            int mode = 0, threshold = 0;
+            if (val == "off") {
+                mode = 0; threshold = 0;
+            } else if (val == "on") {
+                mode = 1; threshold = 0;
+            } else if (val.substr(0, 5) == "auto:") {
+                mode = 2; threshold = atoi(val.substr(5).c_str());
             }
-            Settings::getInstance()->setInt("PowerLedRedMode", newRedMode);
-            Settings::getInstance()->setInt("PowerLedRedThreshold", newRedThreshold);
+            Settings::getInstance()->setInt("PowerLedRedMode", mode);
+            Settings::getInstance()->setInt("PowerLedRedThreshold", threshold);
         }
         
-        // Parse BLUE selection (only if exists)
         if (blueList) {
-            std::string blueVal = blueList->getSelected();
-            int newBlueMode = 0, newBlueThreshold = 80;
-            if (blueVal == "off") {
-                newBlueMode = 0;
-            } else if (blueVal == "on") {
-                newBlueMode = 1;
-            } else if (blueVal.substr(0, 5) == "auto:") {
-                newBlueMode = 2;
-                newBlueThreshold = atoi(blueVal.substr(5).c_str());
+            std::string val = blueList->getSelected();
+            int mode = 0, threshold = 0;
+            if (val == "off") {
+                mode = 0; threshold = 0;
+            } else if (val == "on") {
+                mode = 1; threshold = 0;
+            } else if (val.substr(0, 5) == "auto:") {
+                mode = 2; threshold = atoi(val.substr(5).c_str());
             }
-            Settings::getInstance()->setInt("PowerLedBlueMode", newBlueMode);
-            Settings::getInstance()->setInt("PowerLedBlueThreshold", newBlueThreshold);
+            Settings::getInstance()->setInt("PowerLedBlueMode", mode);
+            Settings::getInstance()->setInt("PowerLedBlueThreshold", threshold);
         }
         
         Settings::getInstance()->saveFile();
@@ -1491,6 +1470,7 @@ bool GuiArkOS4CloneSettings::checkAndApplyLedOnStartup()
 
 void GuiArkOS4CloneSettings::applyPowerLedOnStartup()
 {
+    // 新驱动架构：启动时只需设置阈值，驱动自动处理充电监控和阈值逻辑
     if (hasPowerLed()) {
         applyPowerLed();
     }
