@@ -1341,6 +1341,24 @@ void GuiMenu::openUISettings()
 	s->addSaveFunc(
 		[clock] { Settings::getInstance()->setBool("DrawClock", clock->getState()); });
 
+	auto wifiIcon = std::make_shared<SwitchComponent>(mWindow);
+	wifiIcon->setState(Settings::getInstance()->getBool("networkIcon"));
+	s->addWithLabel(_("SHOW WIFI ICON"), wifiIcon);
+	s->addSaveFunc([s, wifiIcon]
+	{
+		if (Settings::getInstance()->setBool("networkIcon", wifiIcon->getState()))
+			s->setVariable("reloadAll", true);
+	});
+
+	auto bluetoothIcon = std::make_shared<SwitchComponent>(mWindow);
+	bluetoothIcon->setState(Settings::getInstance()->getBool("bluetoothIcon"));
+	s->addWithLabel(_("SHOW BLUETOOTH ICON"), bluetoothIcon);
+	s->addSaveFunc([s, bluetoothIcon]
+	{
+		if (Settings::getInstance()->setBool("bluetoothIcon", bluetoothIcon->getState()))
+			s->setVariable("reloadAll", true);
+	});
+
 	// show help
 	auto show_help = std::make_shared<SwitchComponent>(mWindow);
 	show_help->setState(Settings::getInstance()->getBool("ShowHelpPrompts"));

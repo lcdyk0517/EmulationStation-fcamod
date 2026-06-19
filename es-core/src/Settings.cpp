@@ -254,6 +254,8 @@ void Settings::setDefaults()
 
 	mBoolMap["updates.enabled"] = false;
 	
+	mBoolMap["networkIcon"] = true;
+	mBoolMap["bluetoothIcon"] = true;
 	mBoolMap["DrawClock"] = true;
 
 	mBoolMap["UseOSK"] = true;

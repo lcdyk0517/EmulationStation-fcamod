@@ -19,7 +19,7 @@ void BatteryIndicatorComponent::init()
 	if (Renderer::isSmallScreen())
 	{
 		setPosition(Renderer::getScreenWidth() * 0.010, Renderer::getScreenHeight() * 0);
-		setSize(Renderer::getScreenWidth() * 0.065, Renderer::getScreenHeight() * 0.065);
+		setSize(Renderer::getScreenWidth() * 0.320, Renderer::getScreenHeight() * 0.065);
 	}
 	else
 	{
@@ -50,11 +50,28 @@ void BatteryIndicatorComponent::init()
 	if (ResourceManager::getInstance()->fileExists(":/battery/empty.svg"))
 		mEmpty = ResourceManager::getInstance()->getResourcePath(":/battery/empty.svg");
 
-	if (ResourceManager::getInstance()->fileExists(":/network.svg"))
+	if (Settings::getInstance()->getBool("networkIcon") && ResourceManager::getInstance()->fileExists(":/network.svg"))
 	{
 		mView |= ActivityView::NETWORK;
 		mNetworkImage = TextureResource::get(ResourceManager::getInstance()->getResourcePath(":/network.svg"), false, true);
 	}
+	if (ResourceManager::getInstance()->fileExists(":/network_active.svg"))
+		mNetworkActiveImage = TextureResource::get(ResourceManager::getInstance()->getResourcePath(":/network_active.svg"), false, true);
+	if (ResourceManager::getInstance()->fileExists(":/network_off.svg"))
+		mNetworkOffImage = TextureResource::get(ResourceManager::getInstance()->getResourcePath(":/network_off.svg"), false, true);
+	if (Settings::getInstance()->getBool("bluetoothIcon") && ResourceManager::getInstance()->fileExists(":/bluetooth.svg"))
+	{
+		mView |= ActivityView::BLUETOOTH;
+		mBluetoothImage = TextureResource::get(ResourceManager::getInstance()->getResourcePath(":/bluetooth.svg"), false, true);
+	}
+	if (ResourceManager::getInstance()->fileExists(":/bluetooth_active.svg"))
+		mBluetoothActiveImage = TextureResource::get(ResourceManager::getInstance()->getResourcePath(":/bluetooth_active.svg"), false, true);
+	if (ResourceManager::getInstance()->fileExists(":/bluetooth_off.svg"))
+		mBluetoothOffImage = TextureResource::get(ResourceManager::getInstance()->getResourcePath(":/bluetooth_off.svg"), false, true);
+	if (ResourceManager::getInstance()->fileExists(":/network_share.svg"))
+		mNetworkShareImage = TextureResource::get(ResourceManager::getInstance()->getResourcePath(":/network_share.svg"), false, true);
+	if (ResourceManager::getInstance()->fileExists(":/network_service.svg"))
+		mNetworkServiceImage = TextureResource::get(ResourceManager::getInstance()->getResourcePath(":/network_service.svg"), false, true);
 
 	updateNetworkInfo();
 	updateBatteryInfo();
