@@ -1,4 +1,5 @@
 #include <string>
+#include <unistd.h>
 #include "components/ControllerActivityComponent.h"
 
 #include "resources/TextureResource.h"
@@ -11,7 +12,8 @@
 // #define DEVTEST
 
 #define PLAYER_PAD_TIME_MS		 150
-#define UPDATE_NETWORK_DELAY	10000
+#define UPDATE_NETWORK_DELAY 5000
+#define UPDATE_BLUETOOTH_DELAY 5000
 #define UPDATE_BATTERY_DELAY	10000
 
 ControllerActivityComponent::ControllerActivityComponent(Window* window) : GuiComponent(window)
@@ -32,6 +34,9 @@ void ControllerActivityComponent::init()
 
 	mNetworkCheckTime = UPDATE_NETWORK_DELAY;
 	mNetworkConnected = false;
+	mNetworkState = 0;
+	mBluetoothState = 0;
+	mBluetoothCheckTime = UPDATE_BLUETOOTH_DELAY;
 
 	mColorShift = 0xFFFFFF99;
 	mActivityColor = 0xFF000066;
@@ -51,6 +56,7 @@ void ControllerActivityComponent::init()
 		mPads[i].reset();*/
 
 	updateNetworkInfo();
+	updateBluetoothInfo();
 	updateBatteryInfo();
 }
 
@@ -109,6 +115,25 @@ bool ControllerActivityComponent::input(InputConfig* config, Input input)
 void ControllerActivityComponent::update(int deltaTime)
 {
 	GuiComponent::update(deltaTime);
+
+	// Instant detection via flag files (set by udev / NM dispatcher)
+	// Cost: one access() syscall per frame -- no shell exec
+	if (access("/tmp/es-wifi-changed", F_OK) == 0) {
+		remove("/tmp/es-wifi-changed");
+		updateNetworkInfo();
+		mNetworkCheckTime = 0;
+	}
+	if (access("/tmp/es-bt-changed", F_OK) == 0) {
+		remove("/tmp/es-bt-changed");
+		updateBluetoothInfo();
+		mBluetoothCheckTime = 0;
+	}
+	if (mView & BLUETOOTH)
+	{
+		mBluetoothCheckTime += deltaTime;
+		if (mBluetoothCheckTime >= UPDATE_BLUETOOTH_DELAY)
+			{ mBluetoothCheckTime = 0; updateBluetoothInfo(); }
+	}
 
 	if (mView & BATTERY)
 	{
@@ -220,7 +245,7 @@ void ControllerActivityComponent::render(const Transform4x4f& parentTrans)
 		}
 	}
 */
-	if ((mView & NETWORK) && mNetworkConnected && (mNetworkImage != nullptr))
+	if ((mView & NETWORK) && (mNetworkImage != nullptr || mNetworkActiveImage != nullptr || mNetworkOffImage != nullptr || mNetworkShareImage != nullptr || mNetworkServiceImage != nullptr))
 		itemsWidth += szW + mSpacing; // getTextureSize(mNetworkImage).x()
 
 	auto batteryText = std::to_string(mBatteryInfo.level) + "%";
@@ -282,8 +307,23 @@ void ControllerActivityComponent::render(const Transform4x4f& parentTrans)
 		}
 	}*/
 	
-	if ((mView & NETWORK) && mNetworkConnected && (mNetworkImage != nullptr))
+	if ((mView & NETWORK) && mNetworkState == 3 && mNetworkShareImage != nullptr)
+		x += renderTexture(x, szW, mNetworkShareImage, mColorShift);
+	else if ((mView & NETWORK) && mNetworkState == 4 && mNetworkServiceImage != nullptr)
+		x += renderTexture(x, szW, mNetworkServiceImage, mColorShift);
+	else if ((mView & NETWORK) && mNetworkState == 2 && mNetworkImage != nullptr)
 		x += renderTexture(x, szW, mNetworkImage, mColorShift);
+	else if ((mView & NETWORK) && mNetworkState == 1 && mNetworkActiveImage != nullptr)
+		x += renderTexture(x, szW, mNetworkActiveImage, mColorShift);
+	else if ((mView & NETWORK) && mNetworkState == 0 && mNetworkOffImage != nullptr)
+		x += renderTexture(x, szW, mNetworkOffImage, mColorShift);
+
+	if ((mView & BLUETOOTH) && mBluetoothState == 2 && mBluetoothImage != nullptr)
+		x += renderTexture(x, szW, mBluetoothImage, mColorShift);
+	else if ((mView & BLUETOOTH) && mBluetoothState == 1 && mBluetoothActiveImage != nullptr)
+		x += renderTexture(x, szW, mBluetoothActiveImage, mColorShift);
+	else if ((mView & BLUETOOTH) && mBluetoothState == 0 && mBluetoothOffImage != nullptr)
+		x += renderTexture(x, szW, mBluetoothOffImage, mColorShift);
 
 	if ((mView & BATTERY) && mBatteryInfo.hasBattery && mBatteryImage != nullptr)
 	{
@@ -391,27 +431,46 @@ void ControllerActivityComponent::applyTheme(const std::shared_ptr<ThemeData>& t
 
 void ControllerActivityComponent::updateNetworkInfo()
 {
-	// Check if WiFi is enabled (not blocked by rfkill) and has IP address
-	std::string rfkillStatus = getShOutput("rfkill list wifi 2>/dev/null | grep -i 'Soft blocked' | head -1");
-	bool wifiBlocked = (rfkillStatus.find("yes") != std::string::npos);
-	
-	if (wifiBlocked) {
-		mNetworkConnected = false;
+	// Read state written by es-status-daemon (microseconds, no shell exec)
+	FILE* f = fopen("/tmp/es-wifi-state", "r");
+	if (f) {
+		int state = -1;
+		int rd = fscanf(f, "%d", &state);
+		fclose(f);
+		// Only update if valid -- guards against empty file during atomic write
+		if (rd == 1 && state >= 0 && state <= 4) {
+			mNetworkState = state;
+			mNetworkConnected = (state >= 2);
+		}
 		return;
 	}
-	
-	// Method 1: Check if nmcli shows WiFi connected
-	std::string nmcliStatus = getShOutput("nmcli -t -f DEVICE,STATE dev 2>/dev/null | grep -E '^wlan.*:connected'");
-	if (!nmcliStatus.empty()) {
-		mNetworkConnected = true;
+	// Fallback si le daemon n'est pas lance
+	std::string nmcliStatus = getShOutput("nmcli -t -f DEVICE,STATE dev 2>/dev/null | grep -E '^wlan.*:connected$'");
+	if (nmcliStatus.find("connected") != std::string::npos) {
+		mNetworkConnected = true; mNetworkState = 2;
+	} else {
+		mNetworkConnected = false; mNetworkState = 1;
+	}
+}
+
+
+void ControllerActivityComponent::updateBluetoothInfo()
+{
+	// Read state written by es-status-daemon (microseconds, no shell exec)
+	FILE* f = fopen("/tmp/es-bt-state", "r");
+	if (f) {
+		int state = -1;
+		int rd = fscanf(f, "%d", &state);
+		fclose(f);
+		// Only update if valid -- guards against empty file during atomic write
+		if (rd == 1 && state >= 0 && state <= 2) {
+			mBluetoothState = state;
+		}
 		return;
 	}
-	
-	// Method 2: Check if we have an IP address
-	std::string ip = getShOutput("ip route | awk '/src/ { print $9; exit }' 2>/dev/null");
-	ip = Utils::String::trim(ip);
-	
-	mNetworkConnected = !ip.empty();
+	// Fallback if daemon is not running
+	std::string svc = getShOutput("systemctl is-active bluetooth 2>/dev/null");
+	mBluetoothState = (svc.find("active") != std::string::npos) ? 1 : 0;
 }
 
 void ControllerActivityComponent::updateBatteryInfo()

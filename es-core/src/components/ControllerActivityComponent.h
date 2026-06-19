@@ -21,7 +21,8 @@ public:
 	{
 		CONTROLLERS = 1,
 		BATTERY = 2,
-		NETWORK = 4
+		NETWORK = 4,
+			BLUETOOTH = 8
 	};
 
 
@@ -108,8 +109,19 @@ protected:
 	// Network info
 	void updateNetworkInfo();
 	std::shared_ptr<TextureResource> mNetworkImage;
+	std::shared_ptr<TextureResource> mNetworkActiveImage;
+	std::shared_ptr<TextureResource> mNetworkOffImage;
+	std::shared_ptr<TextureResource> mNetworkShareImage;
+	std::shared_ptr<TextureResource> mNetworkServiceImage;
 	bool mNetworkConnected;
+	int mNetworkState; // 0=off 1=active 2=connected 3=sharing 4=service
 	int mNetworkCheckTime;
+	void updateBluetoothInfo();
+	std::shared_ptr<TextureResource> mBluetoothImage;
+	std::shared_ptr<TextureResource> mBluetoothActiveImage;
+	std::shared_ptr<TextureResource> mBluetoothOffImage;
+	int mBluetoothState;
+	int mBluetoothCheckTime;
 
 protected:
 	// Battery info
