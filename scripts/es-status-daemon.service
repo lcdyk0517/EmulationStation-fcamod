@@ -1,0 +1,12 @@
+[Unit]
+Description=EmulationStation WiFi/BT Status Daemon
+After=network.target bluetooth.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/es-status-daemon.sh
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
