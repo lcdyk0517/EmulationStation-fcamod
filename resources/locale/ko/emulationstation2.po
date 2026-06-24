@@ -2029,8 +2029,29 @@ msgstr "최고"
 msgid "GOOD"
 msgstr "양호"
 
+msgid "POOR"
+msgstr "불량"
+
 msgid "STANDARD"
 msgstr "표준"
 
 msgid "AVERAGE"
 msgstr "보통"
+
+msgid "PROXY SETTINGS"
+msgstr "프록시 설정"
+
+msgid "ENABLE PROXY"
+msgstr "프록시 활성화"
+
+msgid "PROXY TYPE"
+msgstr "프록시 유형"
+
+msgid "PROXY HOST"
+msgstr "프록시 호스트"
+
+msgid "PROXY PORT"
+msgstr "프록시 포트"
+
+msgid "NO PROXY"
+msgstr "프록시 제외"

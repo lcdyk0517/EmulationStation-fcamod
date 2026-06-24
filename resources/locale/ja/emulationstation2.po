@@ -1655,8 +1655,29 @@ msgstr "最高"
 msgid "GOOD"
 msgstr "良好"
 
+msgid "POOR"
+msgstr "劣る"
+
 msgid "STANDARD"
 msgstr "標準"
 
 msgid "AVERAGE"
 msgstr "普通"
+
+msgid "PROXY SETTINGS"
+msgstr "プロキシ設定"
+
+msgid "ENABLE PROXY"
+msgstr "プロキシを有効にする"
+
+msgid "PROXY TYPE"
+msgstr "プロキシタイプ"
+
+msgid "PROXY HOST"
+msgstr "プロキシホスト"
+
+msgid "PROXY PORT"
+msgstr "プロキシポート"
+
+msgid "NO PROXY"
+msgstr "プロキシ除外"

@@ -1888,8 +1888,29 @@ msgstr "Tốt nhất"
 msgid "GOOD"
 msgstr "Tốt"
 
+msgid "POOR"
+msgstr "Kém"
+
 msgid "STANDARD"
 msgstr "Tiêu chuẩn"
 
 msgid "AVERAGE"
 msgstr "Trung bình"
+
+msgid "PROXY SETTINGS"
+msgstr "Proxy Settings"
+
+msgid "ENABLE PROXY"
+msgstr "Enable Proxy"
+
+msgid "PROXY TYPE"
+msgstr "Proxy Type"
+
+msgid "PROXY HOST"
+msgstr "Proxy Host"
+
+msgid "PROXY PORT"
+msgstr "Proxy Port"
+
+msgid "NO PROXY"
+msgstr "No Proxy"

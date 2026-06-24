@@ -12,6 +12,7 @@
 #include "Window.h"
 #include "ApiSystem.h"
 #include "SystemConf.h"
+#include "Settings.h"
 #include "Log.h"
 #include "AudioManager.h"
 #include "VolumeControl.h"
@@ -347,6 +348,10 @@ void GuiArkOS4CloneSettings::createWifiSettingsMenu()
 
     s->addEntry(_("DELETE EXISTING CONNECTIONS"), true, [this] {
         deleteConnections();
+    }, "");
+
+    s->addEntry(_("PROXY SETTINGS"), true, [this] {
+        openProxySettings();
     }, "");
 
     s->addEntry(_("NETWORK INFO"), true, [this] {
@@ -2462,6 +2467,82 @@ void GuiArkOS4CloneSettings::toggleRemoteServicesAutoStart(bool enable)
 }
 
 // ============================================================================
+// Proxy Settings Functions
+// ============================================================================
+
+void GuiArkOS4CloneSettings::openProxySettings()
+{
+    createProxySettingsMenu();
+}
+
+void GuiArkOS4CloneSettings::createProxySettingsMenu()
+{
+    auto s = new GuiSettings(mWindow, _("PROXY SETTINGS"));
+    auto settings = Settings::getInstance();
+
+    // Enable Proxy toggle
+    auto proxySwitch = std::make_shared<SwitchComponent>(mWindow);
+    proxySwitch->setState(settings->getBool("ProxyEnabled"));
+    proxySwitch->setOnChangedCallback([proxySwitch] {
+        Settings::getInstance()->setBool("ProxyEnabled", proxySwitch->getState());
+    });
+    s->addWithLabel(_("ENABLE PROXY"), proxySwitch);
+
+    // Proxy Type selection (HTTP/SOCKS5)
+    std::string currentType = settings->getString("ProxyType");
+    if (currentType.empty()) currentType = "http";
+    auto proxyType = std::make_shared<OptionListComponent<std::string>>(mWindow, _("PROXY TYPE"), false);
+    proxyType->add(_("HTTP"), "http", currentType == "http");
+    proxyType->add(_("SOCKS5"), "socks5", currentType == "socks5");
+    s->addWithLabel(_("PROXY TYPE"), proxyType);
+
+    // Proxy Host
+    std::string currentHost = settings->getString("ProxyHost");
+    if (currentHost.empty()) currentHost = "192.168.31.237";
+    s->addEntry(_("PROXY HOST") + ": " + currentHost, true, [this, s] {
+        mWindow->pushGui(new GuiTextEditPopupKeyboard(mWindow,
+            _("PROXY HOST"),
+            Settings::getInstance()->getString("ProxyHost"),
+            [](const std::string& newVal) {
+                Settings::getInstance()->setString("ProxyHost", newVal);
+            }, false));
+    });
+
+    // Proxy Port
+    std::string currentPort = settings->getString("ProxyPort");
+    if (currentPort.empty()) currentPort = "10808";
+    s->addEntry(_("PROXY PORT") + ": " + currentPort, true, [this, s] {
+        mWindow->pushGui(new GuiTextEditPopupKeyboard(mWindow,
+            _("PROXY PORT"),
+            Settings::getInstance()->getString("ProxyPort"),
+            [](const std::string& newVal) {
+                Settings::getInstance()->setString("ProxyPort", newVal);
+            }, false));
+    });
+
+    // No Proxy
+    std::string currentNoProxy = settings->getString("ProxyNoProxy");
+    if (currentNoProxy.empty()) currentNoProxy = "localhost,127.0.0.1,::1";
+    s->addEntry(_("NO PROXY") + ": " + currentNoProxy, true, [this, s] {
+        mWindow->pushGui(new GuiTextEditPopupKeyboard(mWindow,
+            _("NO PROXY"),
+            Settings::getInstance()->getString("ProxyNoProxy"),
+            [](const std::string& newVal) {
+                Settings::getInstance()->setString("ProxyNoProxy", newVal);
+            }, false));
+    });
+
+    s->addSaveFunc([settings, proxySwitch, proxyType] {
+        std::string newType = proxyType->getSelected();
+        if (newType.empty()) newType = "http";
+        settings->setString("ProxyType", newType);
+        settings->saveFile();
+    });
+
+    mWindow->pushGui(s);
+}
+
+// ============================================================================
 // View Info Functions
 // ============================================================================
 
@@ -2511,8 +2592,8 @@ std::string GuiArkOS4CloneSettings::getCpuBinning()
     // Try to get CPU binning info from dmesg (added by rockchip-cpufreq.c)
     // Format: es_info: cpu_bin=X process=X scale=X volt_sel=X
     // volt_sel is the actual quality grade based on CPU leakage:
-    // - lower volt_sel = lower leakage = better quality = can run at lower voltage
-    // - higher volt_sel = higher leakage = worse quality = needs higher voltage
+    // - lower volt_sel = higher leakage = worse quality = needs higher voltage
+    // - higher volt_sel = lower leakage = better quality = can run at lower voltage
     std::string dmesgBin = executeCommand("dmesg | grep 'es_info: cpu_bin=' | tail -1");
     
     if (!dmesgBin.empty()) {
@@ -2523,17 +2604,17 @@ std::string GuiArkOS4CloneSettings::getCpuBinning()
         int voltVal = atoi(voltSel.c_str());
         
         // Rockchip CPU quality grades based on volt_sel:
-        // volt_sel=0: L0 最佳体质 - lowest leakage, can run at lowest voltage
-        // volt_sel=1: L1 良好体质 - good quality
+        // volt_sel=0: L0 一般体质 - higher leakage, needs more voltage
+        // volt_sel=1: L1 较差体质 - slightly better than L0
         // volt_sel=2: L2 标准体质 - standard quality
-        // volt_sel=3+: L3+ 一般体质 - higher leakage, needs more voltage
+        // volt_sel=3: L3 最佳体质 - lowest leakage, can run at lowest voltage
         // negative value: N/A - not detected
         
         if (voltVal < 0) return "N/A";
-        if (voltVal == 0) return "L0 (" + std::string(_("BEST")) + ")";
-        if (voltVal == 1) return "L1 (" + std::string(_("GOOD")) + ")";
+        if (voltVal == 0) return "L0 (" + std::string(_("AVERAGE")) + ")";
+        if (voltVal == 1) return "L1 (" + std::string(_("POOR")) + ")";
         if (voltVal == 2) return "L2 (" + std::string(_("STANDARD")) + ")";
-        if (voltVal == 3) return "L3 (" + std::string(_("AVERAGE")) + ")";
+        if (voltVal == 3) return "L3 (" + std::string(_("BEST")) + ")";
         
         return "L" + std::to_string(voltVal) + " (" + std::string(_("AVERAGE")) + ")";
     }

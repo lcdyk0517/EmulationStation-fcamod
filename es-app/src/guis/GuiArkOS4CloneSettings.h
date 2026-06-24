@@ -46,6 +46,10 @@ private:
     static bool isRemoteServicesAutoStart();
     static void toggleRemoteServicesAutoStart(bool enable);
     
+    // Proxy Settings functions
+    void openProxySettings();
+    void createProxySettingsMenu();
+    
     
     // ArkOS4Clone Tools functions
     void openToolsMenu();

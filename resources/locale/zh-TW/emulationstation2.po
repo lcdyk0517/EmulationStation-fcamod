@@ -3809,8 +3809,29 @@ msgstr "最佳"
 msgid "GOOD"
 msgstr "良好"
 
+msgid "POOR"
+msgstr "較差"
+
 msgid "STANDARD"
 msgstr "標準"
 
 msgid "AVERAGE"
 msgstr "一般"
+
+msgid "PROXY SETTINGS"
+msgstr "代理設定"
+
+msgid "ENABLE PROXY"
+msgstr "啟用代理"
+
+msgid "PROXY TYPE"
+msgstr "代理類型"
+
+msgid "PROXY HOST"
+msgstr "代理主機"
+
+msgid "PROXY PORT"
+msgstr "代理端口"
+
+msgid "NO PROXY"
+msgstr "不使用代理"

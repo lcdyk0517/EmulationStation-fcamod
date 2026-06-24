@@ -30,7 +30,12 @@ SystemConf *SystemConf::sInstance = NULL;
 
 static std::vector<std::string> dontRemoveAutoValue
 {
-	{ "audio.device" }
+	{ "audio.device" },
+	{ "network.proxy.enabled" },
+	{ "network.proxy.type" },
+	{ "network.proxy.host" },
+	{ "network.proxy.port" },
+	{ "network.proxy.no_proxy" }
 };
 
 static std::map<std::string, std::string> defaults =
@@ -40,6 +45,11 @@ static std::map<std::string, std::string> defaults =
 	{ "audio.bgmusic", "1" },
 	{ "wifi.enabled", "0" },
 	{ "system.hostname", "BATOCERA" },
+	{ "network.proxy.enabled", "0" },
+	{ "network.proxy.type", "http" },
+	{ "network.proxy.host", "192.168.31.237" },
+	{ "network.proxy.port", "10808" },
+	{ "network.proxy.no_proxy", "localhost,127.0.0.1,::1" },
 	{ "global.retroachievements", "0" },
 	{ "global.retroachievements.hardcore", "0" },
 	{ "global.retroachievements.leaderboards", "0" },

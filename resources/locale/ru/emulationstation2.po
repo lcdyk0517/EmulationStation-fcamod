@@ -3826,8 +3826,29 @@ msgstr "Лучший"
 msgid "GOOD"
 msgstr "Хороший"
 
+msgid "POOR"
+msgstr "Плохой"
+
 msgid "STANDARD"
 msgstr "Стандарт"
 
 msgid "AVERAGE"
 msgstr "Средний"
+
+msgid "PROXY SETTINGS"
+msgstr "Proxy Settings"
+
+msgid "ENABLE PROXY"
+msgstr "Enable Proxy"
+
+msgid "PROXY TYPE"
+msgstr "Proxy Type"
+
+msgid "PROXY HOST"
+msgstr "Proxy Host"
+
+msgid "PROXY PORT"
+msgstr "Proxy Port"
+
+msgid "NO PROXY"
+msgstr "No Proxy"

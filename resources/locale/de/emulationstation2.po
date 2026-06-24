@@ -2591,8 +2591,29 @@ msgstr "Beste"
 msgid "GOOD"
 msgstr "Gut"
 
+msgid "POOR"
+msgstr "Schlecht"
+
 msgid "STANDARD"
 msgstr "Standard"
 
 msgid "AVERAGE"
 msgstr "Durchschnitt"
+
+msgid "PROXY SETTINGS"
+msgstr "Proxy Settings"
+
+msgid "ENABLE PROXY"
+msgstr "Enable Proxy"
+
+msgid "PROXY TYPE"
+msgstr "Proxy Type"
+
+msgid "PROXY HOST"
+msgstr "Proxy Host"
+
+msgid "PROXY PORT"
+msgstr "Proxy Port"
+
+msgid "NO PROXY"
+msgstr "No Proxy"
