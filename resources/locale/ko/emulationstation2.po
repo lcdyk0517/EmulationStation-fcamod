@@ -1978,6 +1978,12 @@ msgstr "ZRAM 활성화"
 msgid "ZRAM SIZE"
 msgstr "ZRAM 크기"
 
+msgid "ZRAM COMP ALGO"
+msgstr "ZRAM 압축 알고리즘"
+
+msgid "ZRAM AUTO START"
+msgstr "ZRAM 자동 시작"
+
 msgid "MAX FREQ"
 msgstr "최대 주파수"
 

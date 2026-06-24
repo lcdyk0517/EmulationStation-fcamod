@@ -2970,6 +2970,12 @@ msgstr "Włącz ZRAM"
 msgid "ZRAM SIZE"
 msgstr "Rozmiar ZRAM"
 
+msgid "ZRAM COMP ALGO"
+msgstr "Algorytm kompresji ZRAM"
+
+msgid "ZRAM AUTO START"
+msgstr "Autostart ZRAM"
+
 msgid "MAX FREQ"
 msgstr "Maks Częstotliwość"
 

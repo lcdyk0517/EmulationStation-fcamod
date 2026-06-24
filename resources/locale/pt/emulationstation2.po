@@ -1757,6 +1757,12 @@ msgstr "Ativar ZRAM"
 msgid "ZRAM SIZE"
 msgstr "Tamanho ZRAM"
 
+msgid "ZRAM COMP ALGO"
+msgstr "Algoritmo de compactação ZRAM"
+
+msgid "ZRAM AUTO START"
+msgstr "Início automático ZRAM"
+
 msgid "MAX FREQ"
 msgstr "Freq Máx"
 

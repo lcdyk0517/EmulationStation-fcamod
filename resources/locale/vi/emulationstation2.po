@@ -1834,6 +1834,12 @@ msgstr "Bật ZRAM"
 msgid "ZRAM SIZE"
 msgstr "Kích thước ZRAM"
 
+msgid "ZRAM COMP ALGO"
+msgstr "Thuật toán nén ZRAM"
+
+msgid "ZRAM AUTO START"
+msgstr "Tự động khởi động ZRAM"
+
 msgid "MAX FREQ"
 msgstr "Tần số tối đa"
 

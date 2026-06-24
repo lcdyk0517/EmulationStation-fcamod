@@ -2237,6 +2237,12 @@ msgstr "Ενεργοποίηση ZRAM"
 msgid "ZRAM SIZE"
 msgstr "Μέγεθος ZRAM"
 
+msgid "ZRAM COMP ALGO"
+msgstr "Αλγόριθμος συμπίεσης ZRAM"
+
+msgid "ZRAM AUTO START"
+msgstr "Αυτόματη εκκίνηση ZRAM"
+
 msgid "MAX FREQ"
 msgstr "Μέγιστη Συχνότητα"
 

@@ -81,7 +81,14 @@ private:
     // ZRAM helpers
     static std::string getZramSize();
     static bool isZramEnabled();
-    static void toggleZram(bool enable, const std::string& size = "512M");
+    static std::string getZramCompAlgorithm();
+    static std::vector<std::string> getAvailableZramAlgorithms();
+    static void toggleZram(bool enable, const std::string& size = "512M",
+                           const std::string& compAlgo = "lz4");
+    static bool isZramAutoStart();
+    static void toggleZramAutoStart(bool enable, const std::string& size = "512M",
+                                     const std::string& compAlgo = "lz4");
+    static void saveZramConfig(const std::string& size, const std::string& compAlgo);
     
     // Joystick LED functions
     void openJoystickLedSettings();

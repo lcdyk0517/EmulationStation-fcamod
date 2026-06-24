@@ -3761,6 +3761,12 @@ msgstr "啟用 ZRAM"
 msgid "ZRAM SIZE"
 msgstr "ZRAM 大小"
 
+msgid "ZRAM COMP ALGO"
+msgstr "ZRAM 壓縮演算法"
+
+msgid "ZRAM AUTO START"
+msgstr "ZRAM 開機自啟"
+
 msgid "MAX FREQ"
 msgstr "最大頻率"
 

@@ -3983,6 +3983,12 @@ msgstr "Увімкнути ZRAM"
 msgid "ZRAM SIZE"
 msgstr "Розмір ZRAM"
 
+msgid "ZRAM COMP ALGO"
+msgstr "Алгоритм стиснення ZRAM"
+
+msgid "ZRAM AUTO START"
+msgstr "Автозапуск ZRAM"
+
 msgid "MAX FREQ"
 msgstr "Макс частота"
 
