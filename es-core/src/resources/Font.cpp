@@ -260,7 +260,8 @@ std::vector<std::string> getFallbackFontPaths()
 	const char* fontNames[] = {
 		":/glyphs.ttf",   // latin		
 		":/DroidSansFallbackFull.ttf",// japanese, chinese, present on Debian
-		":/NanumMyeongjo.ttf" // korean font
+		":/NanumMyeongjo.ttf", // korean font
+		":/NotoSansThai-Regular.ttf", // thai
 		"arial.ttf",   // latin		
 	};
 
@@ -285,6 +286,7 @@ std::vector<std::string> getFallbackFontPaths()
 		":/fontawesome-webfont.ttf",
 		"/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf", // japanese, chinese, present on Debian
 		"/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+		":/NotoSansThai-Regular.ttf", // thai
 		":/fallback.ttf" // fallback font of your language
 	};
 

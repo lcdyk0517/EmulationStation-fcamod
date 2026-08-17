@@ -4,6 +4,7 @@
 #include "utils/FileSystemUtil.h"
 #include "utils/StringUtil.h"
 #include "Log.h"
+#include "Settings.h"
 #include <assert.h>
 #include <thread>
 #include <SDL.h>
@@ -197,6 +198,46 @@ HttpReq::HttpReq(const std::string& url, const std::string outputFilename)
 				curl_easy_setopt(mHandle, CURLOPT_PROXY, proxyServer.c_str());
 				curl_easy_setopt(mHandle, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
 			}
+		}
+	}
+#else
+	// Setup proxy from Settings if enabled
+	auto settings = Settings::getInstance();
+	if (settings->getBool("ProxyEnabled"))
+	{
+		std::string host = Utils::String::trim(settings->getString("ProxyHost"));
+		if (!host.empty())
+		{
+			std::string type = Utils::String::toLower(Utils::String::trim(settings->getString("ProxyType")));
+			if (type != "socks5")
+				type = "http";
+
+			std::string port = Utils::String::trim(settings->getString("ProxyPort"));
+
+			std::string proxyUrl;
+			if (host.find("://") != std::string::npos)
+				proxyUrl = port.empty() ? host : host + ":" + port;
+			else
+			{
+				if (!port.empty())
+					host += ":" + port;
+				proxyUrl = type + "://" + host;
+			}
+
+			LOG(LogInfo) << "HttpReq: Using proxy " << proxyUrl;
+			curl_easy_setopt(mHandle, CURLOPT_PROXY, proxyUrl.c_str());
+			if (type == "socks5")
+				curl_easy_setopt(mHandle, CURLOPT_PROXYTYPE, CURLPROXY_SOCKS5_HOSTNAME);
+			else
+				curl_easy_setopt(mHandle, CURLOPT_PROXYTYPE, CURLPROXY_HTTP);
+
+			std::string noProxy = Utils::String::trim(settings->getString("ProxyNoProxy"));
+			if (!noProxy.empty())
+				curl_easy_setopt(mHandle, CURLOPT_NOPROXY, noProxy.c_str());
+		}
+		else
+		{
+			LOG(LogInfo) << "HttpReq: Proxy enabled but host is empty";
 		}
 	}
 #endif

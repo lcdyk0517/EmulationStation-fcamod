@@ -1,4 +1,5 @@
 #include <string>
+#include <cstring>
 #include "platform.h"
 #include <SDL_events.h>
 
@@ -361,14 +362,18 @@ float queryBatteryVoltage()
 // Adapted from emuelec
 std::string getShOutput(const std::string& mStr) 
 {
-    std::string result, file;
-    FILE* pipe{popen(mStr.c_str(), "r")};
-    char buffer[256];
+    std::string result;
+    FILE* pipe = popen(mStr.c_str(), "r");
+    if (pipe == nullptr)
+        return result;
 
+    char buffer[256];
     while(fgets(buffer, sizeof(buffer), pipe) != NULL)
     {
-        file = buffer;
-        result += file.substr(0, file.size() - 1);
+        std::string line(buffer);
+        if (!line.empty() && line.back() == '\n')
+            line.pop_back();
+        result += line;
     }
 
     pclose(pipe);
