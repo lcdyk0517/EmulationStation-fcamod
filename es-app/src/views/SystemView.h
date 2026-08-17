@@ -10,6 +10,8 @@
 #include <memory>
 #include <functional>
 
+class ClockScreenSaver;
+
 class AnimatedImageComponent;
 class SystemData;
 class VideoVlcComponent;
@@ -114,6 +116,9 @@ private:
 	bool mScreensaverActive;
 
 	int mLastCursor;
+
+	ClockScreenSaver* mClockScreenSaver;
+	bool mClockSaverActive;
 };
 
 #endif // ES_APP_VIEWS_SYSTEM_VIEW_H

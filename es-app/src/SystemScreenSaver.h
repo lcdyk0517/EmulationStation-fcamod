@@ -75,6 +75,23 @@ private:
 	float mFade;
 };
 
+// Clock screensaver class
+class ClockScreenSaver : public GuiComponent
+{
+public:
+	ClockScreenSaver(Window* window);
+	~ClockScreenSaver();
+
+	void render(const Transform4x4f& transform) override;
+	void update(int deltaTime) override;
+
+private:
+	TextComponent*		mLabelTime;
+	TextComponent*		mLabelDate;
+	int 				mDateTimeUpdateAccumulator;
+	time_t				mDateTimeLastUpdate;
+};
+
 // Screensaver implementation for main window
 class SystemScreenSaver : public Window::ScreenSaver
 {

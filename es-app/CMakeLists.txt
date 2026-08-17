@@ -39,6 +39,7 @@ set(ES_HEADERS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiThemeInstall.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiCollectionSystemsOptions.h    
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiTools.h    
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiJoystickCalibration.h
 
     # Scrapers
     ${CMAKE_CURRENT_SOURCE_DIR}/src/scrapers/Scraper.h
@@ -102,6 +103,13 @@ set(ES_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiThemeInstall.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiCollectionSystemsOptions.cpp    
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiTools.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiArkOS4CloneSettings.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiJoystickCalibration.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/arkos4clone/ArkOSUtil.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/arkos4clone/WifiManager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/arkos4clone/LedControl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/arkos4clone/HardwareInfo.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/arkos4clone/SystemSettings.cpp
 
     # Scrapers
     ${CMAKE_CURRENT_SOURCE_DIR}/src/scrapers/Scraper.cpp

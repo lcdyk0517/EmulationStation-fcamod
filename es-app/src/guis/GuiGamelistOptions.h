@@ -30,6 +30,7 @@ private:
 	void addTextFilterToMenu();
 	void openGamelistFilter();
 	void openMetaDataEd();
+	void openEmulatorSettings();
 	void startEditMode();
 	void exitEditMode();
 	void jumpToLetter();

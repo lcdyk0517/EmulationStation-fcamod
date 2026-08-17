@@ -1014,3 +1014,113 @@ void VideoScreenSaver::update(int deltaTime)
 		mVideo->update(deltaTime);
 	}
 }
+
+// ------------------------------------------------------------------------------------------------------------------------
+// CLOCK SCREEN SAVER CLASS
+// ------------------------------------------------------------------------------------------------------------------------
+
+ClockScreenSaver::ClockScreenSaver(Window* window) : GuiComponent(window)
+{
+	mDateTimeUpdateAccumulator = 0;
+	mDateTimeLastUpdate = 0;
+
+	auto ph = ThemeData::getMenuTheme()->Text.font->getPath();
+	auto sz = Renderer::getScreenHeight() / 6.f;
+	auto font = Font::get(sz, ph);
+	int fh = font->getLetterHeight();
+
+	// Create time label (large, centered)
+	mLabelTime = new TextComponent(mWindow);
+	mLabelTime->setOrigin(0.5f, 0.5f);
+	mLabelTime->setPosition(Renderer::getScreenWidth() / 2.0f, Renderer::getScreenHeight() / 2.0f - fh * 0.4f);
+	mLabelTime->setSize(Renderer::getScreenWidth(), fh);
+	mLabelTime->setHorizontalAlignment(ALIGN_CENTER);
+	mLabelTime->setVerticalAlignment(ALIGN_CENTER);
+	mLabelTime->setColor(0xFFFFFFFF);
+	mLabelTime->setGlowColor(0x00000080);
+	mLabelTime->setGlowSize(4);
+	mLabelTime->setFont(font);
+
+	// Create date label (smaller, below time)
+	mLabelDate = new TextComponent(mWindow);
+	mLabelDate->setOrigin(0.5f, 0.5f);
+	mLabelDate->setPosition(Renderer::getScreenWidth() / 2.0f, Renderer::getScreenHeight() / 2.0f + fh * 0.5f);
+	mLabelDate->setSize(Renderer::getScreenWidth(), fh * 0.5f);
+	mLabelDate->setHorizontalAlignment(ALIGN_CENTER);
+	mLabelDate->setVerticalAlignment(ALIGN_CENTER);
+	mLabelDate->setColor(0xD0D0D0FF);
+	mLabelDate->setGlowColor(0x00000060);
+	mLabelDate->setGlowSize(2);
+	mLabelDate->setFont(ph, sz * 0.4f);
+
+	// Initialize with current time
+	time_t now = time(NULL);
+	struct tm* timeinfo = localtime(&now);
+
+	char timeBuffer[64];
+	char dateBuffer[64];
+	strftime(timeBuffer, sizeof(timeBuffer), "%H:%M:%S", timeinfo);
+	strftime(dateBuffer, sizeof(dateBuffer), "%Y-%m-%d", timeinfo);
+
+	mLabelTime->setText(std::string(timeBuffer));
+	mLabelDate->setText(std::string(dateBuffer));
+}
+
+ClockScreenSaver::~ClockScreenSaver()
+{
+	if (mLabelTime != nullptr)
+	{
+		delete mLabelTime;
+		mLabelTime = nullptr;
+	}
+
+	if (mLabelDate != nullptr)
+	{
+		delete mLabelDate;
+		mLabelDate = nullptr;
+	}
+}
+
+void ClockScreenSaver::render(const Transform4x4f& transform)
+{
+	// Draw black background
+	Renderer::setMatrix(Transform4x4f::Identity());
+	Renderer::drawRect(0.0f, 0.0f, Renderer::getScreenWidth(), Renderer::getScreenHeight(), 0x000000FF);
+
+	// Render time and date
+	if (mLabelTime)
+		mLabelTime->render(transform);
+
+	if (mLabelDate)
+		mLabelDate->render(transform);
+}
+
+void ClockScreenSaver::update(int deltaTime)
+{
+	GuiComponent::update(deltaTime);
+
+	mDateTimeUpdateAccumulator += deltaTime;
+	if (mDateTimeUpdateAccumulator >= DATE_TIME_UPDATE_INTERVAL)
+	{
+		mDateTimeUpdateAccumulator -= DATE_TIME_UPDATE_INTERVAL;
+
+		time_t now = time(NULL);
+		if (now != mDateTimeLastUpdate)
+		{
+			mDateTimeLastUpdate = now;
+
+			struct tm* timeinfo = localtime(&now);
+
+			char timeBuffer[64];
+			char dateBuffer[64];
+			strftime(timeBuffer, sizeof(timeBuffer), "%H:%M:%S", timeinfo);
+			strftime(dateBuffer, sizeof(dateBuffer), "%Y-%m-%d", timeinfo);
+
+			if (mLabelTime)
+				mLabelTime->setText(std::string(timeBuffer));
+
+			if (mLabelDate)
+				mLabelDate->setText(std::string(dateBuffer));
+		}
+	}
+}

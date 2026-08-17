@@ -402,6 +402,11 @@ void processAudioTitles(Window* window)
 }
 
 #include "ApiSystem.h"
+#include "guis/GuiArkOS4CloneSettings.h"
+#include "guis/GuiJoystickCalibration.h"
+#include "guis/arkos4clone/LedControl.h"
+#include "guis/arkos4clone/SystemSettings.h"
+#include "components/BatteryIndicatorComponent.h"
 
 int main(int argc, char* argv[])
 {
@@ -418,6 +423,21 @@ int main(int argc, char* argv[])
 
 	if(!parseArgs(argc, argv))
 		return 0;
+
+	// Apply joystick LED on startup (for supported devices)
+	LedControl::checkAndApplyLedOnStartup();
+	
+	// Apply power LED on startup (for supported devices)
+	LedControl::applyPowerLedOnStartup();
+	
+	// Apply joystick calibration on startup (if data exists)
+	GuiJoystickCalibration::applyCalibrationOnStartup();
+	
+	// Apply analog stick switch on startup (for supported devices)
+	SystemSettings::applyStickSwitchOnStartup();
+	
+	// Apply ADC dead zone on startup (for supported devices)
+	SystemSettings::applyDeadZoneOnStartup();
 /*
 	ApiSystem::checkUpdateVersion();
 	ApiSystem::updateSystem(nullptr);
@@ -501,6 +521,11 @@ int main(int argc, char* argv[])
 			return 1;
 		}
 
+		// Set battery state callback for power LED updates
+		window.getBatteryIndicator()->setBatteryStateCallback([](int level, bool charging) {
+			LedControl::applyPowerLed();
+		});
+
 		if (splashScreen)
 			window.renderLoadingScreen(_("Loading..."));
 	}
@@ -532,6 +557,48 @@ int main(int argc, char* argv[])
 	//run the command line scraper then quit
 	if (scrape_cmdline)
 		return run_scraper_cmdline();
+
+	// Check for OTA upgrade config restore
+	const std::string otaBackupFile = "/home/ark/arkos4clone.tar";
+	if (Utils::FileSystem::exists(otaBackupFile))
+	{
+		window.pushGui(new GuiMsgBox(&window,
+			_("OTA UPGRADE DETECTED.\nWOULD YOU LIKE TO RESTORE YOUR PREVIOUS CONFIGURATION?"),
+			_("YES"), [&otaBackupFile] {
+				// Extract tar to root directory
+				int ret = system(("tar xf " + otaBackupFile + " -C /").c_str());
+				
+				// Get list of directories/files to fix ownership and permissions
+				FILE* pipe = popen(("tar tf " + otaBackupFile + " | head -20").c_str(), "r");
+				if (pipe) {
+					char buffer[256];
+					while (fgets(buffer, sizeof(buffer), pipe)) {
+						std::string path(buffer);
+						// Remove trailing newline
+						while (!path.empty() && (path.back() == '\n' || path.back() == '\r'))
+							path.pop_back();
+						
+						if (!path.empty()) {
+							// Fix ownership
+							system(("chown -R ark:ark /" + path).c_str());
+							// Fix permissions
+							system(("chmod -R 777 /" + path).c_str());
+						}
+					}
+					pclose(pipe);
+				}
+				
+				// Delete the tar file after restoration
+				unlink(otaBackupFile.c_str());
+				
+				LOG(LogInfo) << "OTA config restored from " << otaBackupFile;
+			},
+			_("NO"), [&otaBackupFile] {
+				// Just delete the tar file
+				unlink(otaBackupFile.c_str());
+				LOG(LogInfo) << "OTA config restore skipped, backup deleted";
+			}));
+	}
 
 #if WIN32
 	if (Settings::getInstance()->getBool("updates.enabled"))

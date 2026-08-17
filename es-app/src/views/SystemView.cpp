@@ -16,6 +16,7 @@
 #include <random>
 #include "guis/GuiTextEditPopupKeyboard.h"
 #include "guis/GuiTextEditPopup.h"
+#include "SystemScreenSaver.h"
 
 // buffer values for scrolling velocity (left, stopped, right)
 const int logoBuffersLeft[] = { -5, -2, -1 };
@@ -36,6 +37,8 @@ SystemView::SystemView(Window* window) : IList<SystemViewData, SystemData*>(wind
 	mStaticBackground = nullptr;
 	mStaticVideoBackground = nullptr;
 	mExtrasFadeOldCursor = -1;
+	mClockScreenSaver = nullptr;
+	mClockSaverActive = false;
 	
 	setSize((float)Renderer::getScreenWidth(), (float)Renderer::getScreenHeight());
 	populate();
@@ -53,6 +56,12 @@ SystemView::~SystemView()
 	{
 		delete mStaticBackground;
 		mStaticBackground = nullptr;
+	}
+
+	if (mClockScreenSaver != nullptr)
+	{
+		delete mClockScreenSaver;
+		mClockScreenSaver = nullptr;
 	}
 
 	clearEntries();
@@ -514,10 +523,19 @@ bool SystemView::input(InputConfig* config, Input input)
 			config->isMappedLike("pagedown", input) ||
 			config->isMappedLike("pageup", input))
 			listInput(0);
-		if(!UIModeController::getInstance()->isUIModeKid() && config->isMappedTo("select", input) && Settings::getInstance()->getBool("ScreenSaverControls"))
+		if(!UIModeController::getInstance()->isUIModeKid() && config->isMappedTo("select", input))
 		{
-			mWindow->startScreenSaver();
-			mWindow->renderScreenSaver();
+			// Toggle clock screensaver
+			if (mClockSaverActive)
+			{
+				mClockSaverActive = false;
+			}
+			else
+			{
+				if (mClockScreenSaver == nullptr)
+					mClockScreenSaver = new ClockScreenSaver(mWindow);
+				mClockSaverActive = true;
+			}
 			return true;
 		}
 	}
@@ -583,6 +601,12 @@ void SystemView::showNavigationBar(const std::string& title, const std::function
 
 void SystemView::update(int deltaTime)
 {
+	if (mClockSaverActive && mClockScreenSaver)
+	{
+		mClockScreenSaver->update(deltaTime);
+		return;
+	}
+
 	listUpdate(deltaTime);
 	updateExtras([this, deltaTime](GuiComponent* p) { p->update(deltaTime); });
 	GuiComponent::update(deltaTime);
@@ -774,6 +798,14 @@ void SystemView::render(const Transform4x4f& parentTrans)
 	if (size() == 0 || !mVisible)
 		return;  // nothing to render
 
+	// Render clock screensaver if active
+	if (mClockSaverActive && mClockScreenSaver)
+	{
+		Transform4x4f trans = Transform4x4f::Identity();
+		mClockScreenSaver->render(trans);
+		return;
+	}
+
 	Transform4x4f trans = getTransform() * parentTrans;
 
 	if (!Renderer::isVisibleOnScreen(trans.translation().x(), trans.translation().y(), mSize.x(), mSize.y()))
@@ -811,6 +843,13 @@ void SystemView::render(const Transform4x4f& parentTrans)
 std::vector<HelpPrompt> SystemView::getHelpPrompts()
 {
 	std::vector<HelpPrompt> prompts;
+
+	if (mClockSaverActive)
+	{
+		prompts.push_back(HelpPrompt("select", _("EXIT CLOCK")));
+		return prompts;
+	}
+
 	if (mCarousel.type == VERTICAL || mCarousel.type == VERTICAL_WHEEL)
 		prompts.push_back(HelpPrompt("up/down", _("CHOOSE")));
 	else
@@ -821,8 +860,8 @@ std::vector<HelpPrompt> SystemView::getHelpPrompts()
 	if (SystemData::getSystem("all") != nullptr)
 		prompts.push_back(HelpPrompt("y", _("SEARCH"))); // QUICK
 
-	if (!UIModeController::getInstance()->isUIModeKid() && Settings::getInstance()->getBool("ScreenSaverControls"))
-		prompts.push_back(HelpPrompt("select", _("LAUNCH SCREENSAVER")));
+	if (!UIModeController::getInstance()->isUIModeKid())
+		prompts.push_back(HelpPrompt("select", _("CLOCK SCREENSAVER")));
 
 	return prompts;
 }
