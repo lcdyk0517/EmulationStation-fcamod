@@ -20,6 +20,7 @@ emulationstation
 
 # build directory
 build
+build-*
 Debug
 Release
 MinSizeRel
@@ -42,3 +43,10 @@ CPackConfig.cmake
 CPackSourceConfig.cmake
 *.cbp
 /.vs
+
+# Local build scripts (may contain API keys)
+build-local.sh
+
+# Thai locale (encrypted)
+resources/locale/th/
+
