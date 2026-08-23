@@ -406,6 +406,7 @@ void processAudioTitles(Window* window)
 #include "guis/GuiJoystickCalibration.h"
 #include "guis/arkos4clone/LedControl.h"
 #include "guis/arkos4clone/SystemSettings.h"
+#include "guis/arkos4clone/GammaControl.h"
 #include "components/BatteryIndicatorComponent.h"
 
 int main(int argc, char* argv[])
@@ -438,6 +439,9 @@ int main(int argc, char* argv[])
 	
 	// Apply ADC dead zone on startup (for supported devices)
 	SystemSettings::applyDeadZoneOnStartup();
+
+	// Apply gamma on startup (for supported devices)
+	GammaControl::applyGammaOnStartup();
 /*
 	ApiSystem::checkUpdateVersion();
 	ApiSystem::updateSystem(nullptr);

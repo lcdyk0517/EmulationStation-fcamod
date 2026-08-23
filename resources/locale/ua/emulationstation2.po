@@ -5086,12 +5086,6 @@ msgid "DEAD ZONE SET TO"
 msgstr ""
 
 
-msgid "VALUE OUT OF RANGE"
-msgstr ""
-
-
-msgid "INVALID VALUE"
-msgstr ""
 
 
 msgid "CUSTOM"
@@ -5126,3 +5120,49 @@ msgstr "Delete all battery usage records? This will reset calibration."
 
 msgid "RECORDS DELETED. SERVICE RESTARTED."
 msgstr "Records deleted. Service restarted."
+
+
+msgid "GAMMA SETTINGS"
+msgstr "Налаштування Gamma"
+
+msgid "GAMMA CURRENT"
+msgstr "Поточна Gamma"
+
+msgid "GAMMA SET ALL"
+msgstr "Встановити всі канали"
+
+msgid "GAMMA SET R"
+msgstr "Встановити червоний канал"
+
+msgid "GAMMA SET G"
+msgstr "Встановити зелений канал"
+
+msgid "GAMMA SET B"
+msgstr "Встановити синій канал"
+
+msgid "GAMMA RESET"
+msgstr "Скинути Gamma"
+
+msgid "ENTER GAMMA VALUE (0.30-2.00)"
+msgstr "Введіть значення Gamma (0.30-2.00)"
+
+msgid "ENTER RED GAMMA (0.30-2.00)"
+msgstr "Введіть червону Gamma (0.30-2.00)"
+
+msgid "ENTER GREEN GAMMA (0.30-2.00)"
+msgstr "Введіть зелену Gamma (0.30-2.00)"
+
+msgid "ENTER BLUE GAMMA (0.30-2.00)"
+msgstr "Введіть синю Gamma (0.30-2.00)"
+
+msgid "GAMMA SET TO"
+msgstr "Gamma встановлено на"
+
+msgid "GAMMA RESET TO"
+msgstr "Gamma скинуто до"
+
+msgid "VALUE OUT OF RANGE"
+msgstr "Значення поза діапазоном"
+
+msgid "INVALID VALUE"
+msgstr "Недійсне значення"
