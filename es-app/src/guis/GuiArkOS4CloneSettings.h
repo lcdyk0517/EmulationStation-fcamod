@@ -53,6 +53,7 @@ private:
     void openGpuSettings();
     void openDmcSettings();
     void openZramSettings();
+    void openBatteryPlusSettings();
 
     // Joystick Settings submenu
     void openJoystickSettings();

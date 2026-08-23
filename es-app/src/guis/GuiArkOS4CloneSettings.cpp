@@ -9,6 +9,7 @@
 #include "guis/arkos4clone/LedControl.h"
 #include "guis/arkos4clone/HardwareInfo.h"
 #include "guis/arkos4clone/SystemSettings.h"
+#include "guis/arkos4clone/BatteryPlus.h"
 #include "components/SliderComponent.h"
 #include "components/OptionListComponent.h"
 #include "components/SwitchComponent.h"
@@ -80,6 +81,13 @@ GuiArkOS4CloneSettings::GuiArkOS4CloneSettings(Window* window)
     if (isUsbManualSwitch()) {
         mMenu.addEntry(_("USB SWITCH"), true, [this] {
             openUsbSwitchSettings();
+        }, "");
+    }
+
+    // BatteryPlus Settings
+    if (BatteryPlus::isAvailable()) {
+        mMenu.addEntry(_("BATTERYPLUS"), true, [this] {
+            openBatteryPlusSettings();
         }, "");
     }
 
@@ -1506,6 +1514,63 @@ void GuiArkOS4CloneSettings::openZramSettings()
         if (selectedAlgo.empty()) selectedAlgo = "lz4";
         toggleZramAutoStart(autoStartSwitch->getState(), selectedSize, selectedAlgo);
     });
+
+    mWindow->pushGui(s);
+}
+
+// ============================================================================
+// BatteryPlus Settings
+// ============================================================================
+
+void GuiArkOS4CloneSettings::openBatteryPlusSettings()
+{
+    auto s = new GuiSettings(mWindow, _("BATTERYPLUS"));
+
+    // Battery info display
+    std::string percent = BatteryPlus::getPercent();
+    std::string status = BatteryPlus::getChargeStatus();
+    int voltage = BatteryPlus::getVoltageMv();
+    std::string mode = BatteryPlus::getMode();
+
+    std::string info = "Percent: " + percent + "  Status: " + status;
+    if (voltage > 0)
+        info += "  Voltage: " + std::to_string(voltage) + "mV";
+    info += "  Mode: " + mode;
+    s->addWithLabel(_("BATTERY INFO"), std::make_shared<TextComponent>(mWindow, info, Font::get(FONT_SIZE_SMALL), 0x777777FF));
+
+    // Enable/Disable toggle
+    bool enabled = BatteryPlus::isEnabled();
+    auto enableSwitch = std::make_shared<SwitchComponent>(mWindow);
+    enableSwitch->setState(enabled);
+    s->addWithLabel(_("ENABLE BATTERYPLUS"), enableSwitch);
+
+    // Mode selection (voltage/pmic)
+    auto modeList = std::make_shared<OptionListComponent<std::string>>(mWindow, _("BATTERY MODE"), false);
+    modeList->add(_("VOLTAGE MODE"), "voltage", mode == "voltage");
+    modeList->add(_("PMIC MODE"), "pmic", mode == "pmic");
+    s->addWithLabel(_("BATTERY MODE"), modeList);
+
+    // Enable/Disable callback
+    enableSwitch->setOnChangedCallback([enableSwitch] {
+        BatteryPlus::setEnabled(enableSwitch->getState());
+    });
+
+    // Mode change callback
+    modeList->setSelectedChangedCallback([](const std::string& val) {
+        BatteryPlus::setMode(val);
+    });
+
+    // Delete records button
+    s->addEntry(_("DELETE USAGE RECORDS"), true, [this] {
+        Window* window = mWindow;
+        window->pushGui(new GuiMsgBox(window,
+            _("DELETE ALL BATTERY USAGE RECORDS? THIS WILL RESET CALIBRATION."),
+            _("YES"), [window] {
+                BatteryPlus::deleteRecords();
+                window->pushGui(new GuiMsgBox(window, _("RECORDS DELETED. SERVICE RESTARTED."), _("OK")));
+            },
+            _("NO"), nullptr));
+    }, "");
 
     mWindow->pushGui(s);
 }

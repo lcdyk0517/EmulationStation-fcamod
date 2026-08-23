@@ -2826,3 +2826,32 @@ msgstr ""
 msgid "CUSTOM"
 msgstr ""
 
+
+msgid "BATTERYPLUS"
+msgstr "BATTERYPLUS"
+
+msgid "BATTERY INFO"
+msgstr "배터리 정보"
+
+msgid "ENABLE BATTERYPLUS"
+msgstr "BATTERYPLUS 활성화"
+
+msgid "BATTERY MODE"
+msgstr "배터리 모드"
+
+msgid "VOLTAGE MODE"
+msgstr "Voltage Mode"
+
+msgid "PMIC MODE"
+msgstr "PMIC Mode"
+
+
+
+msgid "DELETE USAGE RECORDS"
+msgstr "사용 기록 삭제"
+
+msgid "DELETE ALL BATTERY USAGE RECORDS? THIS WILL RESET CALIBRATION."
+msgstr "Delete all battery usage records? This will reset calibration."
+
+msgid "RECORDS DELETED. SERVICE RESTARTED."
+msgstr "Records deleted. Service restarted."

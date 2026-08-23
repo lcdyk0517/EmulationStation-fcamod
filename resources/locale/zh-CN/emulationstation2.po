@@ -5131,3 +5131,30 @@ msgstr "无效数值"
 msgid "CUSTOM"
 msgstr "自定义"
 
+
+msgid "BATTERYPLUS"
+msgstr "BATTERYPLUS"
+
+msgid "BATTERY INFO"
+msgstr "电池信息"
+
+msgid "ENABLE BATTERYPLUS"
+msgstr "启用 BATTERYPLUS"
+
+msgid "BATTERY MODE"
+msgstr "电池模式"
+
+msgid "DELETE USAGE RECORDS"
+msgstr "删除使用记录"
+
+msgid "DELETE ALL BATTERY USAGE RECORDS? THIS WILL RESET CALIBRATION."
+msgstr "删除所有电池使用记录？这将重置校准数据。"
+
+msgid "RECORDS DELETED. SERVICE RESTARTED."
+msgstr "记录已删除，服务已重启。"
+
+msgid "VOLTAGE MODE"
+msgstr "BatteryPlus模式"
+
+msgid "PMIC MODE"
+msgstr "硬件读取模式"

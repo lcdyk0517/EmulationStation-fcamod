@@ -5096,3 +5096,30 @@ msgstr "無效數值"
 msgid "CUSTOM"
 msgstr "自定義"
 
+
+msgid "BATTERYPLUS"
+msgstr "BATTERYPLUS"
+
+msgid "BATTERY INFO"
+msgstr "電池資訊"
+
+msgid "ENABLE BATTERYPLUS"
+msgstr "啟用 BATTERYPLUS"
+
+msgid "BATTERY MODE"
+msgstr "電池模式"
+
+msgid "DELETE USAGE RECORDS"
+msgstr "刪除使用記錄"
+
+msgid "DELETE ALL BATTERY USAGE RECORDS? THIS WILL RESET CALIBRATION."
+msgstr "刪除所有電池使用記錄？這將重置校準資料。"
+
+msgid "RECORDS DELETED. SERVICE RESTARTED."
+msgstr "記錄已刪除，服務已重啟。"
+
+msgid "VOLTAGE MODE"
+msgstr "BatteryPlus模式"
+
+msgid "PMIC MODE"
+msgstr "硬體讀取模式"

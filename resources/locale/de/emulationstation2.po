@@ -3390,3 +3390,32 @@ msgstr ""
 msgid "CUSTOM"
 msgstr ""
 
+
+msgid "BATTERYPLUS"
+msgstr "BATTERYPLUS"
+
+msgid "BATTERY INFO"
+msgstr "Battery Info"
+
+msgid "ENABLE BATTERYPLUS"
+msgstr "Enable BATTERYPLUS"
+
+msgid "BATTERY MODE"
+msgstr "Battery Mode"
+
+msgid "VOLTAGE MODE"
+msgstr "Voltage Mode"
+
+msgid "PMIC MODE"
+msgstr "PMIC Mode"
+
+
+
+msgid "DELETE USAGE RECORDS"
+msgstr "Delete Usage Records"
+
+msgid "DELETE ALL BATTERY USAGE RECORDS? THIS WILL RESET CALIBRATION."
+msgstr "Delete all battery usage records? This will reset calibration."
+
+msgid "RECORDS DELETED. SERVICE RESTARTED."
+msgstr "Records deleted. Service restarted."

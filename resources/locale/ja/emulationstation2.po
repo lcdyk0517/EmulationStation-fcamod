@@ -2220,3 +2220,32 @@ msgstr "無効な値"
 msgid "CUSTOM"
 msgstr "カスタム"
 
+
+msgid "BATTERYPLUS"
+msgstr "BATTERYPLUS"
+
+msgid "BATTERY INFO"
+msgstr "バッテリー情報"
+
+msgid "ENABLE BATTERYPLUS"
+msgstr "BATTERYPLUSを有効にする"
+
+msgid "BATTERY MODE"
+msgstr "バッテリーモード"
+
+msgid "VOLTAGE MODE"
+msgstr "Voltage Mode"
+
+msgid "PMIC MODE"
+msgstr "PMIC Mode"
+
+
+
+msgid "DELETE USAGE RECORDS"
+msgstr "使用記録を削除"
+
+msgid "DELETE ALL BATTERY USAGE RECORDS? THIS WILL RESET CALIBRATION."
+msgstr "Delete all battery usage records? This will reset calibration."
+
+msgid "RECORDS DELETED. SERVICE RESTARTED."
+msgstr "Records deleted. Service restarted."

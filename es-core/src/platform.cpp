@@ -334,6 +334,16 @@ BatteryInformation queryBatteryInformation(bool summary)
 
 int queryBatteryLevel()
 {
+	// If BatteryPlus is enabled, read from its output file
+	if (Utils::FileSystem::exists("/tmp/battery.percent")) {
+		std::string bpPercent = Utils::String::trim(Utils::FileSystem::readAllText("/tmp/battery.percent"));
+		if (!bpPercent.empty()) {
+			int val = std::atoi(bpPercent.c_str());
+			if (val >= 0 && val <= 100)
+				return val;
+		}
+	}
+
 	std::string batteryCapacityPath = queryBatteryRootPath() + "/capacity";
 	if ( Utils::FileSystem::exists(batteryCapacityPath) )
 		return std::atoi(Utils::FileSystem::readAllText(batteryCapacityPath).c_str());
