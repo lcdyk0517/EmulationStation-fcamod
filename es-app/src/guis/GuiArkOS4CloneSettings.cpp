@@ -1554,8 +1554,8 @@ void GuiArkOS4CloneSettings::openBatteryPlusSettings()
 
     // Mode selection (voltage/pmic)
     auto modeList = std::make_shared<OptionListComponent<std::string>>(mWindow, _("BATTERY MODE"), false);
-    modeList->add(_("VOLTAGE MODE"), "voltage", mode == "voltage");
-    modeList->add(_("PMIC MODE"), "pmic", mode == "pmic");
+    modeList->add(_("BatteryPlus Mode"), "voltage", mode == "voltage");
+    modeList->add(_("Driver Mode"), "pmic", mode == "pmic");
     s->addWithLabel(_("BATTERY MODE"), modeList);
 
     // Enable/Disable callback

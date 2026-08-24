@@ -44,9 +44,13 @@ std::string getMode()
 
 void setMode(const std::string& mode)
 {
+    bool wasEnabled = isEnabled();
+    if (wasEnabled) {
+        ArkOSUtil::executeCommand("sudo systemctl stop batteryplus.service 2>/dev/null || true");
+    }
     ArkOSUtil::executeCommand("sudo sed -i 's|^mode=.*|mode=" + mode + "|' /etc/batteryplus/batteryplus.conf 2>/dev/null");
-    if (isEnabled()) {
-        ArkOSUtil::executeCommand("sudo systemctl restart batteryplus.service 2>/dev/null || true");
+    if (wasEnabled) {
+        ArkOSUtil::executeCommand("sudo systemctl start batteryplus.service 2>/dev/null || true");
     }
 }
 
