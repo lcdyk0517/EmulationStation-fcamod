@@ -112,6 +112,7 @@ set(ES_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/arkos4clone/SystemSettings.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/arkos4clone/BatteryPlus.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/arkos4clone/GammaControl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/arkos4clone/ScreenControl.cpp
 
     # Scrapers
     ${CMAKE_CURRENT_SOURCE_DIR}/src/scrapers/Scraper.cpp

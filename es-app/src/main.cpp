@@ -407,6 +407,7 @@ void processAudioTitles(Window* window)
 #include "guis/arkos4clone/LedControl.h"
 #include "guis/arkos4clone/SystemSettings.h"
 #include "guis/arkos4clone/GammaControl.h"
+#include "guis/arkos4clone/ScreenControl.h"
 #include "components/BatteryIndicatorComponent.h"
 
 int main(int argc, char* argv[])
@@ -442,6 +443,9 @@ int main(int argc, char* argv[])
 
 	// Apply gamma on startup (for supported devices)
 	GammaControl::applyGammaOnStartup();
+
+	// Apply refresh rate on startup (if auto-apply is enabled)
+	ScreenControl::applyRefreshRateOnStartup();
 /*
 	ApiSystem::checkUpdateVersion();
 	ApiSystem::updateSystem(nullptr);

@@ -11,6 +11,7 @@
 #include "guis/arkos4clone/SystemSettings.h"
 #include "guis/arkos4clone/BatteryPlus.h"
 #include "guis/arkos4clone/GammaControl.h"
+#include "guis/arkos4clone/ScreenControl.h"
 #include "components/SliderComponent.h"
 #include "components/OptionListComponent.h"
 #include "components/SwitchComponent.h"
@@ -92,12 +93,10 @@ GuiArkOS4CloneSettings::GuiArkOS4CloneSettings(Window* window)
         }, "");
     }
 
-    // Gamma Settings
-    if (GammaControl::isAvailable()) {
-        mMenu.addEntry(_("GAMMA SETTINGS"), true, [this] {
-            openGammaSettings();
-        }, "");
-    }
+    // Screen Settings submenu (Display + Gamma)
+    mMenu.addEntry(_("SCREEN SETTINGS"), true, [this] {
+        ScreenControl::openScreenSettings(mWindow);
+    }, "iconBrightnessctl");
 
     // Configure Input
     mMenu.addEntry(_("CONFIGURE INPUT"), true, [this] {
@@ -1578,162 +1577,6 @@ void GuiArkOS4CloneSettings::openBatteryPlusSettings()
                 window->pushGui(new GuiMsgBox(window, _("RECORDS DELETED. SERVICE RESTARTED."), _("OK")));
             },
             _("NO"), nullptr));
-    }, "");
-
-    mWindow->pushGui(s);
-}
-
-// ============================================================================
-// Gamma Settings
-// ============================================================================
-
-void GuiArkOS4CloneSettings::openGammaSettings()
-{
-    GuiSettings* s = new GuiSettings(mWindow, _("GAMMA SETTINGS"));
-
-    // Current gamma display
-    float curR = GammaControl::getGammaR();
-    float curG = GammaControl::getGammaG();
-    float curB = GammaControl::getGammaB();
-
-    char infoBuf[128];
-    snprintf(infoBuf, sizeof(infoBuf), "R=%.2f  G=%.2f  B=%.2f", curR, curG, curB);
-    auto gammaInfoText = std::make_shared<TextComponent>(mWindow, infoBuf, Font::get(FONT_SIZE_SMALL), 0x777777FF);
-    s->addWithLabel(_("GAMMA CURRENT"), gammaInfoText);
-
-    // Set all channels (R=G=B)
-    s->addEntry(_("GAMMA SET ALL"), true, [this, s, gammaInfoText] {
-        mWindow->pushGui(new GuiTextEditPopupKeyboard(mWindow,
-            _("ENTER GAMMA VALUE (0.30-2.00)"),
-            "",
-            [this, gammaInfoText](const std::string& valueStr) {
-                try {
-                    float value = std::stof(valueStr);
-                    if (value >= 0.3f && value <= 2.0f) {
-                        GammaControl::setGamma(value, value, value);
-                        char newInfo[128];
-                        snprintf(newInfo, sizeof(newInfo), "R=%.2f  G=%.2f  B=%.2f", value, value, value);
-                        gammaInfoText->setText(newInfo);
-                        mWindow->pushGui(new GuiMsgBox(mWindow,
-                            _("GAMMA SET TO") + " " + valueStr,
-                            _("OK")));
-                    } else {
-                        mWindow->pushGui(new GuiMsgBox(mWindow,
-                            _("VALUE OUT OF RANGE"),
-                            _("OK")));
-                    }
-                } catch (...) {
-                    mWindow->pushGui(new GuiMsgBox(mWindow,
-                        _("INVALID VALUE"),
-                        _("OK")));
-                }
-            },
-            false));
-    }, "");
-
-    // Set Red channel
-    s->addEntry(_("GAMMA SET R"), true, [this, s, gammaInfoText] {
-        mWindow->pushGui(new GuiTextEditPopupKeyboard(mWindow,
-            _("ENTER RED GAMMA (0.30-2.00)"),
-            "",
-            [this, gammaInfoText](const std::string& valueStr) {
-                try {
-                    float value = std::stof(valueStr);
-                    if (value >= 0.3f && value <= 2.0f) {
-                        float g = GammaControl::getGammaG();
-                        float b = GammaControl::getGammaB();
-                        GammaControl::setGamma(value, g, b);
-                        char newInfo[128];
-                        snprintf(newInfo, sizeof(newInfo), "R=%.2f  G=%.2f  B=%.2f", value, g, b);
-                        gammaInfoText->setText(newInfo);
-                        mWindow->pushGui(new GuiMsgBox(mWindow,
-                            _("GAMMA SET TO") + " R=" + valueStr,
-                            _("OK")));
-                    } else {
-                        mWindow->pushGui(new GuiMsgBox(mWindow,
-                            _("VALUE OUT OF RANGE"),
-                            _("OK")));
-                    }
-                } catch (...) {
-                    mWindow->pushGui(new GuiMsgBox(mWindow,
-                        _("INVALID VALUE"),
-                        _("OK")));
-                }
-            },
-            false));
-    }, "");
-
-    // Set Green channel
-    s->addEntry(_("GAMMA SET G"), true, [this, s, gammaInfoText] {
-        mWindow->pushGui(new GuiTextEditPopupKeyboard(mWindow,
-            _("ENTER GREEN GAMMA (0.30-2.00)"),
-            "",
-            [this, gammaInfoText](const std::string& valueStr) {
-                try {
-                    float value = std::stof(valueStr);
-                    if (value >= 0.3f && value <= 2.0f) {
-                        float r = GammaControl::getGammaR();
-                        float b = GammaControl::getGammaB();
-                        GammaControl::setGamma(r, value, b);
-                        char newInfo[128];
-                        snprintf(newInfo, sizeof(newInfo), "R=%.2f  G=%.2f  B=%.2f", r, value, b);
-                        gammaInfoText->setText(newInfo);
-                        mWindow->pushGui(new GuiMsgBox(mWindow,
-                            _("GAMMA SET TO") + " G=" + valueStr,
-                            _("OK")));
-                    } else {
-                        mWindow->pushGui(new GuiMsgBox(mWindow,
-                            _("VALUE OUT OF RANGE"),
-                            _("OK")));
-                    }
-                } catch (...) {
-                    mWindow->pushGui(new GuiMsgBox(mWindow,
-                        _("INVALID VALUE"),
-                        _("OK")));
-                }
-            },
-            false));
-    }, "");
-
-    // Set Blue channel
-    s->addEntry(_("GAMMA SET B"), true, [this, s, gammaInfoText] {
-        mWindow->pushGui(new GuiTextEditPopupKeyboard(mWindow,
-            _("ENTER BLUE GAMMA (0.30-2.00)"),
-            "",
-            [this, gammaInfoText](const std::string& valueStr) {
-                try {
-                    float value = std::stof(valueStr);
-                    if (value >= 0.3f && value <= 2.0f) {
-                        float r = GammaControl::getGammaR();
-                        float g = GammaControl::getGammaG();
-                        GammaControl::setGamma(r, g, value);
-                        char newInfo[128];
-                        snprintf(newInfo, sizeof(newInfo), "R=%.2f  G=%.2f  B=%.2f", r, g, value);
-                        gammaInfoText->setText(newInfo);
-                        mWindow->pushGui(new GuiMsgBox(mWindow,
-                            _("GAMMA SET TO") + " B=" + valueStr,
-                            _("OK")));
-                    } else {
-                        mWindow->pushGui(new GuiMsgBox(mWindow,
-                            _("VALUE OUT OF RANGE"),
-                            _("OK")));
-                    }
-                } catch (...) {
-                    mWindow->pushGui(new GuiMsgBox(mWindow,
-                        _("INVALID VALUE"),
-                        _("OK")));
-                }
-            },
-            false));
-    }, "");
-
-    // Reset button
-    s->addEntry(_("GAMMA RESET"), true, [this, gammaInfoText] {
-        GammaControl::resetGamma();
-        gammaInfoText->setText("R=1.00  G=1.00  B=1.00");
-        mWindow->pushGui(new GuiMsgBox(mWindow,
-            _("GAMMA RESET TO") + " 1.00",
-            _("OK")));
     }, "");
 
     mWindow->pushGui(s);

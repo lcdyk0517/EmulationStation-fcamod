@@ -95,8 +95,6 @@ static std::string getWifiStatusText()
 GuiMenu::GuiMenu(Window* window, bool animate) : GuiComponent(window), mMenu(window, _("MAIN MENU")), mVersion(window)
 {
 
-	addEntry(_("DISPLAY SETTINGS AND INFO"), true, [this] { openDisplaySettings(); }, "iconBrightnessctl");
-
 	auto theme = ThemeData::getMenuTheme();
 
 	bool isFullUI = UIModeController::getInstance()->isUIModeFull();	
@@ -157,40 +155,7 @@ GuiMenu::GuiMenu(Window* window, bool animate) : GuiComponent(window), mMenu(win
 			Vector2f((Renderer::getScreenWidth() - mSize.x()) / 2, Renderer::getScreenHeight() * 0.9),
 			Vector2f((Renderer::getScreenWidth() - mSize.x()) / 2, (Renderer::getScreenHeight() - mSize.y()) / 2));
 	else
-		setPosition((Renderer::getScreenWidth() - mSize.x()) / 2, (Renderer::getScreenHeight() - mSize.y()) / 2);
-}
-
-void GuiMenu::openDisplaySettings()
-{
-	// Brightness
-	auto s = new GuiSettings(mWindow, _("DISPLAY"));
-
-    int brighness;
-    ApiSystem::getInstance()->getBrighness(brighness);
-   	auto brightnessComponent = std::make_shared<SliderComponent>(mWindow, 1.0f, 100.f, 1.0f, "%");
-    brightnessComponent->setValue((float) ApiSystem::getInstance()->getBrightnessLevel());
-   	brightnessComponent->setOnValueChanged([](const float &newVal)
-    {
-    	ApiSystem::getInstance()->setBrighness((int)Math::round(newVal));
-   	});
-    s->addSaveFunc([this, brightnessComponent] {
-         SystemConf::getInstance()->set("brightness.level", std::to_string((int)Math::round(brightnessComponent->getValue())));
-    });
-
-	s->addWithLabel(_("BRIGHTNESS"), brightnessComponent);
-
-		auto brightnessPopup = std::make_shared<SwitchComponent>(mWindow);
-		brightnessPopup->setState(Settings::getInstance()->getBool("BrightnessPopup"));
-		s->addWithLabel(_("SHOW OVERLAY WHEN BRIGHTNESS CHANGES"), brightnessPopup);
-		s->addSaveFunc([brightnessPopup]
-			{
-				bool old_value = Settings::getInstance()->getBool("BrightnessPopup");
-				if (old_value != brightnessPopup->getState())
-					Settings::getInstance()->setBool("BrightnessPopup", brightnessPopup->getState());
-			}
-		);
-
-	mWindow->pushGui(s);
+ 		setPosition((Renderer::getScreenWidth() - mSize.x()) / 2, (Renderer::getScreenHeight() - mSize.y()) / 2);
 }
 
 void GuiMenu::openScraperSettings()
