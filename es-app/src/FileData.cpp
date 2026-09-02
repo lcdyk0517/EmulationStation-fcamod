@@ -18,6 +18,7 @@
 #include "views/UIModeController.h"
 #include <assert.h>
 #include "Gamelist.h"
+#include "guis/arkos4clone/FreqProfile.h"
 #include <algorithm>
 
 FileData::FileData(FileType type, const std::string& path, SystemData* system)
@@ -340,6 +341,9 @@ void FileData::launchGame(Window* window)
     }
 
 	Scripting::fireEvent("game-start", rom, basename);
+
+	// Apply per-system CPU/GPU/DMC frequency profile; restored on scope exit
+	FreqProfile::GameFreqGuard freqGuard(getSystemName());
 
 	LOG(LogInfo) << "	" << command;
 

@@ -1,6 +1,8 @@
 #include <string>
 #include "GuiGamelistOptions.h"
 
+#include <cstdlib>
+
 #include "guis/GuiGamelistFilter.h"
 #include "scrapers/Scraper.h"
 #include "views/gamelist/IGameListView.h"
@@ -19,6 +21,8 @@
 #include "scrapers/ThreadedScraper.h"
 #include "guis/GuiMenu.h"
 #include "guis/GuiSettings.h"
+#include "guis/arkos4clone/HardwareInfo.h"
+#include "guis/arkos4clone/FreqProfile.h"
 
 std::vector<std::string> GuiGamelistOptions::gridSizes {
 	"automatic",
@@ -101,6 +105,15 @@ GuiGamelistOptions::GuiGamelistOptions(Window* window, SystemData* system, bool 
 			mMenu.addEntry(_("EMULATOR SETTINGS"), true, [this] {
 				openEmulatorSettings();
 			}, "iconSystem");
+		}
+
+		// Performance settings - show if any frequency control is available
+		if (!HardwareInfo::getCpuAvailableFreqs().empty() ||
+			HardwareInfo::hasGpuFreqControl() || HardwareInfo::hasDmcFreqControl())
+		{
+			mMenu.addEntry(_("PERFORMANCE SETTINGS"), true, [this] {
+				openPerformanceSettings();
+			}, "");
 		}
 
 		// jump to letter
@@ -739,6 +752,91 @@ void GuiGamelistOptions::openEmulatorSettings()
 		Settings::getInstance()->setString(mSystem->getName() + ".core", core_choice->getSelected());
 		Settings::getInstance()->setString(mSystem->getName() + ".governor", gov_choice->getSelected());
 	});
+
+	mWindow->pushGui(s);
+}
+
+void GuiGamelistOptions::addFreqOption(GuiSettings* s, char which, const std::string& label,
+                                        const std::vector<std::string>& freqs, int divisor)
+{
+	auto list = std::make_shared<OptionListComponent<std::string>>(mWindow, label, false);
+
+	std::string current = FreqProfile::getSystemFreq(mSystem->getName(), which);
+
+	list->add(_("AUTO"), "", current.empty());
+
+	bool found = !current.empty();
+	for (const auto& freq : freqs)
+	{
+		int mhz = atoi(freq.c_str()) / divisor;
+		bool isSelected = (freq == current);
+		if (isSelected) found = true;
+		list->add(std::to_string(mhz) + " MHz", freq, isSelected);
+	}
+
+	if (!found)
+		list->selectFirstItem();
+
+	s->addWithLabel(label, list);
+
+	s->addSaveFunc([this, list, which] {
+		FreqProfile::setSystemFreq(mSystem->getName(), which, list->getSelected());
+	});
+}
+
+void GuiGamelistOptions::openPerformanceSettings()
+{
+	auto s = new GuiSettings(mWindow, _("PERFORMANCE SETTINGS"));
+
+	// CPU max frequency (kHz in sysfs)
+	auto cpuFreqs = HardwareInfo::getCpuAvailableFreqs();
+	if (!cpuFreqs.empty())
+		addFreqOption(s, 'c', _("CPU MAX FREQ"), cpuFreqs, 1000);
+
+	// CPU core count (multi-core devices only)
+	int coreCount = HardwareInfo::getCpuCoreCount();
+	if (coreCount > 1)
+	{
+		auto coreList = std::make_shared<OptionListComponent<std::string>>(mWindow, _("CPU CORES"), false);
+
+		std::string currentCores = FreqProfile::getSystemCores(mSystem->getName());
+
+		coreList->add(_("AUTO"), "", currentCores.empty());
+
+		bool found = !currentCores.empty();
+		for (int i = 1; i <= coreCount; i++)
+		{
+			std::string val = std::to_string(i);
+			bool isSelected = (val == currentCores);
+			if (isSelected) found = true;
+			coreList->add(val, val, isSelected);
+		}
+
+		if (!found)
+			coreList->selectFirstItem();
+
+		s->addWithLabel(_("CPU CORES"), coreList);
+
+		s->addSaveFunc([this, coreList] {
+			FreqProfile::setSystemCores(mSystem->getName(), coreList->getSelected());
+		});
+	}
+
+	// GPU max frequency (Hz in sysfs)
+	if (HardwareInfo::hasGpuFreqControl())
+	{
+		auto gpuFreqs = HardwareInfo::getGpuAvailableFreqs();
+		if (!gpuFreqs.empty())
+			addFreqOption(s, 'g', _("GPU MAX FREQ"), gpuFreqs, 1000000);
+	}
+
+	// DMC max frequency (Hz in sysfs)
+	if (HardwareInfo::hasDmcFreqControl())
+	{
+		auto dmcFreqs = HardwareInfo::getDmcAvailableFreqs();
+		if (!dmcFreqs.empty())
+			addFreqOption(s, 'd', _("DMC MAX FREQ"), dmcFreqs, 1000000);
+	}
 
 	mWindow->pushGui(s);
 }
