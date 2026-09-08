@@ -5009,6 +5009,30 @@ msgstr "Калибровка джойстика"
 msgid "JOYSTICK SETTINGS"
 msgstr "Настройки джойстика"
 
+msgid "BUTTON SETTINGS"
+msgstr "Настройки кнопок"
+
+msgid "ARE YOU SURE YOU WANT TO CONFIGURE INPUT?"
+msgstr "Вы уверены, что хотите настроить кнопки?"
+
+msgid "VOLUME KEY ADC CALIBRATION"
+msgstr "Калибровка ADC клавиш громкости"
+
+msgid "STEP 1: KEEP THE DEVICE STILL"
+msgstr "ШАГ 1: НЕ ТРОГАЙТЕ УСТРОЙСТВО"
+
+msgid "STEP 2: HOLD VOLUME DOWN"
+msgstr "ШАГ 2: УДЕРЖИВАЙТЕ ГРОМКОСТЬ -"
+
+msgid "STEP 3: HOLD VOLUME UP"
+msgstr "ШАГ 3: УДЕРЖИВАЙТЕ ГРОМКОСТЬ +"
+
+msgid "NO VOLTAGE CHANGE DETECTED"
+msgstr "ИЗМЕНЕНИЕ НАПРЯЖЕНИЯ НЕ ОБНАРУЖЕНО"
+
+msgid "PRESS BACK TO CANCEL"
+msgstr "Нажмите НАЗАД для отмены"
+
 
 msgid "PRESS ANY BUTTON TO SET AS EMULATION SWITCH\n\nPRESS BACK TO CANCEL"
 msgstr "Нажмите любую кнопку для переключения эмуляции\n\nНазад для отмены"

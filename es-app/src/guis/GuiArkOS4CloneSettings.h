@@ -58,6 +58,7 @@ private:
     // Joystick Settings submenu
     void openJoystickSettings();
     void openJoystickLedSettings();
+    void openButtonSettings();
 
     // ADC Dead Zone functions
     void openDeadZoneSettings();

@@ -40,6 +40,7 @@ set(ES_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiCollectionSystemsOptions.h    
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiTools.h    
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiJoystickCalibration.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiVolumeKeyCalibration.h
 
     # Scrapers
     ${CMAKE_CURRENT_SOURCE_DIR}/src/scrapers/Scraper.h
@@ -105,6 +106,7 @@ set(ES_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiTools.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiArkOS4CloneSettings.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiJoystickCalibration.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiVolumeKeyCalibration.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/arkos4clone/ArkOSUtil.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/arkos4clone/WifiManager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/arkos4clone/LedControl.cpp

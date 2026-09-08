@@ -3325,6 +3325,30 @@ msgstr "Joystick-Kalibrierung"
 msgid "JOYSTICK SETTINGS"
 msgstr "Joystick-Einstellungen"
 
+msgid "BUTTON SETTINGS"
+msgstr "Tasteneinstellungen"
+
+msgid "ARE YOU SURE YOU WANT TO CONFIGURE INPUT?"
+msgstr "Möchten Sie die Eingabe wirklich konfigurieren?"
+
+msgid "VOLUME KEY ADC CALIBRATION"
+msgstr "Lautstärketasten-ADC-Kalibrierung"
+
+msgid "STEP 1: KEEP THE DEVICE STILL"
+msgstr "SCHRITT 1: GERÄT RUHIG LASSEN"
+
+msgid "STEP 2: HOLD VOLUME DOWN"
+msgstr "SCHRITT 2: LAUTSTÄRKE MINUS HALTEN"
+
+msgid "STEP 3: HOLD VOLUME UP"
+msgstr "SCHRITT 3: LAUTSTÄRKE PLUS HALTEN"
+
+msgid "NO VOLTAGE CHANGE DETECTED"
+msgstr "KEINE SPANNUNGSÄNDERUNG ERKANNT"
+
+msgid "PRESS BACK TO CANCEL"
+msgstr "ZURÜCK drücken zum Abbrechen"
+
 
 msgid "PRESS ANY BUTTON TO SET AS EMULATION SWITCH\n\nPRESS BACK TO CANCEL"
 msgstr "Beliebige Taste für Emulations-Umschaltung drücken\n\nZurück zum Abbrechen"

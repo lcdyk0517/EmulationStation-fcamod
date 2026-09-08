@@ -23,6 +23,11 @@ namespace SystemSettings
     bool hasAdcDeadZoneSupport();
     void applyDeadZoneOnStartup();
 
+    // Volume key ADC calibration (devices reporting "adc" via console_detect -v)
+    bool hasVolumeAdcSupport();
+    void setVolumeAdcKeyValues(int volumeDown, int volumeUp);
+    void applyVolumeAdcCalibrationOnStartup();
+
     // USB Switch functions (manual USB switch only)
     bool isUsbManualSwitch();
     bool isUsbInternal();

@@ -4085,6 +4085,30 @@ msgstr "Joystickkalibrering"
 msgid "JOYSTICK SETTINGS"
 msgstr "Joystickinställningar"
 
+msgid "BUTTON SETTINGS"
+msgstr "Knappinställningar"
+
+msgid "ARE YOU SURE YOU WANT TO CONFIGURE INPUT?"
+msgstr "Vill du verkligen konfigurera inmatningen?"
+
+msgid "VOLUME KEY ADC CALIBRATION"
+msgstr "ADC-kalibrering av volymknappar"
+
+msgid "STEP 1: KEEP THE DEVICE STILL"
+msgstr "STEG 1: HÅLL ENHETEN STILLA"
+
+msgid "STEP 2: HOLD VOLUME DOWN"
+msgstr "STEG 2: HÅLL NED VOLYM -"
+
+msgid "STEP 3: HOLD VOLUME UP"
+msgstr "STEG 3: HÅLL NED VOLYM +"
+
+msgid "NO VOLTAGE CHANGE DETECTED"
+msgstr "INGEN SPÄNNINGSÄNDRING UPPTÄCKTES"
+
+msgid "PRESS BACK TO CANCEL"
+msgstr "Tryck TILLBAKA för att avbryta"
+
 
 msgid "PRESS ANY BUTTON TO SET AS EMULATION SWITCH\n\nPRESS BACK TO CANCEL"
 msgstr "Tryck valfri knapp för emuleringsväxling\n\nTillbaka för att avbryta"

@@ -5067,6 +5067,30 @@ msgstr "摇杆校准"
 msgid "JOYSTICK SETTINGS"
 msgstr "摇杆设置"
 
+msgid "BUTTON SETTINGS"
+msgstr "按键相关设置"
+
+msgid "ARE YOU SURE YOU WANT TO CONFIGURE INPUT?"
+msgstr "您确定要配置按键输入吗？"
+
+msgid "VOLUME KEY ADC CALIBRATION"
+msgstr "音量键ADC校准"
+
+msgid "STEP 1: KEEP THE DEVICE STILL"
+msgstr "步骤1：保持设备静止"
+
+msgid "STEP 2: HOLD VOLUME DOWN"
+msgstr "步骤2：按住音量减键"
+
+msgid "STEP 3: HOLD VOLUME UP"
+msgstr "步骤3：按住音量加键"
+
+msgid "NO VOLTAGE CHANGE DETECTED"
+msgstr "未检测到电压变化"
+
+msgid "PRESS BACK TO CANCEL"
+msgstr "按返回键取消"
+
 
 msgid "PRESS ANY BUTTON TO SET AS EMULATION SWITCH\n\nPRESS BACK TO CANCEL"
 msgstr "按下任意按键设为模拟切换键\n\n按返回键取消"

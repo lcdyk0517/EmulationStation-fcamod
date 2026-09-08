@@ -2957,6 +2957,30 @@ msgstr "Βαθμονόμηση joystick"
 msgid "JOYSTICK SETTINGS"
 msgstr "Ρυθμίσεις joystick"
 
+msgid "BUTTON SETTINGS"
+msgstr "Ρυθμίσεις κουμπιών"
+
+msgid "ARE YOU SURE YOU WANT TO CONFIGURE INPUT?"
+msgstr "Είστε σίγουροι ότι θέλετε να ρυθμίσετε τα κουμπιά;"
+
+msgid "VOLUME KEY ADC CALIBRATION"
+msgstr "Βαθμονόμηση ADC πλήκτρων έντασης"
+
+msgid "STEP 1: KEEP THE DEVICE STILL"
+msgstr "ΒΗΜΑ 1: ΚΡΑΤΗΣΤΕ ΤΗ ΣΥΣΚΕΥΗ ΑΚΙΝΗΤΗ"
+
+msgid "STEP 2: HOLD VOLUME DOWN"
+msgstr "ΒΗΜΑ 2: ΚΡΑΤΗΣΤΕ ΠΑΤΗΜΕΝΟ ΜΕΙΩΣΗ ΕΝΤΑΣΗΣ"
+
+msgid "STEP 3: HOLD VOLUME UP"
+msgstr "ΒΗΜΑ 3: ΚΡΑΤΗΣΤΕ ΠΑΤΗΜΕΝΟ ΑΥΞΗΣΗ ΕΝΤΑΣΗΣ"
+
+msgid "NO VOLTAGE CHANGE DETECTED"
+msgstr "ΔΕΝ ΕΝΤΟΠΙΣΤΙΚΕ ΑΛΛΑΓΗ ΤΑΣΗΣ"
+
+msgid "PRESS BACK TO CANCEL"
+msgstr "Πατήστε ΕΠΙΣΤΡΟΦΗ για ακύρωση"
+
 
 msgid "PRESS ANY BUTTON TO SET AS EMULATION SWITCH\n\nPRESS BACK TO CANCEL"
 msgstr "Πατήστε οποιοδήποτε κουμπί για εναλλαγή εξομοίωσης\n\nΠίσω για ακύρωση"

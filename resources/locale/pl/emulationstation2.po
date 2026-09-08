@@ -3857,6 +3857,30 @@ msgstr "Kalibracja joysticka"
 msgid "JOYSTICK SETTINGS"
 msgstr "Ustawienia joysticka"
 
+msgid "BUTTON SETTINGS"
+msgstr "Ustawienia przycisków"
+
+msgid "ARE YOU SURE YOU WANT TO CONFIGURE INPUT?"
+msgstr "Czy na pewno chcesz skonfigurować sterowanie?"
+
+msgid "VOLUME KEY ADC CALIBRATION"
+msgstr "Kalibracja ADC klawiszy głośności"
+
+msgid "STEP 1: KEEP THE DEVICE STILL"
+msgstr "KROK 1: NIE DOTYKAJ URZĄDZENIA"
+
+msgid "STEP 2: HOLD VOLUME DOWN"
+msgstr "KROK 2: PRZYTRZYMAJ GŁOŚNOŚĆ -"
+
+msgid "STEP 3: HOLD VOLUME UP"
+msgstr "KROK 3: PRZYTRZYMAJ GŁOŚNOŚĆ +"
+
+msgid "NO VOLTAGE CHANGE DETECTED"
+msgstr "NIE WYKRYTO ZMIANY NAPIĘCIA"
+
+msgid "PRESS BACK TO CANCEL"
+msgstr "Naciśnij POWRÓT, aby anulować"
+
 
 msgid "PRESS ANY BUTTON TO SET AS EMULATION SWITCH\n\nPRESS BACK TO CANCEL"
 msgstr "Naciśnij dowolny przycisk jako przełącznik emulacji\n\nWstecz aby anulować"

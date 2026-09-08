@@ -4,6 +4,7 @@
 #include "guis/GuiSettings.h"
 #include "guis/GuiDetectDevice.h"
 #include "guis/GuiJoystickCalibration.h"
+#include "guis/GuiVolumeKeyCalibration.h"
 #include "guis/arkos4clone/ArkOSUtil.h"
 #include "guis/arkos4clone/WifiManager.h"
 #include "guis/arkos4clone/LedControl.h"
@@ -65,6 +66,11 @@ GuiArkOS4CloneSettings::GuiArkOS4CloneSettings(Window* window)
         openJoystickSettings();
     }, "");
 
+    // Button-related settings (Configure Input / Joypad Test / Volume Key ADC)
+    mMenu.addEntry(_("BUTTON SETTINGS"), true, [this] {
+        openButtonSettings();
+    }, "iconControllers");
+
     // ArkOS4Clone Tools submenu (CPU/GPU/DMC/ZRAM settings)
     if (hasGpuFreqControl() || hasDmcFreqControl() || getCpuCoreCount() > 1) {
         mMenu.addEntry(_("TOOLS"), true, [this] {
@@ -98,38 +104,10 @@ GuiArkOS4CloneSettings::GuiArkOS4CloneSettings(Window* window)
         ScreenControl::openScreenSettings(mWindow);
     }, "iconBrightnessctl");
 
-    // Configure Input
-    mMenu.addEntry(_("CONFIGURE INPUT"), true, [this] {
-        mWaitingInputConfigInfo = true;
-        mInputConfigTimer = 5000;
-    }, "iconControllers");
-
     // Date & Time Settings
     mMenu.addEntry(_("DATE & TIME"), true, [this] {
         openDateTimeSettings();
     }, "");
-
-    // Joypad Test
-    mMenu.addEntry(_("JOYPAD TEST"), true, [this] {
-        Window* window = mWindow;
-        window->pushGui(new GuiMsgBox(window, _("ARE YOU SURE YOU WANT TO TEST JOYPAD?"), _("YES"),
-            [window] {
-                // Deinit ES resources
-                AudioManager::getInstance()->deinit();
-                VolumeControl::getInstance()->deinit();
-                window->deinit(true);
-
-                // Run sdljoytest on tty1
-                system("sudo chmod 666 /dev/tty1");
-                system("/usr/local/bin/sdljoytest 2>&1 > /dev/tty1");
-                system("setterm -clear all > /dev/tty1");
-
-                // Reinit ES resources
-                window->init(true);
-                VolumeControl::getInstance()->init();
-                AudioManager::getInstance()->init();
-            }, _("NO"), nullptr));
-    }, "iconControllers");
 
     // View Info (SD Card Speed and CPU Binning)
     mMenu.addEntry(_("VIEW INFO"), true, [this] {
@@ -825,6 +803,54 @@ void GuiArkOS4CloneSettings::openJoystickSettings()
                     _("NO"), nullptr));
             }, "");
         }
+    }
+
+    pushSettingsMenu(s);
+}
+
+void GuiArkOS4CloneSettings::openButtonSettings()
+{
+    GuiSettings* s = new GuiSettings(mWindow, _("BUTTON SETTINGS"));
+
+    // Configure Input
+    s->addEntry(_("CONFIGURE INPUT"), true, [this, s] {
+        mWindow->pushGui(new GuiMsgBox(mWindow,
+            _("ARE YOU SURE YOU WANT TO CONFIGURE INPUT?"),
+            _("YES"), [this, s] {
+                mWaitingInputConfigInfo = true;
+                mInputConfigTimer = 5000;
+                delete s;
+            },
+            _("NO"), nullptr));
+    }, "iconControllers");
+
+    // Joypad Test
+    s->addEntry(_("JOYPAD TEST"), true, [this] {
+        Window* window = mWindow;
+        window->pushGui(new GuiMsgBox(window, _("ARE YOU SURE YOU WANT TO TEST JOYPAD?"), _("YES"),
+            [window] {
+                // Deinit ES resources
+                AudioManager::getInstance()->deinit();
+                VolumeControl::getInstance()->deinit();
+                window->deinit(true);
+
+                // Run sdljoytest on tty1
+                system("sudo chmod 666 /dev/tty1");
+                system("/usr/local/bin/sdljoytest 2>&1 > /dev/tty1");
+                system("setterm -clear all > /dev/tty1");
+
+                // Reinit ES resources
+                window->init(true);
+                VolumeControl::getInstance()->init();
+                AudioManager::getInstance()->init();
+            }, _("NO"), nullptr));
+    }, "iconControllers");
+
+    // Volume Key ADC Calibration (only for adc volume-key devices)
+    if (hasVolumeAdcSupport()) {
+        s->addEntry(_("VOLUME KEY ADC CALIBRATION"), true, [this] {
+            mWindow->pushGui(new GuiVolumeKeyCalibration(mWindow));
+        }, "");
     }
 
     pushSettingsMenu(s);

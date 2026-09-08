@@ -2156,6 +2156,30 @@ msgstr "ジョイスティックキャリブレーション"
 msgid "JOYSTICK SETTINGS"
 msgstr "ジョイスティック設定"
 
+msgid "BUTTON SETTINGS"
+msgstr "ボタン設定"
+
+msgid "ARE YOU SURE YOU WANT TO CONFIGURE INPUT?"
+msgstr "入力設定を行いますか？"
+
+msgid "VOLUME KEY ADC CALIBRATION"
+msgstr "音量キーADCキャリブレーション"
+
+msgid "STEP 1: KEEP THE DEVICE STILL"
+msgstr "ステップ1：デバイスを静止させてください"
+
+msgid "STEP 2: HOLD VOLUME DOWN"
+msgstr "ステップ2：音量下キーを押し続けてください"
+
+msgid "STEP 3: HOLD VOLUME UP"
+msgstr "ステップ3：音量上キーを押し続けてください"
+
+msgid "NO VOLTAGE CHANGE DETECTED"
+msgstr "電圧変化を検出できませんでした"
+
+msgid "PRESS BACK TO CANCEL"
+msgstr "戻るボタンでキャンセル"
+
 
 msgid "PRESS ANY BUTTON TO SET AS EMULATION SWITCH\n\nPRESS BACK TO CANCEL"
 msgstr "任意のボタンを押してエミュレーション切替に設定\n\n戻るでキャンセル"

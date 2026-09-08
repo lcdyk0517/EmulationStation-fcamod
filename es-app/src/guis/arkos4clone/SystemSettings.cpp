@@ -185,6 +185,62 @@ void applyDeadZoneOnStartup()
     }
 }
 
+// Volume key ADC calibration sysfs nodes (rg351-keys ADC volume keys)
+static const std::string RG351_KEYS_ADC_DOWN = "/sys/devices/platform/rg351-keys/adc_value_volume_down";
+static const std::string RG351_KEYS_ADC_UP = "/sys/devices/platform/rg351-keys/adc_value_volume_up";
+
+bool hasVolumeAdcSupport()
+{
+    static bool cached = false;
+    static bool supported = false;
+
+    if (cached) {
+        return supported;
+    }
+
+    cached = true;
+
+    std::string output = ArkOSUtil::executeCommand("/usr/local/bin/console_detect -v 2>/dev/null");
+
+    // Remove all non-alphanumeric characters (handles \r, \n, spaces, etc.)
+    std::string clean;
+    for (char c : output) {
+        if (std::isalnum((unsigned char)c)) {
+            clean += c;
+        }
+    }
+
+    // Case-insensitive comparison
+    std::transform(clean.begin(), clean.end(), clean.begin(), ::tolower);
+
+    LOG(LogInfo) << "Volume ADC: mode = [" << clean << "]";
+
+    supported = (clean == "adc");
+    LOG(LogInfo) << "Volume ADC: hasVolumeAdcSupport = " << (supported ? "true" : "false");
+
+    return supported;
+}
+
+void setVolumeAdcKeyValues(int volumeDown, int volumeUp)
+{
+    ArkOSUtil::executeCommand("sudo sh -c 'echo " + std::to_string(volumeDown) + " > " + RG351_KEYS_ADC_DOWN + "'");
+    ArkOSUtil::executeCommand("sudo sh -c 'echo " + std::to_string(volumeUp) + " > " + RG351_KEYS_ADC_UP + "'");
+}
+
+void applyVolumeAdcCalibrationOnStartup()
+{
+    if (!hasVolumeAdcSupport()) return;
+    if (!Settings::getInstance()->getBool("VolumeAdcCalibration.hasData")) return;
+
+    int down = Settings::getInstance()->getInt("VolumeAdcCalibration.down");
+    int up = Settings::getInstance()->getInt("VolumeAdcCalibration.up");
+
+    if (down < 0) down = 0;
+    if (up < 0) up = 0;
+
+    setVolumeAdcKeyValues(down, up);
+}
+
 std::string getCurrentDateTime()
 {
     std::string result = ArkOSUtil::executeCommand("date '+%Y-%m-%d %H:%M'");

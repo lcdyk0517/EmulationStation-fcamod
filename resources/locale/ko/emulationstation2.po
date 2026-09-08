@@ -2761,6 +2761,30 @@ msgstr "조이스틱 캘리브레이션"
 msgid "JOYSTICK SETTINGS"
 msgstr "조이스틱 설정"
 
+msgid "BUTTON SETTINGS"
+msgstr "버튼 설정"
+
+msgid "ARE YOU SURE YOU WANT TO CONFIGURE INPUT?"
+msgstr "입력을 구성하시겠습니까?"
+
+msgid "VOLUME KEY ADC CALIBRATION"
+msgstr "음량 키 ADC 보정"
+
+msgid "STEP 1: KEEP THE DEVICE STILL"
+msgstr "1단계: 기기를 가만히 두세요"
+
+msgid "STEP 2: HOLD VOLUME DOWN"
+msgstr "2단계: 음량 낮추기 키를 길게 누르세요"
+
+msgid "STEP 3: HOLD VOLUME UP"
+msgstr "3단계: 음량 높이기 키를 길게 누르세요"
+
+msgid "NO VOLTAGE CHANGE DETECTED"
+msgstr "전압 변화가 감지되지 않았습니다"
+
+msgid "PRESS BACK TO CANCEL"
+msgstr "뒤로 버튼을 눌러 취소"
+
 
 msgid "PRESS ANY BUTTON TO SET AS EMULATION SWITCH\n\nPRESS BACK TO CANCEL"
 msgstr "에뮬레이션 전환 버튼으로 설정할 버튼을 누르세요\n\n뒤로를 눌러 취소"

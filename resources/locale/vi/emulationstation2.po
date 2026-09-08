@@ -2593,6 +2593,30 @@ msgstr "Hiệu chuẩn joystick"
 msgid "JOYSTICK SETTINGS"
 msgstr "Cài đặt joystick"
 
+msgid "BUTTON SETTINGS"
+msgstr "Cài đặt nút bấm"
+
+msgid "ARE YOU SURE YOU WANT TO CONFIGURE INPUT?"
+msgstr "Bạn có chắc muốn cấu hình đầu vào không?"
+
+msgid "VOLUME KEY ADC CALIBRATION"
+msgstr "Hiệu chuẩn ADC phím âm lượng"
+
+msgid "STEP 1: KEEP THE DEVICE STILL"
+msgstr "BƯỚC 1: GIỮ THIẾT BỊ YÊN TĨNH"
+
+msgid "STEP 2: HOLD VOLUME DOWN"
+msgstr "BƯỚC 2: GIỮ PHÍM GIẢM ÂM LƯỢNG"
+
+msgid "STEP 3: HOLD VOLUME UP"
+msgstr "BƯỚC 3: GIỮ PHÍM TĂNG ÂM LƯỢNG"
+
+msgid "NO VOLTAGE CHANGE DETECTED"
+msgstr "KHÔNG PHÁT HIỆN THẤY THAY ĐỔI ĐIỆN ÁP"
+
+msgid "PRESS BACK TO CANCEL"
+msgstr "Nhấn QUAY LẠI để hủy"
+
 
 msgid "PRESS ANY BUTTON TO SET AS EMULATION SWITCH\n\nPRESS BACK TO CANCEL"
 msgstr "Nhấn bất kỳ nút nào để đặt làm nút chuyển đổi mô phỏng\n\nNhấn Quay lại để hủy"

@@ -441,6 +441,9 @@ int main(int argc, char* argv[])
 	// Apply ADC dead zone on startup (for supported devices)
 	SystemSettings::applyDeadZoneOnStartup();
 
+	// Apply volume key ADC calibration on startup (for supported devices)
+	SystemSettings::applyVolumeAdcCalibrationOnStartup();
+
 	// Apply gamma on startup (for supported devices)
 	GammaControl::applyGammaOnStartup();
 
