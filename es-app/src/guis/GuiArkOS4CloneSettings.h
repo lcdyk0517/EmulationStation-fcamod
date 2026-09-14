@@ -5,6 +5,7 @@
 #include "GuiComponent.h"
 #include "components/MenuComponent.h"
 #include "components/ComponentList.h"
+#include "guis/arkos4clone/SdCardControl.h"
 #include <string>
 #include <vector>
 #include <functional>
@@ -74,6 +75,17 @@ private:
 
     // View Info functions
     void openViewInfo();
+
+    // ROMS SD Card functions
+    void openSdCardSettings();
+    void doSdCardSwitch(SdCardControl::RomsMode mode);
+
+    // Rebuilds the system list from es_systems.cfg (ViewController /
+    // CollectionSystemManager teardown + SystemData::loadConfig).
+    // CONTRACT: static on purpose - the teardown deletes every GUI on the
+    // stack, including the caller. Only touch the passed Window*, never
+    // members; `this` is invalid when this call returns.
+    static void reloadSystemsUi(Window* window);
 
     MenuComponent mMenu;
     std::vector<std::pair<std::string, int>> mWifiNetworks; // ssid, signal

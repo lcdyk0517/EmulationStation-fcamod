@@ -27,6 +27,9 @@
 #include "AudioManager.h"
 #include "VolumeControl.h"
 #include "platform.h"
+#include "SystemData.h"
+#include "CollectionSystemManager.h"
+#include "views/ViewController.h"
 #include "utils/StringUtil.h"
 #include "utils/FileSystemUtil.h"
 
@@ -108,6 +111,11 @@ GuiArkOS4CloneSettings::GuiArkOS4CloneSettings(Window* window)
     mMenu.addEntry(_("DATE & TIME"), true, [this] {
         openDateTimeSettings();
     }, "");
+
+    // ROMS SD Card (choose which SD card provides the game list)
+    mMenu.addEntry(_("ROMS SD CARD"), true, [this] {
+        openSdCardSettings();
+    }, "iconGames");
 
     // View Info (SD Card Speed and CPU Binning)
     mMenu.addEntry(_("VIEW INFO"), true, [this] {
@@ -1765,6 +1773,143 @@ void GuiArkOS4CloneSettings::openViewInfo()
     s->addWithLabel(_("CPU TEMP"), cpuTempText);
 
     mWindow->pushGui(s);
+}
+
+// ============================================================================
+// ROMS SD Card Functions
+// ============================================================================
+
+void GuiArkOS4CloneSettings::openSdCardSettings()
+{
+    using namespace SdCardControl;
+
+    GuiSettings* s = new GuiSettings(mWindow, _("ROMS SD CARD"));
+
+    // SD2 card status
+    std::string sd2Info;
+    if (!isSd2CardPresent())
+    {
+        sd2Info = _("NOT DETECTED");
+    }
+    else
+    {
+        sd2Info = HardwareInfo::getSdCardName("mmcblk1");
+        if (sd2Info.empty())
+            sd2Info = _("DETECTED");
+        sd2Info += isMountPoint("/roms2") ? (" [" + _("MOUNTED") + "]")
+                                          : (" [" + _("NOT MOUNTED") + "]");
+    }
+    auto sd2Text = std::make_shared<TextComponent>(mWindow, sd2Info,
+        Font::get(FONT_SIZE_SMALL), 0x777777FF);
+    s->addWithLabel(_("SD CARD 2"), sd2Text);
+
+    // Current effective mode
+    std::string modeStr;
+    switch (resolveEffectiveMode())
+    {
+        case RomsMode::Dual: modeStr = _("SD1 + SD2 (DUAL)"); break;
+        case RomsMode::Sd2:  modeStr = _("SD2 ONLY");         break;
+        case RomsMode::Sd1:
+        default:             modeStr = _("MAIN SD (SD1)");    break;
+    }
+    auto modeText = std::make_shared<TextComponent>(mWindow, modeStr,
+        Font::get(FONT_SIZE_SMALL), 0x777777FF);
+    s->addWithLabel(_("CURRENT MODE"), modeText);
+
+    auto confirmSwitch = [this](SdCardControl::RomsMode mode) {
+        mWindow->pushGui(new GuiMsgBox(mWindow,
+            _("ARE YOU SURE YOU WANT TO SWITCH THE ROMS SOURCE?") + "\n" + _("EMULATIONSTATION WILL RELOAD"),
+            _("YES"), [this, mode] {
+                doSdCardSwitch(mode);
+            },
+            _("NO"), nullptr));
+    };
+
+    s->addEntry(_("USE MAIN SD CARD (SD1)"), true, [this, confirmSwitch] {
+        confirmSwitch(SdCardControl::RomsMode::Sd1);
+    }, "");
+
+    s->addEntry(_("USE SD2 CARD ONLY"), true, [this, confirmSwitch] {
+        confirmSwitch(SdCardControl::RomsMode::Sd2);
+    }, "");
+
+    s->addEntry(_("READ SD1 AND SD2 (DUAL)"), true, [this, confirmSwitch] {
+        confirmSwitch(SdCardControl::RomsMode::Dual);
+    }, "");
+
+    pushSettingsMenu(s);
+}
+
+void GuiArkOS4CloneSettings::doSdCardSwitch(SdCardControl::RomsMode mode)
+{
+    using namespace SdCardControl;
+    Window* window = mWindow;
+
+    if (mode != RomsMode::Sd1 && !isSd2CardPresent())
+    {
+        window->pushGui(new GuiMsgBox(window, _("SD2 CARD NOT DETECTED"), _("OK")));
+        return;
+    }
+
+    if (mode != RomsMode::Sd1 && !isMountPoint("/roms2"))
+    {
+        window->renderLoadingScreen(_("MOUNTING SD2 CARD..."));
+        if (!mountRoms2())
+        {
+            window->pushGui(new GuiMsgBox(window, _("COULD NOT MOUNT SD2 CARD"), _("OK")));
+            return;
+        }
+    }
+
+    if (mode != RomsMode::Sd1 && !isRoms2Usable())
+    {
+        window->pushGui(new GuiMsgBox(window, _("SD2 CARD IS EMPTY"), _("OK")));
+        return;
+    }
+
+    ApplyResult result = applyCfg(mode);
+    if (result == ApplyResult::Failed)
+    {
+        window->pushGui(new GuiMsgBox(window, _("FAILED TO APPLY SYSTEM CONFIG"), _("OK")));
+        return;
+    }
+
+    setSavedMode(mode);
+
+    if (result == ApplyResult::Unchanged)
+    {
+        window->pushGui(new GuiMsgBox(window, _("MODE ALREADY ACTIVE"), _("OK")));
+        return;
+    }
+
+    // Rebuild the system list from the updated config. This deletes every
+    // GUI on the stack (settings menu + this). `this` is invalid afterwards;
+    // do not touch any members past this point.
+    reloadSystemsUi(window);
+}
+
+void GuiArkOS4CloneSettings::reloadSystemsUi(Window* window)
+{
+    window->renderLoadingScreen(_("Loading..."));
+
+    // Same teardown sequence as GuiGamelistOptions "UPDATE GAMES LISTS"
+    ViewController::get()->goToStart(true);
+    delete ViewController::get();
+    ViewController::init(window);
+    CollectionSystemManager::deinit();
+    CollectionSystemManager::init(window);
+    SystemData::loadConfig(window);
+    window->endRenderLoadingScreen();
+
+    GuiComponent* gui;
+    while ((gui = window->peekGui()) != NULL)
+    {
+        window->removeGui(gui);
+        delete gui;
+    }
+
+    window->pushGui(ViewController::get());
+    ViewController::get()->goToStart(true);
 }
 
 // ============================================================================

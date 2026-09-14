@@ -408,6 +408,7 @@ void processAudioTitles(Window* window)
 #include "guis/arkos4clone/SystemSettings.h"
 #include "guis/arkos4clone/GammaControl.h"
 #include "guis/arkos4clone/ScreenControl.h"
+#include "guis/arkos4clone/SdCardControl.h"
 #include "components/BatteryIndicatorComponent.h"
 
 int main(int argc, char* argv[])
@@ -449,6 +450,12 @@ int main(int argc, char* argv[])
 
 	// Apply refresh rate on startup (if auto-apply is enabled)
 	ScreenControl::applyRefreshRateOnStartup();
+
+	// Resolve ROMS SD card mode and apply the matching es_systems.cfg variant
+	// (falls back to sd1 when the SD2 card is missing, unmounted or empty).
+	// TIMING CONTRACT: must run before SystemData::loadConfig(), which happens
+	// further down in main() via loadSystemConfigFile() - do not move below it.
+	SdCardControl::applyRomsModeOnStartup();
 /*
 	ApiSystem::checkUpdateVersion();
 	ApiSystem::updateSystem(nullptr);
