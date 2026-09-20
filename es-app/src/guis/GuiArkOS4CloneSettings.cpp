@@ -1876,6 +1876,10 @@ void GuiArkOS4CloneSettings::doSdCardSwitch(SdCardControl::RomsMode mode)
 
     setSavedMode(mode);
 
+    // fstab marker: "# roms2" line present in sd2/dual mode, deleted for
+    // sd1. Best effort; mounting itself stays with mountRoms2().
+    updateFstabEntry(mode);
+
     if (result == ApplyResult::Unchanged)
     {
         window->pushGui(new GuiMsgBox(window, _("MODE ALREADY ACTIVE"), _("OK")));

@@ -308,6 +308,78 @@ namespace SdCardControl
     }
 
     // ------------------------------------------------------------------
+    // fstab marker
+    // ------------------------------------------------------------------
+
+    // The single "# roms2" marker line we manage in /etc/fstab. Switching
+    // to sd2/dual appends it, switching back to sd1 deletes it again.
+    // Purely a marker - mounting itself stays with mountRoms2().
+    static const char* FSTAB = "/etc/fstab";
+    static const char* FSTAB_MARKER = "# roms2";
+
+    static bool fstabHasMarker()
+    {
+        std::ifstream in(FSTAB);
+        if (!in.is_open())
+            return false;
+
+        std::string line;
+        while (std::getline(in, line))
+        {
+            size_t first = line.find_first_not_of(" \t");
+            if (first == std::string::npos)
+                continue;
+
+            size_t last = line.find_last_not_of(" \t\r");
+            if (line.compare(first, last - first + 1, FSTAB_MARKER) == 0)
+                return true;
+        }
+        return false;
+    }
+
+    bool updateFstabEntry(RomsMode mode)
+    {
+        if (mode == RomsMode::Sd1)
+        {
+            if (!fstabHasMarker())
+                return true;
+
+            // delete the exact "# roms2" line (comments and other lines kept)
+            int ret = std::system("sudo sed -i '\\%^[[:space:]]*#[[:space:]]*roms2[[:space:]]*$%d' /etc/fstab");
+            if (ret == 0 && !fstabHasMarker())
+            {
+                LOG(LogInfo) << "SdCardControl: removed " << FSTAB_MARKER << " from " << FSTAB;
+                return true;
+            }
+            LOG(LogError) << "SdCardControl: failed to remove " << FSTAB_MARKER << " from " << FSTAB;
+            return false;
+        }
+
+        if (fstabHasMarker())
+            return true;
+
+        // appending must not glue onto a last line that lacks a newline
+        std::ifstream tail(FSTAB, std::ios::binary);
+        bool needNewline = false;
+        if (tail.is_open() && tail.seekg(-1, std::ios::end))
+        {
+            char last = '\n';
+            tail.get(last);
+            needNewline = (last != '\n');
+        }
+
+        std::string payload = std::string(needNewline ? "\n" : "") + FSTAB_MARKER + "\n";
+        int ret = std::system(("printf '%s' " + ArkOSUtil::shellQuote(payload) + " | sudo tee -a /etc/fstab > /dev/null").c_str());
+        if (ret == 0 && fstabHasMarker())
+        {
+            LOG(LogInfo) << "SdCardControl: added " << FSTAB_MARKER << " to " << FSTAB;
+            return true;
+        }
+        LOG(LogError) << "SdCardControl: failed to add " << FSTAB_MARKER << " to " << FSTAB;
+        return false;
+    }
+
+    // ------------------------------------------------------------------
     // startup hook
     // ------------------------------------------------------------------
 

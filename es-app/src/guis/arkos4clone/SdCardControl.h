@@ -47,6 +47,12 @@ namespace SdCardControl
     // Returns true when /roms2 is mounted afterwards.
     bool mountRoms2();
 
+    // Keep the "# roms2" marker line in /etc/fstab in sync with the mode:
+    // switching to sd2/dual appends it, switching back to sd1 deletes it
+    // again. Best effort and idempotent; mounting itself stays with
+    // mountRoms2().
+    bool updateFstabEntry(RomsMode mode);
+
     // Startup hook: resolve mode, guarantee /roms2 mount for sd2/dual,
     // then apply the matching cfg before SystemData::loadConfig() runs.
     void applyRomsModeOnStartup();
