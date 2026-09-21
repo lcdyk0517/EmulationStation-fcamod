@@ -219,7 +219,7 @@ void applyMcuLed(const std::string& color)
     const int GPIO_NUM = 65;
     std::string gpioDir = "/sys/class/gpio/gpio" + std::to_string(GPIO_NUM);
     std::string gpioExport = "/sys/class/gpio/export";
-    std::string mcuLedBin = "/usr/bin/mcu_led";
+    std::string mcuLedBin = "/usr/local/bin/mcu_led";
 
     // Security: validate color string
     if (!color.empty() && color.find_first_not_of("abcdefghijklmnopqrstuvwxyz_") != std::string::npos) {
@@ -367,7 +367,7 @@ void applyWs2812Led(const std::string& color, const std::string& brightness)
         }
     }
 
-    std::string ws2812Bin = "/usr/bin/ws2812";
+    std::string ws2812Bin = "/usr/local/bin/ws2812";
 
     if (!Utils::FileSystem::exists(ws2812Bin)) {
         return;
