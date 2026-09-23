@@ -28,6 +28,17 @@ namespace SystemSettings
     void setVolumeAdcKeyValues(int volumeDown, int volumeUp);
     void applyVolumeAdcCalibrationOnStartup();
 
+    // Button layout swap (A/B, X/Y face buttons). Two backends in priority
+    // order: odroidgo3-joypad platform driver, then the USB HID gamepad
+    // board (0003:1209:3100.x) exposing the same swap_ab / swap_xy nodes.
+    bool hasButtonSwapSupport();
+    bool getButtonSwapAb();
+    bool getButtonSwapXy();
+    void setButtonSwapAb(bool swap);
+    void setButtonSwapXy(bool swap);
+    void applySavedButtonSwap();
+    void applyButtonSwapOnStartup();
+
     // USB Switch functions (manual USB switch only)
     bool isUsbManualSwitch();
     bool isUsbInternal();

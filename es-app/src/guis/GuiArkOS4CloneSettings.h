@@ -60,6 +60,7 @@ private:
     void openJoystickSettings();
     void openJoystickLedSettings();
     void openButtonSettings();
+    void openButtonLayoutSettings();
 
     // ADC Dead Zone functions
     void openDeadZoneSettings();

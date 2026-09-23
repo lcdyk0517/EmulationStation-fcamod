@@ -445,6 +445,9 @@ int main(int argc, char* argv[])
 	// Apply volume key ADC calibration on startup (for supported devices)
 	SystemSettings::applyVolumeAdcCalibrationOnStartup();
 
+	// Apply button layout swap on startup (for supported devices)
+	SystemSettings::applyButtonSwapOnStartup();
+
 	// Apply gamma on startup (for supported devices)
 	GammaControl::applyGammaOnStartup();
 

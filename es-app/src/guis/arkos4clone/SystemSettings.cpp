@@ -241,6 +241,81 @@ void applyVolumeAdcCalibrationOnStartup()
     setVolumeAdcKeyValues(down, up);
 }
 
+// Button layout swap nodes (swap_ab / swap_xy), two backends in priority
+// order: odroidgo3-joypad platform driver, then the USB HID gamepad board
+// (0003:1209:3100.x - its instance suffix and USB port vary, so the node is
+// located by find instead of a fixed path).
+static std::string getButtonSwapDir()
+{
+    if (Utils::FileSystem::exists(ODROIDGO3_JOYPAD + "/swap_ab") &&
+        Utils::FileSystem::exists(ODROIDGO3_JOYPAD + "/swap_xy"))
+        return ODROIDGO3_JOYPAD;
+
+    std::string found = ArkOSUtil::executeCommand(
+        "find /sys/devices/platform/ff300000.usb -maxdepth 8 -path '*0003:1209:3100*' -name swap_ab 2>/dev/null | head -n 1");
+
+    size_t end = found.find_first_of("\r\n");
+    if (end != std::string::npos)
+        found.resize(end);
+    found = Utils::String::trim(found);
+    if (found.empty())
+        return std::string();
+
+    // both nodes must be present for the UI to offer the switches
+    std::string dir = found.substr(0, found.rfind('/'));
+    return Utils::FileSystem::exists(dir + "/swap_xy") ? dir : std::string();
+}
+
+static bool readSwapNode(const std::string& dir, const std::string& node)
+{
+    if (dir.empty()) return false;
+    std::string result = ArkOSUtil::executeCommand("cat " + dir + "/" + node + " 2>/dev/null");
+    try { return std::stoi(result) != 0; } catch (...) { return false; }
+}
+
+static void writeSwapNode(const std::string& dir, const std::string& node, bool on)
+{
+    if (dir.empty()) return;
+    ArkOSUtil::executeCommand("sudo sh -c 'echo " + std::to_string(on ? 1 : 0) + " > " + dir + "/" + node + "'");
+}
+
+bool getButtonSwapAb()
+{
+    return readSwapNode(getButtonSwapDir(), "swap_ab");
+}
+
+bool getButtonSwapXy()
+{
+    return readSwapNode(getButtonSwapDir(), "swap_xy");
+}
+
+void setButtonSwapAb(bool swap)
+{
+    writeSwapNode(getButtonSwapDir(), "swap_ab", swap);
+}
+
+void setButtonSwapXy(bool swap)
+{
+    writeSwapNode(getButtonSwapDir(), "swap_xy", swap);
+}
+
+bool hasButtonSwapSupport()
+{
+    return !getButtonSwapDir().empty();
+}
+
+void applySavedButtonSwap()
+{
+    std::string dir = getButtonSwapDir();
+    writeSwapNode(dir, "swap_ab", Settings::getInstance()->getBool("ButtonSwapAb"));
+    writeSwapNode(dir, "swap_xy", Settings::getInstance()->getBool("ButtonSwapXy"));
+}
+
+void applyButtonSwapOnStartup()
+{
+    applySavedButtonSwap();
+}
+
 std::string getCurrentDateTime()
 {
     std::string result = ArkOSUtil::executeCommand("date '+%Y-%m-%d %H:%M'");
