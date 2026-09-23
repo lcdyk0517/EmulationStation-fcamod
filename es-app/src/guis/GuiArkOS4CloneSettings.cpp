@@ -854,12 +854,49 @@ void GuiArkOS4CloneSettings::openButtonSettings()
             }, _("NO"), nullptr));
     }, "iconControllers");
 
+    // Button layout adjustment (A/B and X/Y swap)
+    if (hasButtonSwapSupport()) {
+        s->addEntry(_("BUTTON LAYOUT ADJUSTMENT"), true, [this] {
+            openButtonLayoutSettings();
+        }, "iconControllers");
+    }
+
     // Volume Key ADC Calibration (only for adc volume-key devices)
     if (hasVolumeAdcSupport()) {
         s->addEntry(_("VOLUME KEY ADC CALIBRATION"), true, [this] {
             mWindow->pushGui(new GuiVolumeKeyCalibration(mWindow));
         }, "");
     }
+
+    pushSettingsMenu(s);
+}
+
+void GuiArkOS4CloneSettings::openButtonLayoutSettings()
+{
+    GuiSettings* s = new GuiSettings(mWindow, _("BUTTON LAYOUT ADJUSTMENT"));
+
+    // A/B button swap
+    auto abSwitch = std::make_shared<SwitchComponent>(mWindow);
+    abSwitch->setState(getButtonSwapAb());
+    s->addWithLabel(_("SWAP A/B"), abSwitch);
+
+    // X/Y button swap
+    auto xySwitch = std::make_shared<SwitchComponent>(mWindow);
+    xySwitch->setState(getButtonSwapXy());
+    s->addWithLabel(_("SWAP X/Y"), xySwitch);
+
+    // Apply immediately when switch changes
+    abSwitch->setOnChangedCallback([this, abSwitch]() {
+        setButtonSwapAb(abSwitch->getState());
+        Settings::getInstance()->setBool("ButtonSwapAb", abSwitch->getState());
+        Settings::getInstance()->saveFile();
+    });
+
+    xySwitch->setOnChangedCallback([this, xySwitch]() {
+        setButtonSwapXy(xySwitch->getState());
+        Settings::getInstance()->setBool("ButtonSwapXy", xySwitch->getState());
+        Settings::getInstance()->saveFile();
+    });
 
     pushSettingsMenu(s);
 }

@@ -28,6 +28,14 @@ namespace SystemSettings
     void setVolumeAdcKeyValues(int volumeDown, int volumeUp);
     void applyVolumeAdcCalibrationOnStartup();
 
+    // Button layout swap (A/B, X/Y face buttons via odroidgo3-joypad driver)
+    bool hasButtonSwapSupport();
+    bool getButtonSwapAb();
+    bool getButtonSwapXy();
+    void setButtonSwapAb(bool swap);
+    void setButtonSwapXy(bool swap);
+    void applyButtonSwapOnStartup();
+
     // USB Switch functions (manual USB switch only)
     bool isUsbManualSwitch();
     bool isUsbInternal();

@@ -241,6 +241,42 @@ void applyVolumeAdcCalibrationOnStartup()
     setVolumeAdcKeyValues(down, up);
 }
 
+// Button layout swap nodes (swap_ab / swap_xy on odroidgo3-joypad)
+bool getButtonSwapAb()
+{
+    std::string result = ArkOSUtil::executeCommand("cat " + ODROIDGO3_JOYPAD + "/swap_ab 2>/dev/null");
+    try { return std::stoi(result) != 0; } catch (...) { return false; }
+}
+
+bool getButtonSwapXy()
+{
+    std::string result = ArkOSUtil::executeCommand("cat " + ODROIDGO3_JOYPAD + "/swap_xy 2>/dev/null");
+    try { return std::stoi(result) != 0; } catch (...) { return false; }
+}
+
+void setButtonSwapAb(bool swap)
+{
+    ArkOSUtil::executeCommand("sudo sh -c 'echo " + std::to_string(swap ? 1 : 0) + " > " + ODROIDGO3_JOYPAD + "/swap_ab'");
+}
+
+void setButtonSwapXy(bool swap)
+{
+    ArkOSUtil::executeCommand("sudo sh -c 'echo " + std::to_string(swap ? 1 : 0) + " > " + ODROIDGO3_JOYPAD + "/swap_xy'");
+}
+
+bool hasButtonSwapSupport()
+{
+    return Utils::FileSystem::exists(ODROIDGO3_JOYPAD + "/swap_ab") ||
+           Utils::FileSystem::exists(ODROIDGO3_JOYPAD + "/swap_xy");
+}
+
+void applyButtonSwapOnStartup()
+{
+    if (!hasButtonSwapSupport()) return;
+    setButtonSwapAb(Settings::getInstance()->getBool("ButtonSwapAb"));
+    setButtonSwapXy(Settings::getInstance()->getBool("ButtonSwapXy"));
+}
+
 std::string getCurrentDateTime()
 {
     std::string result = ArkOSUtil::executeCommand("date '+%Y-%m-%d %H:%M'");
