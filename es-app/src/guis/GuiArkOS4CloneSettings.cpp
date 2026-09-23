@@ -1859,6 +1859,9 @@ void GuiArkOS4CloneSettings::doSdCardSwitch(SdCardControl::RomsMode mode)
             window->pushGui(new GuiMsgBox(window, _("COULD NOT MOUNT SD2 CARD"), _("OK")));
             return;
         }
+
+        // Create any missing system directories on SD2
+        syncRoms2Dirs();
     }
 
     if (mode != RomsMode::Sd1 && !isRoms2Usable())

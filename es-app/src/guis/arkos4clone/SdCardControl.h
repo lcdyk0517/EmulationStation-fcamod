@@ -53,6 +53,9 @@ namespace SdCardControl
     // mountRoms2().
     bool updateFstabEntry(RomsMode mode);
 
+    // Sync missing subdirectories from /roms to /roms2.
+    bool syncRoms2Dirs();
+
     // Startup hook: resolve mode, guarantee /roms2 mount for sd2/dual,
     // then apply the matching cfg before SystemData::loadConfig() runs.
     void applyRomsModeOnStartup();

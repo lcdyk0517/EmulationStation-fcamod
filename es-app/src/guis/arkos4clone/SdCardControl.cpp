@@ -380,6 +380,22 @@ namespace SdCardControl
     }
 
     // ------------------------------------------------------------------
+    // directory sync
+    // ------------------------------------------------------------------
+
+    bool syncRoms2Dirs()
+    {
+        if (!isMountPoint(roms2))
+            return false;
+
+        std::string cmd = "cd /roms 2>/dev/null && for d in */; do "
+                        "sudo mkdir -p \"" + roms2 + "/${d}\"; done";
+
+        int ret = std::system(cmd.c_str());
+        return ret == 0;
+    }
+
+    // ------------------------------------------------------------------
     // startup hook
     // ------------------------------------------------------------------
 
