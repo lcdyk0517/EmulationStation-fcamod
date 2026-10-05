@@ -62,6 +62,9 @@ private:
     void openButtonSettings();
     void openButtonLayoutSettings();
 
+    // System Update (device-side update entry script)
+    void openSystemUpdate();
+
     // ADC Dead Zone functions
     void openDeadZoneSettings();
 

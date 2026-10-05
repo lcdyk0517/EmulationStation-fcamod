@@ -112,6 +112,13 @@ GuiArkOS4CloneSettings::GuiArkOS4CloneSettings(Window* window)
         openDateTimeSettings();
     }, "");
 
+    // System Update (runs the device-side update entry script)
+    if (Utils::FileSystem::exists("/usr/local/bin/ArkOS4CloneUpdate.sh")) {
+        mMenu.addEntry(_("UPDATE"), true, [this] {
+            openSystemUpdate();
+        }, "");
+    }
+
     // ROMS SD Card (choose which SD card provides the game list)
     mMenu.addEntry(_("ROMS SD CARD"), true, [this] {
         openSdCardSettings();
@@ -903,6 +910,49 @@ void GuiArkOS4CloneSettings::openButtonLayoutSettings()
     });
 
     pushSettingsMenu(s);
+}
+
+void GuiArkOS4CloneSettings::openSystemUpdate()
+{
+    static const char* UPDATE_SCRIPT = "/usr/local/bin/ArkOS4CloneUpdate.sh";
+    static const char* UPDATE_LOG = "/home/ark/esupdate.log";
+
+    Window* window = mWindow;
+    window->pushGui(new GuiMsgBox(window,
+        _("ARE YOU SURE YOU WANT TO UPDATE THE SYSTEM?"),
+        _("YES"), [window] {
+            // Same teardown as the joypad test: the updater prints its
+            // progress to the console and shows msgbox popups on the
+            // framebuffer while ES is not rendering.
+            AudioManager::getInstance()->deinit();
+            VolumeControl::getInstance()->deinit();
+            window->deinit(true);
+
+            system("sudo chmod 666 /dev/tty1");
+            system((std::string(UPDATE_SCRIPT) + " > /dev/tty1 2>&1").c_str());
+            system("setterm -clear all > /dev/tty1");
+
+            // If the updater restarted ES this code never runs.
+            window->init(true);
+            VolumeControl::getInstance()->init();
+            AudioManager::getInstance()->init();
+
+            // The entry script truncates the log on start and appends this
+            // exact line on every failure path, so it only matches fresh runs.
+            bool failed = (system(("grep -q 'There was an error with attempting this update.' "
+                                   + std::string(UPDATE_LOG) + " 2>/dev/null").c_str()) == 0);
+
+            if (failed) {
+                window->pushGui(new GuiMsgBox(window, _("UPDATE FAILED"), _("OK")));
+            } else {
+                window->pushGui(new GuiMsgBox(window, _("UPDATE COMPLETE"),
+                    _("RESTART SYSTEM"), [] {
+                        quitES(QuitMode::REBOOT);
+                    },
+                    _("LATER"), nullptr));
+            }
+        },
+        _("NO"), nullptr));
 }
 
 void GuiArkOS4CloneSettings::openJoystickLedSettings()
