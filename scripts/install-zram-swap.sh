@@ -32,7 +32,7 @@ print_ok "Service installed -> $SERVICE_FILE"
 
 # ---- Create default config if not present ----
 if [ ! -f /etc/zram.conf ]; then
-    echo -e "ENABLED=0\nALGORITHM=lz4\nSIZE=536870912" | sudo tee /etc/zram.conf >/dev/null
+    printf 'ENABLED=0\nALGORITHM=zstd\nSIZE=1073741824\n' | sudo tee /etc/zram.conf >/dev/null
     print_ok "Default config created -> /etc/zram.conf (disabled)"
 else
     print_ok "Config already present -> /etc/zram.conf"
