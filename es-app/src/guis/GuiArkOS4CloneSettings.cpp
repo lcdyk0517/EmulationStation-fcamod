@@ -1605,7 +1605,7 @@ void GuiArkOS4CloneSettings::openZramSettings()
         if (selectedAlgo.empty()) selectedAlgo = defaultAlgo;
         toggleZram(zramSwitch->getState(), selectedSize, selectedAlgo);
         if (autoStartSwitch->getState()) {
-            saveZramConfig(selectedSize, selectedAlgo);
+            saveZramConfig(selectedSize, selectedAlgo, zramSwitch->getState());
         }
     });
 
@@ -1620,7 +1620,7 @@ void GuiArkOS4CloneSettings::openZramSettings()
         if (autoStartSwitch->getState()) {
             std::string selectedSize = sizeList->getSelected();
             if (selectedSize.empty()) selectedSize = "1024M";
-            saveZramConfig(selectedSize, val);
+            saveZramConfig(selectedSize, val, zramSwitch->getState());
         }
     });
 
@@ -1635,7 +1635,7 @@ void GuiArkOS4CloneSettings::openZramSettings()
         if (autoStartSwitch->getState()) {
             std::string selectedAlgo = algoList->getSelected();
             if (selectedAlgo.empty()) selectedAlgo = defaultAlgo;
-            saveZramConfig(val, selectedAlgo);
+            saveZramConfig(val, selectedAlgo, zramSwitch->getState());
         }
     });
 
@@ -1645,7 +1645,7 @@ void GuiArkOS4CloneSettings::openZramSettings()
         if (selectedSize.empty()) selectedSize = "1024M";
         std::string selectedAlgo = algoList->getSelected();
         if (selectedAlgo.empty()) selectedAlgo = defaultAlgo;
-        toggleZramAutoStart(autoStartSwitch->getState(), selectedSize, selectedAlgo);
+        toggleZramAutoStart(autoStartSwitch->getState(), selectedSize, selectedAlgo, zramSwitch->getState());
     });
 
     mWindow->pushGui(s);
