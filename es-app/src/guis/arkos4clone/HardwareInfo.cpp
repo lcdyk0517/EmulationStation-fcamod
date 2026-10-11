@@ -175,10 +175,24 @@ std::vector<std::string> getDmcAvailableFreqs()
     return freqs;
 }
 
+// A value from /etc/zram.conf, the settings zram-setup.sh applies at boot.
+// Older builds wrote the file with "echo -e" through dash, leaving "-e " on
+// the first line.
+static std::string getZramConfValue(const std::string& key)
+{
+    std::string result = ArkOSUtil::executeCommand(
+        "sed -n 's/^\\(-e \\)\\{0,1\\}" + key + "=//p' /etc/zram.conf 2>/dev/null | head -n 1");
+    result.erase(std::remove_if(result.begin(), result.end(), ::isspace), result.end());
+    return result;
+}
+
 std::string getZramSize()
 {
     std::string result = ArkOSUtil::executeCommand("cat /sys/block/zram0/disksize 2>/dev/null");
     result.erase(std::remove_if(result.begin(), result.end(), ::isspace), result.end());
+    // zram is off: show the saved size, not the default
+    if (result.empty() || result == "0")
+        result = getZramConfValue("SIZE");
     if (result.empty()) return "0";
     long size = atol(result.c_str());
     // Convert to MB
@@ -195,6 +209,14 @@ bool isZramEnabled()
 
 std::string getZramCompAlgorithm()
 {
+    // zram is off: show the saved algorithm if this kernel has it
+    if (!isZramEnabled()) {
+        std::string saved = getZramConfValue("ALGORITHM");
+        std::vector<std::string> algos = getAvailableZramAlgorithms();
+        if (std::find(algos.begin(), algos.end(), saved) != algos.end())
+            return saved;
+    }
+
     std::string result = ArkOSUtil::executeCommand("cat /sys/block/zram0/comp_algorithm 2>/dev/null");
     // Parse current algorithm from format like "[lzo] lz4 lz4hc zstd"
     size_t start = result.find('[');
@@ -270,7 +292,7 @@ void toggleZram(bool enable, const std::string& size, const std::string& compAlg
     }
 }
 
-void saveZramConfig(const std::string& size, const std::string& compAlgo)
+void saveZramConfig(const std::string& size, const std::string& compAlgo, bool enabled)
 {
     long bytes = 536870912;
     if (size == "128M") bytes = 134217728;
@@ -280,7 +302,8 @@ void saveZramConfig(const std::string& size, const std::string& compAlgo)
 
     // printf, not "echo -e": the command runs through /bin/sh (dash), whose
     // echo has no -e and writes it into the file.
-    std::string cmd = "printf 'ENABLED=1\\nALGORITHM=" + compAlgo +
+    std::string cmd = "printf 'ENABLED=" + std::string(enabled ? "1" : "0") +
+                      "\\nALGORITHM=" + compAlgo +
                       "\\nSIZE=" + std::to_string(bytes) +
                       "\\n' | sudo tee /etc/zram.conf >/dev/null 2>&1";
     ArkOSUtil::executeCommand(cmd);
@@ -293,10 +316,10 @@ bool isZramAutoStart()
     return result == "enabled";
 }
 
-void toggleZramAutoStart(bool enable, const std::string& size, const std::string& compAlgo)
+void toggleZramAutoStart(bool enable, const std::string& size, const std::string& compAlgo, bool zramEnabled)
 {
     if (enable) {
-        saveZramConfig(size, compAlgo);
+        saveZramConfig(size, compAlgo, zramEnabled);
         ArkOSUtil::executeCommand("sudo systemctl enable zram-swap.service 2>/dev/null || true");
     } else {
         ArkOSUtil::executeCommand("sudo systemctl disable zram-swap.service 2>/dev/null || true");
