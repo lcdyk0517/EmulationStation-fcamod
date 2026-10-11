@@ -36,9 +36,10 @@ namespace HardwareInfo
     bool isZramEnabled();
     std::string getZramCompAlgorithm();
     std::vector<std::string> getAvailableZramAlgorithms();
-    void toggleZram(bool enable, const std::string& size = "512M", const std::string& compAlgo = "lz4");
+    std::string getDefaultZramAlgorithm();
+    void toggleZram(bool enable, const std::string& size = "1024M", const std::string& compAlgo = "zstd");
     bool isZramAutoStart();
-    void toggleZramAutoStart(bool enable, const std::string& size = "512M", const std::string& compAlgo = "lz4");
+    void toggleZramAutoStart(bool enable, const std::string& size = "1024M", const std::string& compAlgo = "zstd");
     void saveZramConfig(const std::string& size, const std::string& compAlgo);
 
     // View Info
