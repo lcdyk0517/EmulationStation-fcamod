@@ -266,9 +266,11 @@ void saveZramConfig(const std::string& size, const std::string& compAlgo)
     else if (size == "512M") bytes = 536870912;
     else if (size == "1024M") bytes = 1073741824;
 
-    std::string cmd = "echo -e 'ENABLED=1\\nALGORITHM=" + compAlgo +
+    // printf, not "echo -e": the command runs through /bin/sh (dash), whose
+    // echo has no -e and writes it into the file.
+    std::string cmd = "printf 'ENABLED=1\\nALGORITHM=" + compAlgo +
                       "\\nSIZE=" + std::to_string(bytes) +
-                      "' | sudo tee /etc/zram.conf >/dev/null 2>&1";
+                      "\\n' | sudo tee /etc/zram.conf >/dev/null 2>&1";
     ArkOSUtil::executeCommand(cmd);
 }
 
