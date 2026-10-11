@@ -202,7 +202,7 @@ std::string getZramCompAlgorithm()
     if (start != std::string::npos && end != std::string::npos && end > start) {
         return result.substr(start + 1, end - start - 1);
     }
-    return "lz4";
+    return getDefaultZramAlgorithm();
 }
 
 std::vector<std::string> getAvailableZramAlgorithms()
@@ -227,6 +227,18 @@ std::vector<std::string> getAvailableZramAlgorithms()
         algos.push_back(current);
     }
     return algos;
+}
+
+// The preferred algorithm this kernel has: 5.10 has zstd, the 4.4 kernel
+// only lzo.
+std::string getDefaultZramAlgorithm()
+{
+    std::vector<std::string> algos = getAvailableZramAlgorithms();
+    for (const char* a : {"zstd", "lz4", "lzo-rle", "lzo"}) {
+        if (std::find(algos.begin(), algos.end(), a) != algos.end())
+            return a;
+    }
+    return algos.empty() ? "lzo" : algos.front();
 }
 
 void toggleZram(bool enable, const std::string& size, const std::string& compAlgo)

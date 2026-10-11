@@ -1562,15 +1562,16 @@ void GuiArkOS4CloneSettings::openZramSettings()
     // ZRAM Compression Algorithm
     auto algoList = std::make_shared<OptionListComponent<std::string>>(mWindow, _("COMP ALGO"), false);
     std::vector<std::string> algos = getAvailableZramAlgorithms();
+    const std::string defaultAlgo = getDefaultZramAlgorithm();
     std::string currentAlgo = getZramCompAlgorithm();
     if (algos.empty()) {
-        algos.push_back("lz4");
+        algos.push_back(defaultAlgo);
     }
     bool algoFound = false;
     for (const auto& a : algos) {
         if (a == currentAlgo) algoFound = true;
     }
-    if (!algoFound) currentAlgo = "lz4";
+    if (!algoFound) currentAlgo = defaultAlgo;
     for (const auto& a : algos) {
         algoList->add(a, a, a == currentAlgo);
     }
@@ -1584,7 +1585,7 @@ void GuiArkOS4CloneSettings::openZramSettings()
     for (const auto& size : sizes) {
         if (size == currentSize) found = true;
     }
-    if (!found) currentSize = "512M";
+    if (!found) currentSize = "1024M";
     for (const auto& size : sizes) {
         sizeList->add(size, size, size == currentSize);
     }
@@ -1597,11 +1598,11 @@ void GuiArkOS4CloneSettings::openZramSettings()
     s->addWithLabel(_("ZRAM AUTO START"), autoStartSwitch);
 
     // Enable/Disable callback
-    zramSwitch->setOnChangedCallback([this, zramSwitch, sizeList, algoList, autoStartSwitch] {
+    zramSwitch->setOnChangedCallback([this, zramSwitch, sizeList, algoList, autoStartSwitch, defaultAlgo] {
         std::string selectedSize = sizeList->getSelected();
-        if (selectedSize.empty()) selectedSize = "512M";
+        if (selectedSize.empty()) selectedSize = "1024M";
         std::string selectedAlgo = algoList->getSelected();
-        if (selectedAlgo.empty()) selectedAlgo = "lz4";
+        if (selectedAlgo.empty()) selectedAlgo = defaultAlgo;
         toggleZram(zramSwitch->getState(), selectedSize, selectedAlgo);
         if (autoStartSwitch->getState()) {
             saveZramConfig(selectedSize, selectedAlgo);
@@ -1609,41 +1610,41 @@ void GuiArkOS4CloneSettings::openZramSettings()
     });
 
     // Compression algorithm change callback
-    algoList->setSelectedChangedCallback([this, zramSwitch, sizeList, autoStartSwitch](const std::string& val) {
+    algoList->setSelectedChangedCallback([this, zramSwitch, sizeList, autoStartSwitch, defaultAlgo](const std::string& val) {
         if (zramSwitch->getState()) {
             std::string selectedSize = sizeList->getSelected();
-            if (selectedSize.empty()) selectedSize = "512M";
+            if (selectedSize.empty()) selectedSize = "1024M";
             toggleZram(false);
             toggleZram(true, selectedSize, val);
         }
         if (autoStartSwitch->getState()) {
             std::string selectedSize = sizeList->getSelected();
-            if (selectedSize.empty()) selectedSize = "512M";
+            if (selectedSize.empty()) selectedSize = "1024M";
             saveZramConfig(selectedSize, val);
         }
     });
 
     // Size change callback
-    sizeList->setSelectedChangedCallback([this, zramSwitch, algoList, autoStartSwitch](const std::string& val) {
+    sizeList->setSelectedChangedCallback([this, zramSwitch, algoList, autoStartSwitch, defaultAlgo](const std::string& val) {
         if (zramSwitch->getState()) {
             std::string selectedAlgo = algoList->getSelected();
-            if (selectedAlgo.empty()) selectedAlgo = "lz4";
+            if (selectedAlgo.empty()) selectedAlgo = defaultAlgo;
             toggleZram(false);
             toggleZram(true, val, selectedAlgo);
         }
         if (autoStartSwitch->getState()) {
             std::string selectedAlgo = algoList->getSelected();
-            if (selectedAlgo.empty()) selectedAlgo = "lz4";
+            if (selectedAlgo.empty()) selectedAlgo = defaultAlgo;
             saveZramConfig(val, selectedAlgo);
         }
     });
 
     // Auto Start toggle callback
-    autoStartSwitch->setOnChangedCallback([this, zramSwitch, sizeList, algoList, autoStartSwitch] {
+    autoStartSwitch->setOnChangedCallback([this, zramSwitch, sizeList, algoList, autoStartSwitch, defaultAlgo] {
         std::string selectedSize = sizeList->getSelected();
-        if (selectedSize.empty()) selectedSize = "512M";
+        if (selectedSize.empty()) selectedSize = "1024M";
         std::string selectedAlgo = algoList->getSelected();
-        if (selectedAlgo.empty()) selectedAlgo = "lz4";
+        if (selectedAlgo.empty()) selectedAlgo = defaultAlgo;
         toggleZramAutoStart(autoStartSwitch->getState(), selectedSize, selectedAlgo);
     });
 
