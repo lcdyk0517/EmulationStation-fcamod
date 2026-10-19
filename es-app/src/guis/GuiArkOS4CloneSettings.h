@@ -80,6 +80,9 @@ private:
     // View Info functions
     void openViewInfo();
 
+    // Kernel (4.4 / 5.10) switch
+    void openKernelSettings();
+
     // ROMS SD Card functions
     void openSdCardSettings();
     void doSdCardSwitch(SdCardControl::RomsMode mode);
