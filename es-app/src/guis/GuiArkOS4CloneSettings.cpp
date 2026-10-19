@@ -124,6 +124,14 @@ GuiArkOS4CloneSettings::GuiArkOS4CloneSettings(Window* window)
         openSdCardSettings();
     }, "iconGames");
 
+    // Kernel (4.4 / 5.10) - only on systems that ship both kernels
+    if (Utils::FileSystem::exists("/usr/local/bin/switch-kernel") &&
+        !ArkOSUtil::executeCommand("/usr/local/bin/switch-kernel status 2>/dev/null").empty()) {
+        mMenu.addEntry(_("KERNEL"), true, [this] {
+            openKernelSettings();
+        }, "");
+    }
+
     // View Info (SD Card Speed and CPU Binning)
     mMenu.addEntry(_("VIEW INFO"), true, [this] {
         openViewInfo();
@@ -953,6 +961,67 @@ void GuiArkOS4CloneSettings::openSystemUpdate()
             }
         },
         _("NO"), nullptr));
+}
+
+void GuiArkOS4CloneSettings::openKernelSettings()
+{
+    static const std::string SWITCH = "/usr/local/bin/switch-kernel";
+
+    // "status" is the kernel of the boot files: original / arkos4clone_fix
+    // are the two 4.4 builds (battery driver), 5.10 is the 5.10 kernel.
+    // executeCommand() keeps the trailing newline of the output
+    auto oneLine = [](std::string v) {
+        while (!v.empty() && (v.back() == '\n' || v.back() == '\r')) v.pop_back();
+        return v;
+    };
+    std::string configured = oneLine(ArkOSUtil::executeCommand(SWITCH + " status 2>/dev/null"));
+    std::string running = oneLine(ArkOSUtil::executeCommand("uname -r"));
+    bool configured510 = (configured == "5.10");
+    bool running510 = (running.compare(0, 4, "5.10") == 0);
+
+    auto s = new GuiSettings(mWindow, _("KERNEL"));
+
+    auto runningText = std::make_shared<TextComponent>(mWindow, running,
+        Font::get(FONT_SIZE_SMALL), 0x777777FF);
+    s->addWithLabel(_("RUNNING"), runningText);
+
+    if (configured510 != running510) {
+        auto pendingText = std::make_shared<TextComponent>(mWindow,
+            configured510 ? "5.10" : "4.4", Font::get(FONT_SIZE_SMALL), 0x777777FF);
+        s->addWithLabel(_("STARTS AT NEXT BOOT"), pendingText);
+    }
+
+    auto confirmSwitch = [this](const std::string& target) {
+        Window* window = mWindow;
+        window->pushGui(new GuiMsgBox(window,
+            _("SWITCH TO KERNEL") + " " + target + "?\n" + _("THE SYSTEM RESTARTS AFTERWARDS."),
+            _("YES"), [window, target] {
+                window->renderLoadingScreen(_("SWITCHING KERNEL..."));
+                int rc = system(("sudo " + SWITCH + " " + target + " > /dev/null 2>&1").c_str());
+                if (rc != 0) {
+                    window->pushGui(new GuiMsgBox(window, _("COULD NOT SWITCH THE KERNEL"), _("OK")));
+                    return;
+                }
+                window->pushGui(new GuiMsgBox(window, _("KERNEL SWITCHED"),
+                    _("RESTART SYSTEM"), [] {
+                        quitES(QuitMode::REBOOT);
+                    },
+                    _("LATER"), nullptr));
+            },
+            _("NO"), nullptr));
+    };
+
+    // Choosing the kernel the boot files already start changes nothing
+    auto choose = [this, confirmSwitch, configured510](const std::string& target) {
+        if ((target == "5.10") == configured510)
+            mWindow->pushGui(new GuiMsgBox(mWindow, _("THIS KERNEL IS ALREADY SELECTED"), _("OK")));
+        else
+            confirmSwitch(target);
+    };
+    s->addEntry(_("USE KERNEL 4.4"), true, [choose] { choose("4.4"); }, "");
+    s->addEntry(_("USE KERNEL 5.10 (EXPERIMENTAL)"), true, [choose] { choose("5.10"); }, "");
+
+    pushSettingsMenu(s);
 }
 
 void GuiArkOS4CloneSettings::openJoystickLedSettings()
