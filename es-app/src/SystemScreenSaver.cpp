@@ -42,7 +42,8 @@ SystemScreenSaver::SystemScreenSaver(Window* window) :
 	mSystemName(""),
 	mGameName(""),
 	mCurrentGame(NULL),
-	mLoadingNext(false)
+	mLoadingNext(false),
+	mSavedBrightness(-1)
 {
 
 	mWindow->setScreenSaver(this);
@@ -58,6 +59,8 @@ SystemScreenSaver::SystemScreenSaver(Window* window) :
 
 SystemScreenSaver::~SystemScreenSaver()
 {
+	restoreBrightness();
+
 	// Delete subtitle file, if existing
 	remove(getTitlePath().c_str());
 	mCurrentGame = NULL;
@@ -173,10 +176,12 @@ void SystemScreenSaver::startScreenSaver()
 	}
 	else if ( screensaver_behavior == "black" )
 	{
-        auto sysbright = ApiSystem::getInstance()->getBrightnessLevel();
-        if ( sysbright > 0 )
+		// Remember the level the user had, so waking up (or ES going away) can put it back
+		auto sysbright = ApiSystem::getInstance()->getBrightnessLevel();
+		if ( sysbright > 0 )
 		{
-		  DisplayPanelControl::getInstance()->setBrightnessLevel(0);
+			mSavedBrightness = sysbright;
+			DisplayPanelControl::getInstance()->setBrightnessLevel(0);
 		}
 		PowerSaver::runningScreenSaver(true);
 		mTimer = 0;
@@ -188,28 +193,19 @@ void SystemScreenSaver::startScreenSaver()
 	mCurrentGame = NULL;
 }
 
-int SystemScreenSaver::curBrightnessLevel()
+void SystemScreenSaver::restoreBrightness()
 {
+	if (mSavedBrightness > 0)
+		DisplayPanelControl::getInstance()->setBrightnessLevel(mSavedBrightness);
 
-    sysbrighttmp = ApiSystem::getInstance()->getBrightnessLevel();
-
-    return sysbrighttmp;
+	mSavedBrightness = -1;
 }
 
 void SystemScreenSaver::stopScreenSaver()
 {
 	bool isExitingScreenSaver = !mLoadingNext;
 
-    std::string screensaver_behavior = Settings::getInstance()->getString("ScreenSaverBehavior");
-	if ( screensaver_behavior == "black" )
-	{
-        auto sysbright = ApiSystem::getInstance()->getBrightnessLevel();
-        if ( sysbright > 0 )
-		{
-			curBrightnessLevel();
-		}
-		DisplayPanelControl::getInstance()->setBrightnessLevel(sysbrighttmp);
-	}
+	restoreBrightness();
 
 	if (mLoadingNext)
 		mFadingImageScreensaver = mImageScreensaver;
