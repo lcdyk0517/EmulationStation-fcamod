@@ -255,6 +255,11 @@ void ControllerActivityComponent::render(const Transform4x4f& parentTrans)
 	if ((mView & NETWORK) && (mNetworkImage != nullptr || mNetworkActiveImage != nullptr || mNetworkOffImage != nullptr || mNetworkShareImage != nullptr || mNetworkServiceImage != nullptr))
 		itemsWidth += szW + mSpacing; // getTextureSize(mNetworkImage).x()
 
+	// render() draws a Bluetooth icon too; without it here, right/center alignment
+	// overshoots by one icon
+	if ((mView & BLUETOOTH) && (mBluetoothImage != nullptr || mBluetoothActiveImage != nullptr || mBluetoothOffImage != nullptr))
+		itemsWidth += szW + mSpacing;
+
 	auto batteryText = std::to_string(mBatteryInfo.level) + "%";
 	
 	if ((mView & BATTERY) && mBatteryInfo.hasBattery && mBatteryImage != nullptr)

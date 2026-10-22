@@ -23,8 +23,12 @@ void BatteryIndicatorComponent::init()
 	}
 	else
 	{
-		setPosition(Renderer::getScreenWidth() * 0.955, Renderer::getScreenHeight() *0.0125);
-		setSize(Renderer::getScreenWidth() * 0.033, Renderer::getScreenHeight() *0.033);
+		// Right-align against the right edge so the icons grow leftward: the box used to start
+		// at 95.5% with room for the battery alone, and the Wi-Fi and Bluetooth icons plus the
+		// battery percentage pushed the battery off screen
+		setPosition(Renderer::getScreenWidth() * 0.800, Renderer::getScreenHeight() * 0.0125);
+		setSize(Renderer::getScreenWidth() * 0.189, Renderer::getScreenHeight() * 0.033);
+		mHorizontalAlignment = ALIGN_RIGHT;
 	}
 
 	mView = ActivityView::BATTERY;
