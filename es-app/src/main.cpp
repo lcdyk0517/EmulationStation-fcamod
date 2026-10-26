@@ -21,6 +21,9 @@
 #include <SDL_events.h>
 #include <SDL_main.h>
 #include <SDL_timer.h>
+#if defined(__GLIBC__)
+#include <malloc.h>
+#endif
 #include <iostream>
 #include <time.h>
 
@@ -415,6 +418,15 @@ int main(int argc, char* argv[])
 {
 	srand((unsigned int)time(NULL));
 
+#if defined(__GLIBC__)
+	// glibc gives each render/decode thread its own malloc arena and keeps
+	// freed memory in them, so RSS keeps growing while browsing on 1 GB
+	// handhelds. Cap the arenas and let the idle loop trim the heap back to
+	// the live working set.
+	mallopt(M_ARENA_MAX, 2);
+	mallopt(M_TRIM_THRESHOLD, 512 * 1024);
+#endif
+
 #if WIN32
 	std::locale::global(std::locale("en-US"));
 	setlocale(LC_NUMERIC, "C");
@@ -718,6 +730,20 @@ int main(int argc, char* argv[])
 			SDL_Delay(10); // this doesn't need to be accurate, we're just giving up our CPU time until something wakes us up
 			continue;
 		}
+
+#if defined(__GLIBC__)
+		// After 15 s without input, hand freed heap pages back to the OS
+		// (at most once a minute).
+		{
+			static int s_lastTrim = 0;
+			const int now = SDL_GetTicks();
+			if (now - ps_time > 15000 && now - s_lastTrim > 60000)
+			{
+				malloc_trim(0);
+				s_lastTrim = now;
+			}
+		}
+#endif
 
 		int curTime = SDL_GetTicks();
 		int deltaTime = curTime - lastTime;
