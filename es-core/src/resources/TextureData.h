@@ -70,6 +70,7 @@ public:
 
 private:
 	std::mutex		mMutex;
+	std::mutex		mLoadMutex; // serializes SVG rasterization; never taken by the render path
 	bool			mTile;
 	bool			mLinear;
 	unsigned char*	mDataRGBA;

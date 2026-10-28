@@ -37,10 +37,21 @@ void TextureData::initFromPath(const std::string& path)
 
 bool TextureData::initSVGFromMemory(const unsigned char* fileData, size_t length)
 {
+	// A second load of the same texture (e.g. a blocking load while a loader
+	// thread is already on it) waits here and reuses the result instead of
+	// rasterizing again.
+	std::unique_lock<std::mutex> loadLock(mLoadMutex);
+
 	// If already initialised then don't read again
-	std::unique_lock<std::mutex> lock(mMutex);
-	if (mDataRGBA)
-		return true;
+	{
+		std::unique_lock<std::mutex> lock(mMutex);
+		if (mDataRGBA)
+			return true;
+	}
+
+	// Parse and rasterize without holding mMutex: the render thread calls
+	// isLoaded() on this texture every frame, and a large theme SVG takes
+	// hundreds of ms to rasterize on the loader thread.
 
 	// nsvgParse excepts a modifiable, null-terminated string
 	char* copy = (char*)malloc(length + 1);
@@ -57,65 +68,85 @@ bool TextureData::initSVGFromMemory(const unsigned char* fileData, size_t length
 	}
 
 	if (svgImage->width == 0 || svgImage->height == 0)
+	{
+		nsvgDelete(svgImage);
 		return false;
+	}
+
+	float sourceWidth = mSourceWidth;
+	float sourceHeight = mSourceHeight;
 
 	// We want to rasterise this texture at a specific resolution. If the source size
 	// variables are set then use them otherwise set them from the parsed file
-	if ((mSourceWidth == 0.0f) && (mSourceHeight == 0.0f))
+	if ((sourceWidth == 0.0f) && (sourceHeight == 0.0f))
 	{
-		mSourceWidth = svgImage->width;
-		mSourceHeight = svgImage->height;
+		sourceWidth = svgImage->width;
+		sourceHeight = svgImage->height;
 	}
 	else 
-		mSourceWidth = (mSourceHeight * svgImage->width) / svgImage->height; // FCATMP : Always keep source aspect ratio
+		sourceWidth = (sourceHeight * svgImage->width) / svgImage->height; // FCATMP : Always keep source aspect ratio
 
-	mWidth = (size_t)Math::round(mSourceWidth);
-	mHeight = (size_t)Math::round(mSourceHeight);
+	size_t width = (size_t)Math::round(sourceWidth);
+	size_t height = (size_t)Math::round(sourceHeight);
 
-	if (mWidth == 0)
+	if (width == 0)
 	{
 		// auto scale width to keep aspect
-		mWidth = (size_t)Math::round(((float)mHeight / svgImage->height) * svgImage->width);
+		width = (size_t)Math::round(((float)height / svgImage->height) * svgImage->width);
 	}
-	else if (mHeight == 0)
+	else if (height == 0)
 	{
 		// auto scale height to keep aspect
-		mHeight = (size_t)Math::round(((float)mWidth / svgImage->width) * svgImage->height);
+		height = (size_t)Math::round(((float)width / svgImage->width) * svgImage->height);
 	}
 
-	mBaseSize = Vector2i(mWidth, mHeight);
+	Vector2i baseSize(width, height);
+	Vector2i packedSize(0, 0);
 	
-	if (mMaxSize.x() > 0 && mMaxSize.y() > 0 && mHeight < mMaxSize.y() && mWidth < mMaxSize.x()) // FCATMP
+	if (mMaxSize.x() > 0 && mMaxSize.y() > 0 && height < mMaxSize.y() && width < mMaxSize.x()) // FCATMP
 	{
-		Vector2i sz = ImageIO::adjustPictureSize(Vector2i(mWidth, mHeight), Vector2i(mMaxSize.x(), mMaxSize.y()), mMaxSize.externalZoom());
-		mHeight = sz.y();
-		mWidth = (int)((mHeight * svgImage->width) / svgImage->height);
+		Vector2i sz = ImageIO::adjustPictureSize(Vector2i(width, height), Vector2i(mMaxSize.x(), mMaxSize.y()), mMaxSize.externalZoom());
+		height = sz.y();
+		width = (int)((height * svgImage->width) / svgImage->height);
 	}
 	
-	if (OPTIMIZEVRAM && mMaxSize.x() > 0 && mMaxSize.y() > 0 && (mWidth > mMaxSize.x() || mHeight > mMaxSize.y()))
+	if (OPTIMIZEVRAM && mMaxSize.x() > 0 && mMaxSize.y() > 0 && (width > mMaxSize.x() || height > mMaxSize.y()))
 	{
-		Vector2i sz = ImageIO::adjustPictureSize(Vector2i(mWidth, mHeight), Vector2i(mMaxSize.x(), mMaxSize.y()), mMaxSize.externalZoom());
-		mHeight = sz.y();	
-		mWidth = (mHeight * svgImage->width) / svgImage->height;
+		Vector2i sz = ImageIO::adjustPictureSize(Vector2i(width, height), Vector2i(mMaxSize.x(), mMaxSize.y()), mMaxSize.externalZoom());
+		height = sz.y();	
+		width = (height * svgImage->width) / svgImage->height;
 
-		mPackedSize = Vector2i(mWidth, mHeight);
+		packedSize = Vector2i(width, height);
 	}
-	else
-		mPackedSize = Vector2i(0, 0);
 	
-	unsigned char* dataRGBA = new unsigned char[mWidth * mHeight * 4];
+	unsigned char* dataRGBA = new unsigned char[width * height * 4];
 
-	double scale = ((float) ((int) mHeight)) / svgImage->height;
-	double scaleV = ((float) ((int) mWidth)) / svgImage->width;
+	double scale = ((float) ((int) height)) / svgImage->height;
+	double scaleV = ((float) ((int) width)) / svgImage->width;
 	if (scaleV < scale)
 		scale = scaleV;
 
 	NSVGrasterizer* rast = nsvgCreateRasterizer();
-	nsvgRasterize(rast, svgImage, 0, 0, scale, dataRGBA, (int)mWidth, (int)mHeight, (int)mWidth * 4);
+	nsvgRasterize(rast, svgImage, 0, 0, scale, dataRGBA, (int)width, (int)height, (int)width * 4);
 	nsvgDeleteRasterizer(rast);
+	nsvgDelete(svgImage);
 
-	ImageIO::flipPixelsVert(dataRGBA, mWidth, mHeight);
+	ImageIO::flipPixelsVert(dataRGBA, width, height);
 
+	std::unique_lock<std::mutex> lock(mMutex);
+	if (mDataRGBA)
+	{
+		// another thread finished first
+		delete[] dataRGBA;
+		return true;
+	}
+
+	mSourceWidth = sourceWidth;
+	mSourceHeight = sourceHeight;
+	mWidth = width;
+	mHeight = height;
+	mBaseSize = baseSize;
+	mPackedSize = packedSize;
 	mDataRGBA = dataRGBA;
 
 	return true;
