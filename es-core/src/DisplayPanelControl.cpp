@@ -97,7 +97,10 @@ int DisplayPanelControl::getMaxBrightness() const
 
 int DisplayPanelControl::getBrightnessLevel()
 {
-	if (mExistBrightnessctl)
+	// The brightness overlay polls this from the render loop; spawning a
+	// shell + brightnessctl + awk each time stalls frames, so read sysfs
+	// directly and only fall back to brightnessctl without it.
+	if (mExistBrightnessctl && access(BACKLIGHT_BRIGHTNESS_NAME, R_OK) != 0)
 		return std::atoi( getShOutput(std::string(BRIGHTNESSCTL_PATH).append(" -m | awk -F',|%' '{print $4}'")).c_str() );
 
 
