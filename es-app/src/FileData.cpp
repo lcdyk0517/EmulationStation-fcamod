@@ -21,6 +21,10 @@
 #include "guis/arkos4clone/FreqProfile.h"
 #include <algorithm>
 
+#if defined(__GLIBC__)
+#include <malloc.h>
+#endif
+
 FileData::FileData(FileType type, const std::string& path, SystemData* system)
 	: mType(type), mSystem(system), mParent(NULL), mMetadata(type == GAME ? GAME_METADATA : FOLDER_METADATA) // metadata is REALLY set in the constructor!
 {
@@ -346,6 +350,11 @@ void FileData::launchGame(Window* window)
 	FreqProfile::GameFreqGuard freqGuard(getSystemName());
 
 	LOG(LogInfo) << "	" << command;
+
+#if defined(__GLIBC__)
+	// Return unused heap pages after releasing frontend resources.
+	malloc_trim(0);
+#endif
 
 	int exitCode = runSystemCommand(command, getDisplayName(), hideWindow ? NULL : window);
 	if (exitCode != 0)
