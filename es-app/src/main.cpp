@@ -425,6 +425,9 @@ int main(int argc, char* argv[])
 	// the live working set.
 	mallopt(M_ARENA_MAX, 2);
 	mallopt(M_TRIM_THRESHOLD, 512 * 1024);
+	// big allocations (decoded images) on mmap: freeing them returns the
+	// memory to the system at once
+	mallopt(M_MMAP_THRESHOLD, 128 * 1024);
 #endif
 
 #if WIN32
