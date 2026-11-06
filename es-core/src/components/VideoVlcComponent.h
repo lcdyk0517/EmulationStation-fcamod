@@ -9,6 +9,7 @@
 struct libvlc_instance_t;
 struct libvlc_media_t;
 struct libvlc_media_player_t;
+class MppVideoPlayer;
 
 struct VideoContext
 {
@@ -95,6 +96,10 @@ private:
 
 	void setupContext();
 	void freeContext();
+	// Shrinks mVideoWidth/mVideoHeight to the target size when OptimizeVideo is on
+	void limitVideoSize();
+	// Plays the video on the VPU when possible; false means use VLC
+	bool startMppVideo(const std::string& path);
 
 	void setEffect(VideoVlcFlags::VideoVlcEffect effect) { mEffect = effect; }
 
@@ -102,6 +107,7 @@ private:
 	static libvlc_instance_t*		mVLC;
 	libvlc_media_t*					mMedia;
 	libvlc_media_player_t*			mMediaPlayer;
+	MppVideoPlayer*					mMpp;
 	VideoContext					mContext;
 	std::shared_ptr<TextureResource> mTexture;
 

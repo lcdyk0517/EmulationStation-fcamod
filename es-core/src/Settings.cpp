@@ -198,6 +198,7 @@ void Settings::setDefaults()
 	mIntMap["ScreenSaverSwapVideoTimeout"] = 30000;
 
 	mBoolMap["VideoAudio"] = true;
+	mStringMap["VideoDecoder"] = "auto"; // auto: hardware (MPP) when available, else VLC; vlc: always VLC
 	mBoolMap["VolumePopup"] = true;
 	mBoolMap["VideoLowersMusic"] = true;
 	mBoolMap["CaptionsCompatibility"] = true;

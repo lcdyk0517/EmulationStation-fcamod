@@ -12,6 +12,8 @@
 #include "ThemeData.h"
 #include <SDL_timer.h>
 #include "AudioManager.h"
+#include "components/MppVideoPlayer.h"
+#include "Log.h"
 
 
 #ifdef WIN32
@@ -63,6 +65,7 @@ static void display(void* data, void* id)
 VideoVlcComponent::VideoVlcComponent(Window* window, std::string subtitles) :
 	VideoComponent(window),
 	mMediaPlayer(nullptr),
+	mMpp(nullptr),
 	mMedia(nullptr)
 {
 	mElapsed = 0;
@@ -447,10 +450,16 @@ void VideoVlcComponent::setupVLC(std::string subtitles)
 
 void VideoVlcComponent::handleLooping()
 {
+	bool ended = false;
+#ifdef HAVE_MPP
+	if (mIsPlaying && mMpp)
+		ended = mMpp->ended();
+#endif
 	if (mIsPlaying && mMediaPlayer)
+		ended = libvlc_media_player_get_state(mMediaPlayer) == libvlc_Ended;
+
 	{
-		libvlc_state_t state = libvlc_media_player_get_state(mMediaPlayer);
-		if (state == libvlc_Ended)
+		if (ended)
 		{
 			if (mLoops >= 0)
 			{
@@ -489,6 +498,13 @@ void VideoVlcComponent::handleLooping()
 				}
 			}
 
+#ifdef HAVE_MPP
+			if (mMpp)
+			{
+				mMpp->restart();
+				return;
+			}
+#endif
 			if (!Settings::getInstance()->getBool("VideoAudio"))
 			{
 				libvlc_audio_set_mute(mMediaPlayer, 1);
@@ -500,6 +516,65 @@ void VideoVlcComponent::handleLooping()
 			libvlc_media_player_play(mMediaPlayer);
 		}
 	}
+}
+
+void VideoVlcComponent::limitVideoSize()
+{
+	if (!Settings::getInstance()->getBool("OptimizeVideo"))
+		return;
+
+	// Avoid videos bigger than resolution
+	Vector2f maxSize(Renderer::getScreenWidth(), Renderer::getScreenHeight());
+
+#ifdef _RPI_
+	// Temporary -> RPI -> Try to limit videos to 400x300 for performance benchmark
+	if (!Renderer::isSmallScreen())
+		maxSize = Vector2f(400, 300);
+#endif
+
+	if (!mTargetSize.empty() && (mTargetSize.x() < maxSize.x() || mTargetSize.y() < maxSize.y()))
+		maxSize = mTargetSize;
+
+	// If video is bigger than display, ask the decoder for a smaller image
+	auto sz = ImageIO::adjustPictureSize(Vector2i(mVideoWidth, mVideoHeight), Vector2i(mTargetSize.x(), mTargetSize.y()), mTargetIsMin);
+	if (sz.x() < mVideoWidth || sz.y() < mVideoHeight)
+	{
+		mVideoWidth = sz.x();
+		mVideoHeight = sz.y();
+	}
+}
+
+bool VideoVlcComponent::startMppVideo(const std::string& path)
+{
+#ifdef HAVE_MPP
+	if (Settings::getInstance()->getString("VideoDecoder") == "vlc")
+		return false;
+
+	mMpp = MppVideoPlayer::open(path);
+	if (mMpp == nullptr)
+		return false;
+
+	LOG(LogInfo) << "VideoVlcComponent: hardware decoding " << path << " (" << mMpp->width() << "x" << mMpp->height() << ")";
+
+	mPlayingVideoPath = mVideoPath;
+	mVideoWidth = mMpp->width();
+	mVideoHeight = mMpp->height();
+	limitVideoSize();
+
+	PowerSaver::pause();
+	setupContext();
+
+	bool audio = mMpp->hasAudio() && Settings::getInstance()->getBool("VideoAudio");
+	if (audio)
+		AudioManager::setVideoPlaying(true);
+
+	// If we have a playlist : most videos have a fader, skip it (same as the VLC path)
+	double startTime = (mPlaylist != nullptr && mConfig.startDelay == 0 && !mConfig.showSnapshotDelay && !mConfig.showSnapshotNoVideo) ? 0.7 : 0.0;
+	mMpp->start(&mContext, (int)mVideoWidth, (int)mVideoHeight, audio, startTime);
+	return true;
+#else
+	return false;
+#endif
 }
 
 void VideoVlcComponent::startVideo()
@@ -516,6 +591,9 @@ void VideoVlcComponent::startVideo()
 #else
 	std::string path(mVideoPath);
 #endif
+	if (path.size() > 0 && startMppVideo(path))
+		return;
+
 	// Make sure we have a video path
 	if (mVLC && (path.size() > 0))
 	{
@@ -559,29 +637,7 @@ void VideoVlcComponent::startVideo()
 			// Make sure we found a valid video track
 			if ((mVideoWidth > 0) && (mVideoHeight > 0))
 			{
-				if (Settings::getInstance()->getBool("OptimizeVideo"))
-				{
-					// Avoid videos bigger than resolution
-					Vector2f maxSize(Renderer::getScreenWidth(), Renderer::getScreenHeight());
-										
-#ifdef _RPI_
-					// Temporary -> RPI -> Try to limit videos to 400x300 for performance benchmark
-					if (!Renderer::isSmallScreen())
-						maxSize = Vector2f(400, 300);
-#endif
-
-					if (!mTargetSize.empty() && (mTargetSize.x() < maxSize.x() || mTargetSize.y() < maxSize.y()))
-						maxSize = mTargetSize;
-
-
-					// If video is bigger than display, ask VLC for a smaller image
-					auto sz = ImageIO::adjustPictureSize(Vector2i(mVideoWidth, mVideoHeight), Vector2i(mTargetSize.x(), mTargetSize.y()), mTargetIsMin);
-					if (sz.x() < mVideoWidth || sz.y() < mVideoHeight)
-					{
-						mVideoWidth = sz.x();
-						mVideoHeight = sz.y();
-					}
-				}
+				limitVideoSize();
 
 				PowerSaver::pause();
 				setupContext();
@@ -614,6 +670,12 @@ void VideoVlcComponent::stopVideo()
 	mIsPlaying = false;
 	mIsWaitingForVideoToStart = false;
 	mStartDelayed = false;
+
+#ifdef HAVE_MPP
+	// joins the decoder thread before freeContext() frees the surfaces it writes to
+	delete mMpp;
+	mMpp = nullptr;
+#endif
 
 	// Release the media player so it stops calling back to us
 	if (mMediaPlayer)
