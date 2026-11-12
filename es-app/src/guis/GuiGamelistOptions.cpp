@@ -18,6 +18,10 @@
 #include "guis/GuiMsgBox.h"
 #include "scrapers/ThreadedScraper.h"
 #include "guis/GuiMenu.h"
+#include "guis/GuiSettings.h"
+#include "guis/arkos4clone/HardwareInfo.h"
+#include "guis/arkos4clone/FreqProfile.h"
+#include "Settings.h"
 
 std::vector<std::string> GuiGamelistOptions::gridSizes {
 	"automatic",
@@ -91,6 +95,26 @@ GuiGamelistOptions::GuiGamelistOptions(Window* window, SystemData* system, bool 
 
 	if (!fromPlaceholder)
 	{
+		// 模拟器设定从主菜单移到对应机种的 SELECT 菜单 (仅多模拟器/多核心时显示)
+		auto emulData = mSystem->getSystemEnvData();
+		if (emulData && emulData->mEmulators.size() > 0 &&
+			(emulData->mEmulators.size() > 1 ||
+			 (emulData->mEmulators.size() == 1 && emulData->mEmulators[0].mCores.size() > 1)))
+		{
+			mMenu.addEntry(_("EMULATOR SETTINGS"), true, [this] {
+				openEmulatorSettings();
+			}, "iconSystem");
+		}
+
+		// 性能设置 (按机种覆盖 CPU/GPU/DMC 频率与核心数)
+		if (!HardwareInfo::getCpuAvailableFreqs().empty() ||
+		    HardwareInfo::hasGpuFreqControl() || HardwareInfo::hasDmcFreqControl())
+		{
+			mMenu.addEntry(_("PERFORMANCE SETTINGS"), true, [this] {
+				openPerformanceSettings();
+			}, "");
+		}
+
 		// jump to letter
 		row.elements.clear();
 
@@ -610,7 +634,191 @@ std::vector<HelpPrompt> GuiGamelistOptions::getHelpPrompts()
 	return prompts;
 }
 
+void GuiGamelistOptions::addFreqOption(GuiSettings* s, char which, const std::string& label,
+                                        const std::vector<std::string>& freqs, int divisor)
+{
+	auto list = std::make_shared<OptionListComponent<std::string>>(mWindow, label, false);
+
+	std::string current = FreqProfile::getSystemFreq(mSystem->getName(), which);
+
+	list->add(_("AUTO"), "", current.empty());
+
+	bool found = !current.empty();
+	for (const auto& freq : freqs)
+	{
+		int mhz = atoi(freq.c_str()) / divisor;
+		bool isSelected = (freq == current);
+		if (isSelected) found = true;
+		list->add(std::to_string(mhz) + " MHz", freq, isSelected);
+	}
+
+	if (!found)
+		list->selectFirstItem();
+
+	s->addWithLabel(label, list);
+
+	s->addSaveFunc([this, list, which] {
+		FreqProfile::setSystemFreq(mSystem->getName(), which, list->getSelected());
+	});
+}
+
+void GuiGamelistOptions::openPerformanceSettings()
+{
+	auto s = new GuiSettings(mWindow, _("PERFORMANCE SETTINGS"));
+
+
+	auto cpuFreqs = HardwareInfo::getCpuAvailableFreqs();
+	if (!cpuFreqs.empty())
+		addFreqOption(s, 'c', _("CPU MAX FREQ"), cpuFreqs, 1000);
+
+	int coreCount = HardwareInfo::getCpuCoreCount();
+	if (coreCount > 1)
+	{
+		auto coreList = std::make_shared<OptionListComponent<std::string>>(mWindow, _("CPU CORES"), false);
+
+		std::string currentCores = FreqProfile::getSystemCores(mSystem->getName());
+
+		coreList->add(_("AUTO"), "", currentCores.empty());
+
+		bool found = !currentCores.empty();
+		for (int i = 1; i <= coreCount; i++)
+		{
+			std::string val = std::to_string(i);
+			bool isSelected = (val == currentCores);
+			if (isSelected) found = true;
+			coreList->add(val, val, isSelected);
+		}
+
+		if (!found)
+			coreList->selectFirstItem();
+
+		s->addWithLabel(_("CPU CORES"), coreList);
+
+		s->addSaveFunc([this, coreList] {
+			FreqProfile::setSystemCores(mSystem->getName(), coreList->getSelected());
+		});
+	}
+
+	if (HardwareInfo::hasGpuFreqControl())
+	{
+		auto gpuFreqs = HardwareInfo::getGpuAvailableFreqs();
+		if (!gpuFreqs.empty())
+			addFreqOption(s, 'g', _("GPU MAX FREQ"), gpuFreqs, 1000000);
+	}
+
+	if (HardwareInfo::hasDmcFreqControl())
+	{
+		auto dmcFreqs = HardwareInfo::getDmcAvailableFreqs();
+		if (!dmcFreqs.empty())
+			addFreqOption(s, 'd', _("DMC MAX FREQ"), dmcFreqs, 1000000);
+	}
+
+	mWindow->pushGui(s);
+}
+
 IGameListView* GuiGamelistOptions::getGamelist()
 {
 	return ViewController::get()->getGameListView(mSystem).get();
+}
+
+void GuiGamelistOptions::openEmulatorSettings()
+{
+	auto theme = ThemeData::getMenuTheme();
+
+	GuiSettings* s = new GuiSettings(mWindow, mSystem->getFullName().c_str());
+
+	auto emul_choice = std::make_shared<OptionListComponent<std::string>>(mWindow, _("EMULATOR"), false);
+	auto core_choice = std::make_shared<OptionListComponent<std::string>>(mWindow, _("CORE"), false);
+
+	std::string currentEmul = Settings::getInstance()->getString(mSystem->getName() + ".emulator");
+
+	emul_choice->add(_("AUTO"), "", false);
+
+	bool found = false;
+	for (auto core : mSystem->getSystemEnvData()->mEmulators)
+	{
+		if (core.mName == currentEmul)
+			found = true;
+
+		emul_choice->add(core.mName, core.mName, core.mName == currentEmul);
+	}
+
+	if (!found)
+		emul_choice->selectFirstItem();
+
+	ComponentListRow row;
+	row.addElement(std::make_shared<TextComponent>(mWindow, _("EMULATOR"), theme->Text.font, theme->Text.color), true);
+	row.addElement(emul_choice, false);
+
+	s->addRow(row);
+
+	emul_choice->setSelectedChangedCallback([this, core_choice](std::string emulatorName)
+	{
+		std::string currentCore = Settings::getInstance()->getString(mSystem->getName() + ".core");
+
+		core_choice->clear();
+
+		core_choice->add(_("AUTO"), "", false);
+
+		std::vector<std::string> cores = mSystem->getSystemEnvData()->getCores(emulatorName);
+
+		bool foundCore = false;
+
+		for (auto it = cores.begin(); it != cores.end(); it++)
+		{
+			std::string core = *it;
+			core_choice->add(core, core, currentCore == core);
+			if (currentCore == core)
+				foundCore = true;
+		}
+
+		if (!foundCore)
+			core_choice->selectFirstItem();
+		else
+			core_choice->invalidate();
+	});
+
+	row.elements.clear();
+	row.addElement(std::make_shared<TextComponent>(mWindow, _("CORE"), theme->Text.font, theme->Text.color), true);
+	row.addElement(core_choice, false);
+	s->addRow(row);
+
+	// force change event to load core list
+	emul_choice->invalidate();
+
+	// set governor
+	auto gov_choice = std::make_shared<OptionListComponent<std::string>>(mWindow, _("GOVERNOR"), false);
+
+	gov_choice->clear();
+
+	gov_choice->add(_("AUTO"), "", false);
+
+	std::vector<std::string> governors = mSystem->getSystemEnvData()->allGovernors();
+	std::string currentGovernor = Settings::getInstance()->getString(mSystem->getName() + ".governor");
+
+	bool foundGov = false;
+
+	for (auto it = governors.begin(); it != governors.end(); it++)
+	{
+		std::string govena = *it;
+		gov_choice->add(govena, govena, currentGovernor == govena);
+		if (currentGovernor == govena)
+			foundGov = true;
+	}
+
+	if (!foundGov)
+		gov_choice->selectFirstItem();
+	else
+		gov_choice->invalidate();
+
+	s->addWithLabel(_("GOVERNOR"), gov_choice);
+
+	s->addSaveFunc([this, emul_choice, core_choice, gov_choice]
+	{
+		Settings::getInstance()->setString(mSystem->getName() + ".emulator", emul_choice->getSelected());
+		Settings::getInstance()->setString(mSystem->getName() + ".core", core_choice->getSelected());
+		Settings::getInstance()->setString(mSystem->getName() + ".governor", gov_choice->getSelected());
+	});
+
+	mWindow->pushGui(s);
 }

@@ -12,6 +12,9 @@
 #include "MameNames.h"
 #include "platform.h"
 #include "Scripting.h"
+#include <fstream>
+#include "guis/arkos4clone/FreqProfile.h"
+#include "guis/arkos4clone/HardwareInfo.h"
 #include "SystemData.h"
 #include "VolumeControl.h"
 #include "Window.h"
@@ -340,6 +343,33 @@ void FileData::launchGame(Window* window)
     }
 
 	Scripting::fireEvent("game-start", rom, basename);
+
+	// 重负载模拟器: 未开 zram 且内存 < 1G 时自动开 1G zram
+	{
+		const std::string sysName = getSystemName();
+		if (sysName == "ps2" || sysName == "wii" || sysName == "gc")
+		{
+			long totalKb = 0;
+			std::ifstream meminfo("/proc/meminfo");
+			std::string key;
+			long value = 0;
+			std::string unit;
+			while (meminfo >> key >> value >> unit)
+			{
+				if (key == "MemTotal:")
+				{
+					totalKb = value;
+					break;
+				}
+			}
+
+			if (totalKb > 0 && totalKb < 1024 * 1024 && !HardwareInfo::isZramEnabled())
+				HardwareInfo::toggleZram(true, "1024M", HardwareInfo::getDefaultZramAlgorithm());
+		}
+	}
+
+	// 按机种应用 CPU/GPU/DMC 频率与核心数 (退出时恢复)
+	FreqProfile::GameFreqGuard freqGuard(getSystemName());
 
 	LOG(LogInfo) << "	" << command;
 

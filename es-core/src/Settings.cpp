@@ -119,6 +119,7 @@ void Settings::setDefaults()
 	mBoolMap["ShowBatteryIndicator"] = true;
 	mBoolMap["ShowNetworkIndicator"] = true;
 	mBoolMap["OptimizeVRAM"] = true;	
+	mBoolMap["LinearTriggers"] = true;
 	mBoolMap["ThreadedLoading"] = true;	
 	mBoolMap["MusicTitles"] = true;
 

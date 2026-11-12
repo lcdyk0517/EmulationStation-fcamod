@@ -3,6 +3,7 @@
 //http://www.aloshi.com
 
 #include "guis/GuiDetectDevice.h"
+#include "guis/GuiJoystickCalibration.h"
 #include "guis/GuiMsgBox.h"
 #include "utils/FileSystemUtil.h"
 #include "views/ViewController.h"
@@ -22,6 +23,8 @@
 #include <SDL_main.h>
 #include <SDL_timer.h>
 #include <iostream>
+#include <fstream>
+#include <cstdlib>
 #include <time.h>
 
 #if defined(_WIN32)
@@ -487,6 +490,74 @@ int main(int argc, char* argv[])
 	VideoVlcComponent::init();
 	MameNames::init();
 	window.pushGui(ViewController::get());
+
+	// ES 启动时应用 LED / 风扇配置 (不走 systemd 服务)
+	// 必须完全后台 + sudo -n: 摇杆灯效果进程常驻、sudo 可能等密码,
+	// 任何一条卡住都会让 ES 停在 window.init() 之前, 表现为"ES 起不来".
+	system("setsid sh -c 'sudo -n /usr/local/bin/darkos-hw-apply.sh "
+	       ">>/tmp/darkos-hw-apply.log 2>&1' </dev/null >/dev/null 2>&1 &");
+
+	// 电源灯: 恢复各 LED 的阈值与开关状态
+	{
+		for (const char* label : { "red", "green", "blue" })
+		{
+			const std::string name(label);
+			// 0 也必须回写: 否则驱动回到 DT 默认阈值 (ngp45ht 是 20), 灯会自己亮
+			const std::string thresholdKey = "PowerLed." + name + ".threshold";
+			if (Settings::getInstance()->hasInt(thresholdKey))
+			{
+				const int threshold = Settings::getInstance()->getInt(thresholdKey);
+				const std::string cmd = "sudo -n sh -c 'echo " + std::to_string(threshold) +
+					" > /sys/class/leds/" + name + "/battery_threshold'";
+				system(cmd.c_str());
+			}
+
+			// 开/关都要回写: 关闭时自动模式可能把灯留在点亮状态
+			{
+				const bool ledOn = Settings::getInstance()->getBool("PowerLed." + name + ".on");
+				const std::string cmd = "sudo -n sh -c 'echo \"" + name +
+					(ledOn ? " 1" : " 0") + "\" > /sys/devices/platform/power-leds/gpio'";
+				system(cmd.c_str());
+			}
+		}
+	}
+
+	// 摇杆设置: 死区 / AB / XY / 扳机 / 校准
+	{
+		const std::string node = Utils::FileSystem::exists("/sys/devices/platform/play_joystick")
+			? "/sys/devices/platform/play_joystick"
+			: "/sys/devices/platform/rk3562-joystick";
+		const int adcDeadZone = Settings::getInstance()->getInt("AdcDeadZone");
+		if (adcDeadZone >= 10 && adcDeadZone <= 1800)
+		{
+			const std::string cmd = "sudo -n sh -c 'echo " + std::to_string(adcDeadZone) +
+				" > " + node + "/adc_deadzone'";
+			system(cmd.c_str());
+		}
+
+		if (Settings::getInstance()->getBool("ButtonSwapAb"))
+			system(("sudo -n sh -c 'echo 1 > " + node + "/swap_ab'").c_str());
+		if (Settings::getInstance()->getBool("ButtonSwapXy"))
+			system(("sudo -n sh -c 'echo 1 > " + node + "/swap_xy'").c_str());
+
+		if (Settings::getInstance()->getBool("LinearTriggers"))
+			system(("sudo -n sh -c 'echo 1 > " + node + "/linear_triggers'").c_str());
+
+		GuiJoystickCalibration::applyCalibrationOnStartup();
+	}
+
+	// 每个 ES 启动时重新应用已保存的 gamma (SDL 设置显示模式后 gamma 表会被重置)
+	{
+		const std::string home = getenv("HOME") ? getenv("HOME") : "/home/ark";
+		std::ifstream gammaFile(home + "/.config/gamma/GAMMA.VALUE");
+		float gr, gg, gb;
+		if (gammaFile >> gr >> gg >> gb)
+		{
+			const std::string cmd = "sudo -n env HOME=" + home + " /usr/local/bin/gamma -r " +
+				std::to_string(gr) + " -g " + std::to_string(gg) + " -b " + std::to_string(gb);
+			system(cmd.c_str());
+		}
+	}
 
 	TextureData::OPTIMIZEVRAM = Settings::getInstance()->getBool("OptimizeVRAM");
 	GuiComponent::ALLOWANIMATIONS = Settings::getInstance()->getString("TransitionStyle") != "instant";

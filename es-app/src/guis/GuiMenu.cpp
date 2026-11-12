@@ -1,4 +1,10 @@
 #include <string>
+#include <array>
+#include <cmath>
+#include <cstdio>
+#include <fstream>
+#include <cstdlib>
+#include <sstream>
 #include "guis/GuiMenu.h"
 #include "guis/GuiTools.h"
 #include "components/OptionListComponent.h"
@@ -8,6 +14,9 @@
 #include "guis/GuiDetectDevice.h"
 #include "guis/GuiGeneralScreensaverOptions.h"
 #include "guis/GuiMsgBox.h"
+#include "guis/GuiWifi.h"
+#include "guis/GuiJoystickCalibration.h"
+#include "guis/arkos4clone/HardwareInfo.h"
 #include "guis/GuiScraperStart.h"
 #include "guis/GuiSettings.h"
 #include "views/UIModeController.h"
@@ -35,23 +44,25 @@
 //#include <go2/display.h>
 #include "SystemConf.h"
 
+namespace
+{
+std::string readTextFile(const char* path)
+{
+	std::ifstream file(path);
+	if (!file.is_open())
+		return "";
+
+	std::stringstream ss;
+	ss << file.rdbuf();
+	return ss.str();
+}
+}  // namespace
+
 GuiMenu::GuiMenu(Window* window, bool animate) : GuiComponent(window), mMenu(window, _("MAIN MENU")), mVersion(window)
 {
-    if (Settings::getInstance()->getBool("EnableKodi") == 1 && (Utils::FileSystem::exists("/usr/local/bin/Kodi.sh"))){
-	   addEntry(_("KODI MEDIA CENTER").c_str(), false, [this] 
-	   { 
-		   Window *window = mWindow;
-		   delete this;
-		   if (!ApiSystem::getInstance()->launchKodi(window))
-			   LOG(LogWarning) << "Shutdown terminated with non-zero result!";
+	// dArkOS3562 设置: KODI / 显示设置与信息 / 设定输入 集中到二级菜单
+	addEntry(_("dArkOS3562 SETTINGS"), true, [this] { openDArkOSSettings(); }, "iconSystem");
 
-	   }, "iconKodi");	
-    }
-
-    if (Utils::FileSystem::exists("/var/run/drmConn")){
-	  addEntry(_("DISPLAY SETTINGS AND INFO"), true, [this] { openDisplaySettings(); }, "iconBrightnessctl");
-    }
-    
 	auto theme = ThemeData::getMenuTheme();
 
 	bool isFullUI = UIModeController::getInstance()->isUIModeFull();	
@@ -59,7 +70,6 @@ GuiMenu::GuiMenu(Window* window, bool animate) : GuiComponent(window), mMenu(win
 	if (isFullUI)
 	{
 		addEntry(_("UI SETTINGS"), true, [this] { openUISettings(); }, "iconUI");
-		addEntry(_("CONFIGURE INPUT"), true, [this] { openConfigInput(); }, "iconControllers");
 	}
 
 	addEntry(_("SOUND SETTINGS"), true, [this] { openSoundSettings(); }, "iconSound");
@@ -68,7 +78,8 @@ GuiMenu::GuiMenu(Window* window, bool animate) : GuiComponent(window), mMenu(win
 	{
 		addEntry(_("GAME COLLECTION SETTINGS"), true, [this] { openCollectionSystemSettings(); }, "iconGames");
 
-		// Emulator settings 
+		// Emulator settings 已移到各机种的 SELECT 菜单 (GuiGamelistOptions)
+		/*
 		for (auto system : SystemData::sSystemVector)
 		{
 			if (system->isCollection() || system->getSystemEnvData()->mEmulators.size() == 0 || (system->getSystemEnvData()->mEmulators.size() == 1 && system->getSystemEnvData()->mEmulators[0].mCores.size() <= 1))
@@ -77,6 +88,7 @@ GuiMenu::GuiMenu(Window* window, bool animate) : GuiComponent(window), mMenu(win
 			addEntry(_("EMULATOR SETTINGS"), true, [this] { openEmulatorSettings(); }, "iconSystem");
 			break;
 		}
+		*/
 		
 		addEntry(_("SCRAPER"), true, [this] { openScraperSettings(); }, "iconScraper");
 
@@ -128,6 +140,825 @@ GuiMenu::GuiMenu(Window* window, bool animate) : GuiComponent(window), mMenu(win
 		setPosition((Renderer::getScreenWidth() - mSize.x()) / 2, (Renderer::getScreenHeight() - mSize.y()) / 2);
 }
 
+void GuiMenu::openDArkOSSettings()
+{
+	auto s = new GuiSettings(mWindow, _("dArkOS3562 SETTINGS"));
+
+	// WIFI 二级菜单 (开关 / 网络 / 远程服务), 置顶
+	// 硬件能力 (console_detect -s): 摇杆灯控制方式 / 风扇
+	const std::string hwInfo = getShOutput("/usr/local/bin/console_detect -s 2>/dev/null");
+	const bool hasStickLed = hwInfo.find("LED_TYPE=unsupported") == std::string::npos &&
+				 hwInfo.find("LED_TYPE=none") == std::string::npos;
+	const bool hasFan = hwInfo.find("FAN=yes") != std::string::npos;
+
+	s->addEntry(_("WIFI"), true, [this] { openWifiSettings(); }, "iconNetwork");
+
+	if (Utils::FileSystem::exists("/var/run/drmConn"))
+		s->addEntry(_("DISPLAY SETTINGS"), true, [this] { openDisplaySettings(); }, "iconBrightnessctl");
+
+	if (UIModeController::getInstance()->isUIModeFull())
+		s->addEntry(_("CONFIGURE INPUT"), true, [this] { openConfigInput(); }, "iconControllers");
+
+	if (Utils::FileSystem::exists("/sys/devices/platform/play_joystick") ||
+	    Utils::FileSystem::exists("/sys/devices/platform/rk3562-joystick"))
+		s->addEntry(_("JOYSTICK SETTINGS"), true, [this] { openJoystickSettings(); }, "iconControllers");
+	if (hasStickLed)
+		s->addEntry(_("JOYSTICK LED"), true, [this] { openJoystickLedSettings(); }, "iconBrightnessctl");
+	if (Utils::FileSystem::exists("/sys/devices/platform/power-leds"))
+		s->addEntry(_("POWER LED"), true, [this] { openPowerLedSettings(); }, "iconBrightnessctl");
+	if (Utils::FileSystem::exists("/usr/local/bin/batteryplus"))
+		s->addEntry(_("BATTERYPLUS"), true, [this] { openBatteryPlusSettings(); }, "iconSystem");
+	if (hasFan && Utils::FileSystem::exists("/usr/local/bin/fanctl"))
+		s->addEntry(_("FAN CONTROL"), true, [this] { openFanSettings(); }, "iconAdvanced");
+	if (!HardwareInfo::getCpuAvailableFreqs().empty() ||
+	    HardwareInfo::hasGpuFreqControl() || HardwareInfo::hasDmcFreqControl())
+		s->addEntry(_("PERFORMANCE SETTINGS"), true, [this] { openPerformanceSettingsGlobal(); }, "iconAdvanced");
+	if (Utils::FileSystem::exists("/sys/block/zram0"))
+		s->addEntry(_("ZRAM"), true, [this] { openZramSettings(); }, "iconSystem");
+
+	// KODI 放最下面
+	if (Settings::getInstance()->getBool("EnableKodi") == 1 && Utils::FileSystem::exists("/usr/local/bin/Kodi.sh"))
+	{
+		s->addEntry(_("KODI MEDIA CENTER"), true, [this]
+		{
+			Window* window = mWindow;
+			if (!ApiSystem::getInstance()->launchKodi(window))
+				LOG(LogWarning) << "Shutdown terminated with non-zero result!";
+		}, "iconKodi");
+	}
+
+	mWindow->pushGui(s);
+}
+
+void GuiMenu::openWifiSettings()
+{
+	auto s = new GuiSettings(mWindow, _("WIFI"));
+
+	auto wifiSwitch = std::make_shared<SwitchComponent>(mWindow);
+	wifiSwitch->setState(getShOutput("nmcli -t -f WIFI radio 2>/dev/null") == "enabled");
+	wifiSwitch->setOnChangedCallback([wifiSwitch]
+	{
+		if (system(wifiSwitch->getState() ? "sudo nmcli radio wifi on" : "sudo nmcli radio wifi off") != 0)
+			LOG(LogWarning) << "wifi radio toggle failed";
+	});
+	s->addWithLabel(_("ENABLE WIFI"), wifiSwitch);
+
+	s->addEntry(_("WIFI LIST"), true, [this] {
+		mWindow->pushGui(new GuiWifi(mWindow));
+	}, "iconNetwork");
+
+	auto remoteSwitch = std::make_shared<SwitchComponent>(mWindow);
+	remoteSwitch->setState(getShOutput("sudo /usr/local/bin/remote-services.sh status 2>/dev/null") == "1");
+	remoteSwitch->setOnChangedCallback([remoteSwitch]
+	{
+		const std::string cmd = std::string("sudo /usr/local/bin/remote-services.sh ") +
+			(remoteSwitch->getState() ? "on" : "off");
+		if (system(cmd.c_str()) != 0)
+			LOG(LogWarning) << "remote services toggle failed";
+	});
+	s->addWithLabel(_("REMOTE SERVICES"), remoteSwitch);
+
+	mWindow->pushGui(s);
+}
+
+void GuiMenu::openJoystickLedSettings()
+{
+	auto s = new GuiSettings(mWindow, _("JOYSTICK LED"));
+
+	// 两种硬件: mcu_led (UART 字节协议) / ws2812 (SPI, 效果是常驻进程)
+	const std::string hwInfo = getShOutput("/usr/local/bin/console_detect -s 2>/dev/null");
+	const bool isWs2812 = hwInfo.find("LED_TYPE=ws2812") != std::string::npos;
+
+	int ledEnabled = 0, ledMode = 3, ledBri = 5;
+	std::string wsMode = "Joystick", wsBri = "HIGH";
+
+	std::istringstream ledCfg(readTextFile("/home/ark/.config/led.cfg"));
+	std::string line;
+	while (std::getline(ledCfg, line))
+	{
+		const auto eq = line.find('=');
+		if (eq == std::string::npos)
+			continue;
+
+		const std::string key = line.substr(0, eq);
+		const std::string value = line.substr(eq + 1);
+
+		if (key == "ENABLED")
+			ledEnabled = atoi(value.c_str());
+		else if (key == "MODE")
+			ledMode = atoi(value.c_str());
+		else if (key == "BRI")
+			ledBri = atoi(value.c_str());
+		else if (key == "WS_MODE" && !value.empty())
+			wsMode = value;
+		else if (key == "WS_BRI" && !value.empty())
+			wsBri = value;
+	}
+
+	auto ledSwitch = std::make_shared<SwitchComponent>(mWindow);
+	ledSwitch->setState(ledEnabled == 1);
+	ledSwitch->setOnChangedCallback([ledSwitch]
+	{
+		const std::string cmd = std::string("sudo /usr/local/bin/ledctl ") + (ledSwitch->getState() ? "on" : "off");
+		if (system(cmd.c_str()) != 0)
+			LOG(LogWarning) << "ledctl toggle failed";
+	});
+	s->addWithLabel(_("LED LIGHTING"), ledSwitch);
+
+	if (isWs2812)
+	{
+		static const std::pair<const char*, const char*> wsEffects[] = {
+			{ "Joystick", "Joystick" },
+			{ "Scrolling", "Scrolling" },
+			{ "Breathing", "Breathing" },
+			{ "Breathing Red", "Breathing_Red" },
+			{ "Breathing Green", "Breathing_Green" },
+			{ "Breathing Blue", "Breathing_Blue" },
+			{ "Breathing Blue Red", "Breathing_Blue_Red" },
+			{ "Breathing Green Blue", "Breathing_Green_Blue" },
+			{ "Breathing Red Green", "Breathing_Red_Green" },
+			{ "Breathing Red Green Blue", "Breathing_Red_Green_Blue" },
+			{ "Red Green Blue", "Red_Green_Blue" },
+			{ "Blue Red", "Blue_Red" },
+			{ "Blue", "Blue" },
+			{ "Green Blue", "Green_Blue" },
+			{ "Green", "Green" },
+			{ "Red Green", "Red_Green" },
+			{ "Red", "Red" },
+		};
+
+		auto ledEffect = std::make_shared<OptionListComponent<std::string>>(mWindow, _("LED EFFECT"), false);
+		bool ledModeFound = false;
+		for (const auto& entry : wsEffects)
+		{
+			ledEffect->add(_(entry.first), entry.second, wsMode == entry.second);
+			if (wsMode == entry.second)
+				ledModeFound = true;
+		}
+		if (!ledModeFound)
+			ledEffect->selectFirstItem();
+
+		ledEffect->setSelectedChangedCallback([](const std::string& mode)
+		{
+			const std::string cmd = "sudo /usr/local/bin/ledctl mode " + mode;
+			if (system(cmd.c_str()) != 0)
+				LOG(LogWarning) << "ledctl mode failed";
+		});
+		s->addWithLabel(_("LED EFFECT"), ledEffect);
+
+		static const std::pair<const char*, const char*> wsBrightness[] = {
+			{ "Low Brightness", "LOW" }, { "Medium Brightness", "MEDIUM" }, { "High Brightness", "HIGH" },
+		};
+
+		auto ledBrightness = std::make_shared<OptionListComponent<std::string>>(mWindow, _("LED BRIGHTNESS"), false);
+		bool ledBriFound = false;
+		for (const auto& entry : wsBrightness)
+		{
+			ledBrightness->add(_(entry.first), entry.second, wsBri == entry.second);
+			if (wsBri == entry.second)
+				ledBriFound = true;
+		}
+		if (!ledBriFound)
+			ledBrightness->selectFirstItem();
+
+		ledBrightness->setSelectedChangedCallback([](const std::string& value)
+		{
+			const std::string cmd = "sudo /usr/local/bin/ledctl bri " + value;
+			if (system(cmd.c_str()) != 0)
+				LOG(LogWarning) << "ledctl bri failed";
+		});
+		s->addWithLabel(_("LED BRIGHTNESS"), ledBrightness);
+	}
+	else
+	{
+		static const std::pair<const char*, int> ledEffects[] = {
+			{ "Red", 3 }, { "Green", 1 }, { "Blue", 2 }, { "Yellow", 5 }, { "Cyan", 4 },
+			{ "Magenta", 6 }, { "Rainbow", 7 }, { "Scrolling", 8 }, { "Breathing Red", 19 },
+			{ "Breathing Green", 17 }, { "Breathing Blue", 18 }, { "Breathing Rainbow", 23 },
+			{ "Breathing Cycle", 24 },
+		};
+
+		auto ledEffect = std::make_shared<OptionListComponent<std::string>>(mWindow, _("LED EFFECT"), false);
+		bool ledModeFound = false;
+		for (const auto& effect : ledEffects)
+		{
+			ledEffect->add(_(effect.first), std::to_string(effect.second), effect.second == ledMode);
+			if (effect.second == ledMode)
+				ledModeFound = true;
+		}
+		if (!ledModeFound)
+			ledEffect->selectFirstItem();
+
+		ledEffect->setSelectedChangedCallback([](const std::string& mode)
+		{
+			const std::string cmd = "sudo /usr/local/bin/ledctl mode " + mode;
+			if (system(cmd.c_str()) != 0)
+				LOG(LogWarning) << "ledctl mode failed";
+		});
+		s->addWithLabel(_("LED EFFECT"), ledEffect);
+
+		// 硬件只支持三档亮度: 0=低, 1=中, 2=高
+		static const char* ledBrightnessLabels[3] = { "Low Brightness", "Medium Brightness", "High Brightness" };
+
+		auto ledBrightness = std::make_shared<OptionListComponent<std::string>>(mWindow, _("LED BRIGHTNESS"), false);
+		bool ledBriFound = false;
+		for (int bri = 0; bri <= 2; bri++)
+		{
+			const std::string value = std::to_string(bri);
+			ledBrightness->add(_(ledBrightnessLabels[bri]), value, bri == ledBri);
+			if (bri == ledBri)
+				ledBriFound = true;
+		}
+		if (!ledBriFound)
+			ledBrightness->selectFirstItem();
+
+		ledBrightness->setSelectedChangedCallback([](const std::string& value)
+		{
+			const std::string cmd = "sudo /usr/local/bin/ledctl bri " + value;
+			if (system(cmd.c_str()) != 0)
+				LOG(LogWarning) << "ledctl bri failed";
+		});
+		s->addWithLabel(_("LED BRIGHTNESS"), ledBrightness);
+	}
+
+	mWindow->pushGui(s);
+}
+
+void GuiMenu::openZramSettings()
+{
+	auto s = new GuiSettings(mWindow, _("ZRAM"));
+
+	auto pickSize = [](const std::string& bytes) -> std::string
+	{
+		if (bytes == "134217728") return "128M";
+		if (bytes == "268435456") return "256M";
+		if (bytes == "536870912") return "512M";
+		return "1024M";
+	};
+
+	std::string size = pickSize(HardwareInfo::getZramSize());
+	std::string algo = HardwareInfo::getZramCompAlgorithm();
+	const bool enabled = HardwareInfo::isZramEnabled();
+
+	auto zramSwitch = std::make_shared<SwitchComponent>(mWindow);
+	zramSwitch->setState(enabled);
+	s->addWithLabel(_("ZRAM"), zramSwitch);
+
+	auto sizeList = std::make_shared<OptionListComponent<std::string>>(mWindow, _("ZRAM SIZE"), false);
+	for (const char* v : { "512M", "1024M", "2048M" })
+		sizeList->add(v, v, size == v);
+	s->addWithLabel(_("ZRAM SIZE"), sizeList);
+
+	auto algoList = std::make_shared<OptionListComponent<std::string>>(mWindow, _("ZRAM ALGORITHM"), false);
+	{
+		std::vector<std::string> algos = HardwareInfo::getAvailableZramAlgorithms();
+		if (algos.empty())
+			algos = { "lz4", "zstd", "lzo-rle", "lzo" };
+		bool found = false;
+		for (const auto& a : algos)
+		{
+			algoList->add(a, a, a == algo);
+			if (a == algo)
+				found = true;
+		}
+		if (!found)
+			algoList->selectFirstItem();
+	}
+	s->addWithLabel(_("ZRAM ALGORITHM"), algoList);
+
+	auto autoSwitch = std::make_shared<SwitchComponent>(mWindow);
+	autoSwitch->setState(HardwareInfo::isZramAutoStart());
+	s->addWithLabel(_("ZRAM AUTO START"), autoSwitch);
+
+	zramSwitch->setOnChangedCallback([zramSwitch, sizeList, algoList]
+	{
+		const bool on = zramSwitch->getState();
+		HardwareInfo::toggleZram(on, sizeList->getSelected(), algoList->getSelected());
+		HardwareInfo::saveZramConfig(sizeList->getSelected(), algoList->getSelected(), on);
+	});
+
+	auto applySizeAlgo = [sizeList, algoList, zramSwitch]
+	{
+		if (!zramSwitch->getState())
+			return;
+		HardwareInfo::toggleZram(true, sizeList->getSelected(), algoList->getSelected());
+		HardwareInfo::saveZramConfig(sizeList->getSelected(), algoList->getSelected(), true);
+	};
+	sizeList->setSelectedChangedCallback([applySizeAlgo](const std::string&) { applySizeAlgo(); });
+	algoList->setSelectedChangedCallback([applySizeAlgo](const std::string&) { applySizeAlgo(); });
+
+	autoSwitch->setOnChangedCallback([autoSwitch, sizeList, algoList, zramSwitch]
+	{
+		HardwareInfo::toggleZramAutoStart(autoSwitch->getState(), sizeList->getSelected(),
+		                                  algoList->getSelected(), zramSwitch->getState());
+	});
+
+	mWindow->pushGui(s);
+}
+
+void GuiMenu::openPerformanceSettingsGlobal()
+{
+	auto s = new GuiSettings(mWindow, _("PERFORMANCE SETTINGS"));
+
+
+	// CPU 最高频率
+	auto cpuFreqs = HardwareInfo::getCpuAvailableFreqs();
+	if (!cpuFreqs.empty())
+	{
+		auto list = std::make_shared<OptionListComponent<std::string>>(mWindow, _("CPU MAX FREQ"), false);
+		const std::string current = HardwareInfo::getCpuMaxFreq();
+
+		bool found = false;
+		for (const auto& freq : cpuFreqs)
+		{
+			const std::string label = std::to_string(atoi(freq.c_str()) / 1000) + " MHz";
+			list->add(label, freq, freq == current);
+			if (freq == current)
+				found = true;
+		}
+		if (!found)
+			list->selectFirstItem();
+
+		list->setSelectedChangedCallback([](const std::string& value) {
+			HardwareInfo::setCpuMaxFreq(value);
+		});
+		s->addWithLabel(_("CPU MAX FREQ"), list);
+	}
+
+	// CPU 核心数
+	const int coreCount = HardwareInfo::getCpuCoreCount();
+	if (coreCount > 1)
+	{
+		auto list = std::make_shared<OptionListComponent<std::string>>(mWindow, _("CPU CORES"), false);
+		const int online = HardwareInfo::getOnlineCpuCount();
+
+		for (int i = 1; i <= coreCount; i++)
+		{
+			const std::string value = std::to_string(i);
+			list->add(value, value, i == online);
+		}
+
+		list->setSelectedChangedCallback([](const std::string& value) {
+			HardwareInfo::setCpuCores(atoi(value.c_str()));
+		});
+		s->addWithLabel(_("CPU CORES"), list);
+	}
+
+	// GPU 最高频率
+	if (HardwareInfo::hasGpuFreqControl())
+	{
+		auto gpuFreqs = HardwareInfo::getGpuAvailableFreqs();
+		if (!gpuFreqs.empty())
+		{
+			auto list = std::make_shared<OptionListComponent<std::string>>(mWindow, _("GPU MAX FREQ"), false);
+			const std::string current = HardwareInfo::getGpuMaxFreq();
+
+			bool found = false;
+			for (const auto& freq : gpuFreqs)
+			{
+				const std::string label = std::to_string(atoi(freq.c_str()) / 1000000) + " MHz";
+				list->add(label, freq, freq == current);
+				if (freq == current)
+					found = true;
+			}
+			if (!found)
+				list->selectFirstItem();
+
+			list->setSelectedChangedCallback([](const std::string& value) {
+				HardwareInfo::setGpuMaxFreq(value);
+			});
+			s->addWithLabel(_("GPU MAX FREQ"), list);
+		}
+	}
+
+	// DMC 最高频率
+	if (HardwareInfo::hasDmcFreqControl())
+	{
+		auto dmcFreqs = HardwareInfo::getDmcAvailableFreqs();
+		if (!dmcFreqs.empty())
+		{
+			auto list = std::make_shared<OptionListComponent<std::string>>(mWindow, _("DMC MAX FREQ"), false);
+			const std::string current = HardwareInfo::getDmcMaxFreq();
+
+			bool found = false;
+			for (const auto& freq : dmcFreqs)
+			{
+				const std::string label = std::to_string(atoi(freq.c_str()) / 1000000) + " MHz";
+				list->add(label, freq, freq == current);
+				if (freq == current)
+					found = true;
+			}
+			if (!found)
+				list->selectFirstItem();
+
+			list->setSelectedChangedCallback([](const std::string& value) {
+				HardwareInfo::setDmcMaxFreq(value);
+			});
+			s->addWithLabel(_("DMC MAX FREQ"), list);
+		}
+	}
+
+	mWindow->pushGui(s);
+}
+
+void GuiMenu::openJoystickSettings()
+{
+	auto s = new GuiSettings(mWindow, _("JOYSTICK SETTINGS"));
+
+	const std::string node = Utils::FileSystem::exists("/sys/devices/platform/play_joystick")
+		? "/sys/devices/platform/play_joystick"
+		: "/sys/devices/platform/rk3562-joystick";
+
+	// 死区: 与 ArkOS 相同, 直接写驱动的 adc_deadzone (mV), 预设 32..768
+	int currentDz = Settings::getInstance()->getInt("AdcDeadZone");
+	{
+		const std::string raw = getShOutput("cat " + node + "/adc_deadzone 2>/dev/null");
+		if (!raw.empty())
+			currentDz = atoi(raw.c_str());
+	}
+
+	auto dzList = std::make_shared<OptionListComponent<std::string>>(mWindow, _("DEAD ZONE VALUE"), false);
+	static const int dzPresets[] = { 32, 64, 128, 256, 384, 512, 768 };
+	bool dzFound = false;
+	if (currentDz == 0)
+	{
+		dzList->add(_("DEFAULT"), "0", true);
+		dzFound = true;
+	}
+	for (int preset : dzPresets)
+	{
+		const std::string value = std::to_string(preset);
+		const bool selected = currentDz == preset;
+		dzList->add(value, value, selected);
+		if (selected)
+			dzFound = true;
+	}
+	if (!dzFound)
+	{
+		const std::string value = std::to_string(currentDz);
+		dzList->add(_("CUSTOM") + " (" + value + ")", value, true);
+	}
+
+	dzList->setSelectedChangedCallback([node](const std::string& value)
+	{
+		Settings::getInstance()->setInt("AdcDeadZone", atoi(value.c_str()));
+		Settings::getInstance()->saveFile();
+		const std::string cmd = "sudo sh -c 'echo " + value + " > " + node + "/adc_deadzone'";
+		if (system(cmd.c_str()) != 0)
+			LOG(LogWarning) << "adc_deadzone apply failed";
+	});
+	s->addWithLabel(_("DEAD ZONE VALUE"), dzList);
+
+	s->addEntry(_("CUSTOM DEAD ZONE"), true, [this, node]
+	{
+		mWindow->pushGui(new GuiTextEditPopupKeyboard(mWindow,
+			_("ENTER DEAD ZONE VALUE (10-1800)"), "", [this, node](const std::string& value)
+		{
+			int dz = -1;
+			try { dz = std::stoi(value); } catch (...) { }
+			if (dz < 10 || dz > 1800)
+			{
+				mWindow->pushGui(new GuiMsgBox(mWindow, _("VALUE OUT OF RANGE"), _("OK")));
+				return;
+			}
+			Settings::getInstance()->setInt("AdcDeadZone", dz);
+			Settings::getInstance()->saveFile();
+			const std::string cmd = "sudo sh -c 'echo " + std::to_string(dz) +
+				" > " + node + "/adc_deadzone'";
+			system(cmd.c_str());
+		}, false, _("OK")));
+	}, "");
+
+	// AB / XY 互换
+	auto abSwitch = std::make_shared<SwitchComponent>(mWindow);
+	abSwitch->setState(Settings::getInstance()->getBool("ButtonSwapAb"));
+	abSwitch->setOnChangedCallback([abSwitch, node]
+	{
+		Settings::getInstance()->setBool("ButtonSwapAb", abSwitch->getState());
+		Settings::getInstance()->saveFile();
+		const std::string cmd = std::string("sudo sh -c 'echo ") +
+			(abSwitch->getState() ? "1" : "0") + " > " + node + "/swap_ab'";
+		if (system(cmd.c_str()) != 0)
+			LOG(LogWarning) << "swap_ab apply failed";
+	});
+	s->addWithLabel(_("SWAP A/B"), abSwitch);
+
+	auto xySwitch = std::make_shared<SwitchComponent>(mWindow);
+	xySwitch->setState(Settings::getInstance()->getBool("ButtonSwapXy"));
+	xySwitch->setOnChangedCallback([xySwitch, node]
+	{
+		Settings::getInstance()->setBool("ButtonSwapXy", xySwitch->getState());
+		Settings::getInstance()->saveFile();
+		const std::string cmd = std::string("sudo sh -c 'echo ") +
+			(xySwitch->getState() ? "1" : "0") + " > " + node + "/swap_xy'";
+		if (system(cmd.c_str()) != 0)
+			LOG(LogWarning) << "swap_xy apply failed";
+	});
+	s->addWithLabel(_("SWAP X/Y"), xySwitch);
+
+	// L2/R2: 模拟轴 (ABS_Z/ABS_RZ) + 数字键双路; 可关掉线性上报只留数字键
+	auto trigSwitch = std::make_shared<SwitchComponent>(mWindow);
+	trigSwitch->setState(getShOutput("cat " + node + "/linear_triggers 2>/dev/null") != "0");
+	trigSwitch->setOnChangedCallback([trigSwitch, node]
+	{
+		Settings::getInstance()->setBool("LinearTriggers", trigSwitch->getState());
+		Settings::getInstance()->saveFile();
+		const std::string cmd = std::string("sudo sh -c 'echo ") +
+			(trigSwitch->getState() ? "1" : "0") + " > " + node + "/linear_triggers'";
+		if (system(cmd.c_str()) != 0)
+			LOG(LogWarning) << "linear_triggers apply failed";
+	});
+	s->addWithLabel(_("LINEAR TRIGGERS"), trigSwitch);
+
+	s->addEntry(_("JOYSTICK CALIBRATION"), true, [this]
+	{
+		mWindow->pushGui(new GuiJoystickCalibration(mWindow));
+	}, "iconControllers");
+
+	mWindow->pushGui(s);
+}
+
+void GuiMenu::openBatteryPlusSettings()
+{
+	auto theme = ThemeData::getMenuTheme();
+	auto s = new GuiSettings(mWindow, _("BATTERYPLUS"));
+
+	// 读取当前状态
+	const std::string percent = getShOutput("cat /tmp/battery.percent 2>/dev/null");
+	const std::string status = getShOutput("cat /sys/class/power_supply/battery/status 2>/dev/null");
+	const std::string voltageUv = getShOutput("cat /sys/class/power_supply/battery/voltage_now 2>/dev/null");
+
+	std::string mode = "voltage";
+	{
+		std::istringstream conf(readTextFile("/etc/batteryplus/batteryplus.conf"));
+		std::string line;
+		while (std::getline(conf, line))
+		{
+			line = Utils::String::trim(line);
+			if (line.rfind("mode=", 0) == 0)
+				mode = Utils::String::trim(line.substr(5));
+		}
+	}
+
+	std::string info = _("POWER") + ": " + (percent.empty() ? std::string("N/A") : percent + "%") +
+		"  " + _("STATUS") + ": " + (status.empty() ? std::string("-") : status);
+	if (!voltageUv.empty())
+		info += "  " + std::to_string(atoi(voltageUv.c_str()) / 1000) + "mV";
+	info += "  " + _("MODE") + ": " + mode;
+
+	s->addWithLabel(_("BATTERY INFO"),
+		std::make_shared<TextComponent>(mWindow, info, theme->Text.font, 0x777777FF));
+
+	// 开关
+	const bool enabled = getShOutput("systemctl is-enabled batteryplus.service 2>/dev/null") == "enabled";
+
+	auto enableSwitch = std::make_shared<SwitchComponent>(mWindow);
+	enableSwitch->setState(enabled);
+	enableSwitch->setOnChangedCallback([enableSwitch]
+	{
+		const std::string cmd = enableSwitch->getState()
+			? "sudo systemctl enable --now batteryplus.service 2>/dev/null"
+			: "sudo systemctl disable --now batteryplus.service 2>/dev/null; sudo rm -f /tmp/battery.percent";
+		if (system(cmd.c_str()) != 0)
+			LOG(LogWarning) << "batteryplus toggle failed";
+	});
+	s->addWithLabel(_("ENABLE BATTERYPLUS"), enableSwitch);
+
+	// 模式: voltage / pmic
+	auto modeList = std::make_shared<OptionListComponent<std::string>>(mWindow, _("BATTERY MODE"), false);
+	modeList->add(_("BatteryPlus Mode"), "voltage", mode == "voltage");
+	modeList->add(_("Driver Mode"), "pmic", mode == "pmic");
+	if (mode != "voltage" && mode != "pmic")
+		modeList->selectFirstItem();
+
+	modeList->setSelectedChangedCallback([](const std::string& value)
+	{
+		const std::string wasEnabled = getShOutput("systemctl is-enabled batteryplus.service 2>/dev/null");
+		if (wasEnabled == "enabled")
+			system("sudo systemctl stop batteryplus.service 2>/dev/null");
+
+		system(("sudo sed -i 's|^mode=.*|mode=" + value + "|' /etc/batteryplus/batteryplus.conf").c_str());
+
+		// 切换模式后丢弃旧的可视百分比/恢复状态, 否则电压模式会沿用
+		// 上一个模式保存的 visible_percent (例如 pmic 的 50%) 直到下次更新.
+		system("sudo sh -c 'rm -f /tmp/battery.percent /home/ark/.config/batteryplus/batteryplus-restore.state'");
+
+		if (wasEnabled == "enabled")
+			system("sudo systemctl start batteryplus.service 2>/dev/null");
+	});
+	s->addWithLabel(_("BATTERY MODE"), modeList);
+
+	// 清除记录
+	s->addEntry(_("DELETE USAGE RECORDS"), true, [this]
+	{
+		Window* window = mWindow;
+		window->pushGui(new GuiMsgBox(window,
+			_("DELETE ALL BATTERY USAGE RECORDS? THIS WILL RESET CALIBRATION."),
+			_("YES"), [window]
+			{
+				std::string dataDir;
+				std::istringstream conf(readTextFile("/etc/batteryplus/batteryplus.conf"));
+				std::string line;
+				while (std::getline(conf, line))
+				{
+					line = Utils::String::trim(line);
+					if (line.rfind("data_dir=", 0) == 0)
+						dataDir = Utils::String::trim(line.substr(9));
+				}
+
+				system("sudo rm -f /tmp/battery.percent");
+
+				if (!dataDir.empty())
+				{
+					const std::string base = "sudo rm -f " + dataDir + "/";
+					system((base + "batteryplus-calibrated").c_str());
+					system((base + "batteryplus-voltage.map").c_str());
+					system((base + "batteryplus-restore.state").c_str());
+				}
+
+				if (getShOutput("systemctl is-enabled batteryplus.service 2>/dev/null") == "enabled")
+					system("sudo systemctl restart batteryplus.service 2>/dev/null");
+
+				window->pushGui(new GuiMsgBox(window, _("RECORDS DELETED. SERVICE RESTARTED."), _("OK")));
+			},
+			_("NO"), nullptr));
+	}, "iconAdvanced");
+
+	mWindow->pushGui(s);
+}
+
+void GuiMenu::openPowerLedSettings()
+{
+	auto s = new GuiSettings(mWindow, _("POWER LED"));
+
+	// 当前状态: /sys/devices/platform/power-leds/gpio -> "<label> <0|1>"
+	std::istringstream gpioState(readTextFile("/sys/devices/platform/power-leds/gpio"));
+	std::string line;
+	std::vector<std::pair<std::string, bool>> leds;
+
+	while (std::getline(gpioState, line))
+	{
+		std::istringstream row(line);
+		std::string label;
+		int value = 0;
+
+		if (row >> label >> value)
+			leds.emplace_back(label, value != 0);
+	}
+
+	static const std::pair<const char*, const char*> colorNames[] = {
+		{ "red", "Red" }, { "green", "Green" }, { "blue", "Blue" },
+	};
+
+	for (const auto& led : leds)
+	{
+		const char* uiName = nullptr;
+		for (const auto& color : colorNames)
+		{
+			if (led.first == color.first)
+				uiName = color.second;
+		}
+
+		auto ledSwitch = std::make_shared<SwitchComponent>(mWindow);
+		ledSwitch->setState(led.second);
+
+		const std::string label = led.first;
+		ledSwitch->setOnChangedCallback([ledSwitch, label]
+		{
+			const bool on = ledSwitch->getState();
+
+			// 关闭时清掉阈值, 否则驱动的自动模式会忽略开关继续点亮
+			if (!on)
+			{
+				const std::string tcmd = "sudo sh -c 'echo 0 > /sys/class/leds/" + label + "/battery_threshold'";
+				system(tcmd.c_str());
+				Settings::getInstance()->setInt("PowerLed." + label + ".threshold", 0);
+			}
+
+			const std::string cmd = "sudo sh -c 'echo " + label + " " +
+				(on ? "1" : "0") +
+				" > /sys/devices/platform/power-leds/gpio'";
+			if (system(cmd.c_str()) != 0)
+				LOG(LogWarning) << "power led switch failed";
+
+			Settings::getInstance()->setBool("PowerLed." + label + ".on", on);
+			Settings::getInstance()->saveFile();
+		});
+
+		s->addWithLabel(uiName ? _(uiName) : led.first, ledSwitch);
+
+		// 每个 LED 独立电量阈值: 关闭 / 10..90
+		int threshold = atoi(getShOutput(("cat /sys/class/leds/" + led.first + "/battery_threshold 2>/dev/null").c_str()).c_str());
+
+		auto thresholdList = std::make_shared<OptionListComponent<std::string>>(mWindow, _("BATTERY THRESHOLD"), false);
+		thresholdList->add(_("Off"), "0", threshold == 0);
+
+		bool thresholdFound = threshold == 0;
+		for (int t = 10; t <= 90; t += 10)
+		{
+			const std::string value = std::to_string(t);
+			thresholdList->add(value, value, t == threshold);
+			if (t == threshold)
+				thresholdFound = true;
+		}
+		if (!thresholdFound)
+			thresholdList->selectFirstItem();
+
+		const std::string labelForPath = led.first;
+		thresholdList->setSelectedChangedCallback([labelForPath](const std::string& value)
+		{
+			const std::string cmd = "sudo sh -c 'echo " + value +
+				" > /sys/class/leds/" + labelForPath + "/battery_threshold'";
+			if (system(cmd.c_str()) != 0)
+				LOG(LogWarning) << "power led threshold failed";
+
+			Settings::getInstance()->setInt("PowerLed." + labelForPath + ".threshold", atoi(value.c_str()));
+			Settings::getInstance()->saveFile();
+		});
+
+		s->addWithLabel(std::string(uiName ? _(uiName) : led.first) + " " + _("BATTERY THRESHOLD"), thresholdList);
+	}
+
+	mWindow->pushGui(s);
+}
+
+void GuiMenu::openFanSettings()
+{
+	auto s = new GuiSettings(mWindow, _("FAN CONTROL"));
+
+	std::string fanMode;
+	int fanPwm = 0;
+
+	const std::string fanCfgRaw = readTextFile("/home/ark/.config/fan.cfg");
+	std::istringstream fanCfg(fanCfgRaw);
+	std::string line;
+	while (std::getline(fanCfg, line))
+	{
+		const auto eq = line.find('=');
+		if (eq == std::string::npos)
+			continue;
+
+		const std::string key = line.substr(0, eq);
+		const std::string value = line.substr(eq + 1);
+
+		if (key == "MODE")
+			fanMode = value;
+		else if (key == "PWM")
+			fanPwm = atoi(value.c_str());
+	}
+
+	// 档位: 0=关闭, 100=低速, 200=中速, 255=高速
+	static const std::pair<const char*, const char*> fanPresets[] = {
+		{ "Off", "off" }, { "Low", "100" }, { "Medium", "200" }, { "High", "255" },
+	};
+
+	auto fanLevel = std::make_shared<OptionListComponent<std::string>>(mWindow, _("FAN SPEED"), false);
+
+	bool found = false;
+
+	for (const auto& preset : fanPresets)
+	{
+		const std::string value = preset.second;
+		const bool selected = (fanMode == "off" && value == "off") ||
+			(fanMode == "manual" && value != "off" && std::to_string(fanPwm) == value);
+		fanLevel->add(_(preset.first), value, selected);
+		if (selected)
+			found = true;
+	}
+	if (!found)
+		fanLevel->selectFirstItem();
+
+	LOG(LogInfo) << "FanSettings: cfg mode='" << fanMode << "' pwm=" << fanPwm
+	             << " matched=" << (found ? 1 : 0) << " selected=" << fanLevel->getSelected();
+
+	{
+		std::string flat = fanCfgRaw;
+		for (auto& ch : flat)
+			if (ch == '\n')
+				ch = '|';
+
+		FILE* dbg = fopen("/tmp/fan_dbg.log", "a");
+		if (dbg)
+		{
+			fprintf(dbg, "mode='%s' pwm=%d matched=%d selected='%s' raw='%s'\n",
+			        fanMode.c_str(), fanPwm, found ? 1 : 0, fanLevel->getSelected().c_str(), flat.c_str());
+			fclose(dbg);
+		}
+	}
+
+	fanLevel->setSelectedChangedCallback([](const std::string& value)
+	{
+		LOG(LogInfo) << "FanSettings: user selected '" << value << "'";
+		const std::string cmd = value == "off" ? "sudo /usr/local/bin/fanctl off"
+		                                       : "sudo /usr/local/bin/fanctl set " + value;
+		if (system(cmd.c_str()) != 0)
+			LOG(LogWarning) << "fanctl failed";
+	});
+	s->addWithLabel(_("FAN SPEED"), fanLevel);
+
+	mWindow->pushGui(s);
+}
+
 void GuiMenu::openDisplaySettings()
 {
 	// Display Brightness
@@ -157,6 +988,61 @@ void GuiMenu::openDisplaySettings()
 					Settings::getInstance()->setBool("BrightnessPopup", brightnessPopup->getState());
 			}
 		);
+
+	// Gamma (gamma 工具, R/G/B 独立调整, 0.6-1.4, 0.1 步进)
+	if (Utils::FileSystem::exists("/usr/local/bin/gamma"))
+	{
+		float initGamma[3] = { 1.0f, 1.0f, 1.0f };
+		{
+			std::istringstream gammaState(readTextFile("/dev/shm/CURRENT_GAMMA"));
+			gammaState >> initGamma[0] >> initGamma[1] >> initGamma[2];
+		}
+
+		auto current = std::make_shared<std::array<std::string, 3>>();
+
+		for (int ch = 0; ch < 3; ch++)
+		{
+			float value = initGamma[ch];
+			if (value < 0.3f || value > 2.0f)
+				value = 1.0f;
+
+			char buf[8];
+			snprintf(buf, sizeof(buf), "%.1f", value);
+			(*current)[ch] = buf;
+		}
+
+		static const char* gammaLabels[3] = { "GAMMA R", "GAMMA G", "GAMMA B" };
+
+		for (int ch = 0; ch < 3; ch++)
+		{
+			auto gammaList = std::make_shared<OptionListComponent<std::string>>(mWindow, _(gammaLabels[ch]), false);
+
+			bool gammaFound = false;
+			for (int step = 6; step <= 14; step++)
+			{
+				char value[8];
+				snprintf(value, sizeof(value), "%.1f", step / 10.0);
+				const bool selected = std::string(value) == (*current)[ch];
+				gammaList->add(value, value, selected);
+				if (selected)
+					gammaFound = true;
+			}
+			if (!gammaFound)
+				gammaList->selectFirstItem();
+
+			gammaList->setSelectedChangedCallback([current, ch](const std::string& value)
+			{
+				(*current)[ch] = value;
+				const std::string home = getenv("HOME") ? getenv("HOME") : "/home/ark";
+				const std::string cmd = "sudo env HOME=" + home + " /usr/local/bin/gamma -r " + (*current)[0] +
+					" -g " + (*current)[1] + " -b " + (*current)[2];
+				if (system(cmd.c_str()) != 0)
+					LOG(LogWarning) << "gamma apply failed";
+			});
+
+			s->addWithLabel(_(gammaLabels[ch]), gammaList);
+		}
+	}
 
   if (Utils::FileSystem::exists("/usr/local/bin/panel_set.sh"))
   {
@@ -2157,29 +3043,6 @@ void GuiMenu::openOtherSettings()
 		}
 	});
 
-        // Battery Reading Mode
-	auto Brmode = std::make_shared< OptionListComponent<std::string> >(mWindow, _("Battery Reading Mode"), false);
-        std::vector<std::string> bBrmode;
-        bBrmode.push_back("Voltage");
-        bBrmode.push_back("PMIC");
-        bBrmode.push_back("Native");
-
-        auto getBrmode = Settings::getInstance()->getString("BrMode");
-        if (getBrmode.empty())
-                getBrmode = "Voltage";
-
-        for (auto it = bBrmode.cbegin(); it != bBrmode.cend(); it++)
-                Brmode->add(_(it->c_str()), *it, getBrmode == *it);
-
-        s->addWithLabel(_("Battery Reading Mode"), Brmode);
-	s->addSaveFunc([this, Brmode] { Settings::getInstance()->setString("BrMode", Brmode->getSelected()); 
-                if (Brmode->changed()) {
-		    runSystemCommand("echo " + Settings::getInstance()->getString("BrMode") + " > /home/ark/.config/.BRMODE", "", nullptr);
-                    runSystemCommand("sudo systemctl restart batteryplus", "", nullptr);
-                }
-        });
-
-
 #ifndef _RPI_
 	// full exit
 	auto fullExitMenu = std::make_shared<SwitchComponent>(mWindow);
@@ -2229,32 +3092,6 @@ void GuiMenu::openOtherSettings()
               runSystemCommand("sudo sed -i '/@reboot \\/usr\\/local\\/bin\\/enable_vibration.sh/d' /var/spool/cron/crontabs/root", "", nullptr);
 		  }
 	  }); }
-
-	// Undervolt
-	auto Uvolt = std::make_shared< OptionListComponent<std::string> >(mWindow, _("CPU Undervolt"), false);
-	std::vector<std::string> cundervolt;
-	cundervolt.push_back(_("STOCK"));
-	cundervolt.push_back(_("LIGHT"));
-	cundervolt.push_back(_("MEDIUM"));
-	cundervolt.push_back(_("MAXIMUM"));
-
-	std::string undervolt = std::string(getShOutput(R"(/usr/local/bin/dtbcheck_change.sh check)"));
-
-	for (auto it = cundervolt.cbegin(); it != cundervolt.cend(); it++)
-		Uvolt->add(_(it->c_str()), *it, undervolt == *it);
-
-	s->addWithLabel(_("CPU Undervolt"), Uvolt);
-	s->addSaveFunc([Uvolt, this] {
-		if (Uvolt->changed()) {
-		    Window* window = mWindow;
-		    window->pushGui(new GuiMsgBox(window, _("ARE YOU SURE YOU WANT TO CHANGE THE UNDERVOLT VALUE? IF YES, SYSTEM WILL REBOOT AFTER THE CHANGE.  THIS CAN ALSO LEAD TO FAIL BOOTING OF YOUR DEVICE.  THIS CAN BE REVERTED BUT WILL REQUIRE ACCESS TO A COMPUTER WITH A SD CARD READER TO DO SO."), _("YES"),
-					[Uvolt, window] {
-					runSystemCommand("sudo /usr/local/bin/dtbcheck_change.sh set " + Uvolt->getSelected(), "", nullptr);
-					window->pushGui(new GuiMsgBox(window, _("IF SYSTEM FAILS TO BOOT, JUST REMOVE THE .UNDERVOLT." + Uvolt->getSelected() + " FROM THE END OF THE .dtb FILE in the FDT / LINE IN THE EXTLINUX.CONF TEXT FILE LOCATED IN YOUR FAT32 BOOT PARTITION IN THE EXTLINUX FOLDER TO REVERT TO THE STOCK CPU VOLTAGE SETTINGS."), _("OK"), [] {runSystemCommand("sudo reboot", "", nullptr);} ));
-			}, _("NO"), nullptr)
-			);
-		}
-	});
 
 	s->updatePosition();
 

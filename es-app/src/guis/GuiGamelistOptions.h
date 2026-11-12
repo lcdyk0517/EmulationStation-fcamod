@@ -11,6 +11,7 @@
 
 class IGameListView;
 class SystemData;
+class GuiSettings;
 
 class GuiGamelistOptions : public GuiComponent
 {
@@ -30,6 +31,9 @@ private:
 	void addTextFilterToMenu();
 	void openGamelistFilter();
 	void openMetaDataEd();
+	void openEmulatorSettings();
+	void openPerformanceSettings();
+	void addFreqOption(GuiSettings* s, char which, const std::string& label, const std::vector<std::string>& freqs, int divisor);
 	void startEditMode();
 	void exitEditMode();
 	void jumpToLetter();

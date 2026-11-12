@@ -43,6 +43,15 @@ private:
 
 	void createInputTextRow(GuiSettings *gui, std::string title, const char *settingsID, bool password);
 	void openDisplaySettings();
+	void openDArkOSSettings();
+	void openWifiSettings();
+	void openJoystickLedSettings();
+	void openFanSettings();
+	void openPowerLedSettings();
+	void openBatteryPlusSettings();
+	void openJoystickSettings();
+	void openPerformanceSettingsGlobal();
+	void openZramSettings();
 
 	MenuComponent mMenu;
 	TextComponent mVersion;

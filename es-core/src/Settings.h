@@ -21,6 +21,8 @@ public:
 	float getFloat(const std::string& name);
 	const std::string& getString(const std::string& name);
 
+	bool hasInt(const std::string& name) const { return mIntMap.find(name) != mIntMap.end(); }
+
 	bool setBool(const std::string& name, bool value);
 	bool setInt(const std::string& name, int value);
 	bool setFloat(const std::string& name, float value);
