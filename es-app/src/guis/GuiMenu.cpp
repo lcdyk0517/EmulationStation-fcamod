@@ -558,6 +558,45 @@ void GuiMenu::openPerformanceSettingsGlobal()
 		}
 	}
 
+	// eMMC loader (RK3562 idblock: DDR 初始化 + SPL) 版本. BootROM 固定从
+	// eMMC 读这段, 普通刷机不会更新它; 不是 v1.10 时给一个更新入口,
+	// 写引导区有风险, 先弹确认框, 备份由 loader-update 内的
+	// write-loader-emmc.sh 自动做到 /home/ark/loader-backup-*.bin
+	{
+		const std::string loaderVer = getShOutput("sudo -n /usr/local/bin/loader-version 2>/dev/null");
+		if (!loaderVer.empty())
+		{
+			const bool needUpdate = (loaderVer != "v1.10");
+			std::string label = std::string(_("EMMC LOADER")) + ": " + loaderVer;
+			if (needUpdate)
+				label += "  (" + std::string(_("UPDATE")) + ")";
+
+			if (needUpdate)
+			{
+				s->addEntry(label, true, [this]
+				{
+					mWindow->pushGui(new GuiMsgBox(mWindow,
+						_("Writing the eMMC loader is RISKY: a power loss during the write can brick the device. The current loader is backed up to /home/ark first. Update the eMMC loader to v1.10 now?"),
+						_("YES, UPDATE"), [this]
+						{
+							const std::string out = getShOutput("sudo -n /usr/local/bin/loader-update 2>&1");
+							mWindow->pushGui(new GuiMsgBox(mWindow,
+								out.empty() ? std::string(_("Done.")) : out,
+								_("OK"), nullptr, ICON_INFORMATION));
+						},
+						_("CANCEL"), nullptr, ICON_WARNING));
+				}, "iconAdvanced");
+			}
+			else
+			{
+				// 已经是最新版本: 仅展示版本号. 必须给空 lambda 而不是 nullptr ——
+				// MenuComponent 对空 std::function 调 func() 会抛 bad_function_call
+				// 直接 abort(134), ES 被 systemd 重启.
+				s->addEntry(label, false, [] {}, "iconAdvanced");
+			}
+		}
+	}
+
 	mWindow->pushGui(s);
 }
 
