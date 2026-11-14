@@ -595,6 +595,26 @@ void GuiMenu::openPerformanceSettingsGlobal()
 				s->addEntry(label, false, [] {}, "iconAdvanced");
 			}
 		}
+
+		// 有备份就给回滚入口 (loader-update / write-loader-emmc.sh 写入前都会留备份)
+		const std::string backup = getShOutput("ls -1t /home/ark/loader-backup-*.bin 2>/dev/null | head -n1");
+		if (!backup.empty())
+		{
+			const std::string backupName = Utils::FileSystem::getFileName(backup);
+			s->addEntry(std::string(_("RESTORE EMMC LOADER")) + ": " + backupName, true, [this]
+			{
+				mWindow->pushGui(new GuiMsgBox(mWindow,
+					_("Restoring writes the eMMC boot area from the backup. A power loss during the write can brick the device. The current loader is backed up first. Restore now?"),
+					_("YES, RESTORE"), [this]
+					{
+						const std::string out = getShOutput("sudo -n /usr/local/bin/loader-restore 2>&1");
+						mWindow->pushGui(new GuiMsgBox(mWindow,
+							out.empty() ? std::string(_("Done.")) : out,
+							_("OK"), nullptr, ICON_INFORMATION));
+					},
+					_("CANCEL"), nullptr, ICON_WARNING));
+			}, "iconAdvanced");
+		}
 	}
 
 	mWindow->pushGui(s);
