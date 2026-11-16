@@ -1382,3 +1382,58 @@ msgstr "青色呼吸"
 
 msgid "Breathing Red Green"
 msgstr "黄色呼吸"
+
+msgid "Auto"
+msgstr "自动"
+
+msgid "Low"
+msgstr "低"
+
+msgid "Medium"
+msgstr "中"
+
+msgid "High"
+msgstr "高"
+
+msgid "Low Brightness"
+msgstr "低亮度"
+
+msgid "Medium Brightness"
+msgstr "中亮度"
+
+msgid "High Brightness"
+msgstr "高亮度"
+
+msgid "AUDIO DEVICE"
+msgstr "音频设备"
+
+msgid "COLOR TEMPERATURE"
+msgstr "色温"
+
+msgid "Done."
+msgstr "完成"
+
+msgid "EMMC LOADER"
+msgstr "eMMC 引导"
+
+msgid "POWER SAVER MODES"
+msgstr "省电模式"
+
+msgid "RESTORE EMMC LOADER"
+msgstr "恢复 eMMC 引导"
+
+msgid "UPDATE"
+msgstr "更新"
+
+msgid "YES, UPDATE"
+msgstr "是，更新"
+
+msgid "YES, RESTORE"
+msgstr "是，恢复"
+
+msgid "Writing the eMMC loader is RISKY: a power loss during the write can brick the device. The current loader is backed up to /home/ark first. Update the eMMC loader to v1.10 now?"
+msgstr "写入 eMMC 引导区有风险：写入过程中断电可能导致设备变砖。当前 loader 会先备份到 /home/ark。现在把 eMMC loader 更新到 v1.10？"
+
+msgid "Restoring writes the eMMC boot area from the backup. A power loss during the write can brick the device. The current loader is backed up first. Restore now?"
+msgstr "恢复会用备份写回 eMMC 引导区，写入过程中断电可能导致设备变砖。当前 loader 会先备份。现在恢复？"
+

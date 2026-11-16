@@ -966,9 +966,9 @@ void GuiMenu::openFanSettings()
 			fanPwm = atoi(value.c_str());
 	}
 
-	// 档位: 0=关闭, 100=低速, 200=中速, 255=高速
+	// 档位: auto=温度自动, off=关闭, 100=低速, 200=中速, 255=高速
 	static const std::pair<const char*, const char*> fanPresets[] = {
-		{ "Off", "off" }, { "Low", "100" }, { "Medium", "200" }, { "High", "255" },
+		{ "Auto", "auto" }, { "Off", "off" }, { "Low", "100" }, { "Medium", "200" }, { "High", "255" },
 	};
 
 	auto fanLevel = std::make_shared<OptionListComponent<std::string>>(mWindow, _("FAN SPEED"), false);
@@ -978,8 +978,9 @@ void GuiMenu::openFanSettings()
 	for (const auto& preset : fanPresets)
 	{
 		const std::string value = preset.second;
-		const bool selected = (fanMode == "off" && value == "off") ||
-			(fanMode == "manual" && value != "off" && std::to_string(fanPwm) == value);
+		const bool selected = (fanMode == "auto" && value == "auto") ||
+			(fanMode == "off" && value == "off") ||
+			(fanMode == "manual" && value != "off" && value != "auto" && std::to_string(fanPwm) == value);
 		fanLevel->add(_(preset.first), value, selected);
 		if (selected)
 			found = true;
@@ -1008,8 +1009,9 @@ void GuiMenu::openFanSettings()
 	fanLevel->setSelectedChangedCallback([](const std::string& value)
 	{
 		LOG(LogInfo) << "FanSettings: user selected '" << value << "'";
-		const std::string cmd = value == "off" ? "sudo /usr/local/bin/fanctl off"
-		                                       : "sudo /usr/local/bin/fanctl set " + value;
+		const std::string cmd = value == "auto" ? "sudo /usr/local/bin/fanctl on"
+			: value == "off" ? "sudo /usr/local/bin/fanctl off"
+			: "sudo /usr/local/bin/fanctl set " + value;
 		if (system(cmd.c_str()) != 0)
 			LOG(LogWarning) << "fanctl failed";
 	});
@@ -1093,14 +1095,60 @@ void GuiMenu::openDisplaySettings()
 			{
 				(*current)[ch] = value;
 				const std::string home = getenv("HOME") ? getenv("HOME") : "/home/ark";
-				const std::string cmd = "sudo env HOME=" + home + " /usr/local/bin/gamma -r " + (*current)[0] +
-					" -g " + (*current)[1] + " -b " + (*current)[2];
+				/* colortemp 负责把色温 x gamma 合成成绝对 LUT (内核参数或
+				 * DRM gamma), 避免在旧 LUT 上再乘导致色彩崩掉 */
+				const std::string cmd = Utils::FileSystem::exists("/usr/local/bin/colortemp")
+					? "sudo -n /usr/local/bin/colortemp -r " + (*current)[0] +
+					  " -g " + (*current)[1] + " -b " + (*current)[2]
+					: "sudo env HOME=" + home + " /usr/local/bin/gamma -r " + (*current)[0] +
+					  " -g " + (*current)[1] + " -b " + (*current)[2];
 				if (system(cmd.c_str()) != 0)
 					LOG(LogWarning) << "gamma apply failed";
 			});
 
 			s->addWithLabel(_(gammaLabels[ch]), gammaList);
 		}
+	}
+
+	// 色温 (VOP2 gamma LUT): 6500K 中性, 越低越暖. 内核支持时写
+	// /sys/module/rockchipdrm/parameters/colortemp (持久, 游戏里也生效),
+	// 否则退回 /usr/local/bin/colortemp (仅当前 KMS 会话)
+	{
+		int curK = 6500;
+		const std::string ctempSys = "/sys/module/rockchipdrm/parameters/colortemp";
+		const std::string ctempConf = "/home/ark/.config/colortemp.conf";
+
+		if (Utils::FileSystem::exists(ctempSys)) {
+			int v = atoi(readTextFile(ctempSys.c_str()).c_str());
+			if (v >= 3000 && v <= 9000)
+				curK = v;
+		} else if (Utils::FileSystem::exists(ctempConf)) {
+			std::istringstream cs(readTextFile(ctempConf.c_str()));
+			std::string kind;
+			int v = 0;
+			cs >> kind >> v;
+			if (kind == "kelvin" && v >= 3000 && v <= 9000)
+				curK = v;
+		}
+
+		auto ctempSlider = std::make_shared<SliderComponent>(mWindow, 3000.f, 9000.f, 100.f, "K");
+		ctempSlider->setValue((float)curK);
+		ctempSlider->setOnValueChanged([](const float& newVal)
+		{
+			const std::string v = std::to_string((int)Math::round(newVal));
+
+			/* colortemp: 有内核参数走 sysfs (持久), 否则写 DRM LUT */
+			if (Utils::FileSystem::exists("/usr/local/bin/colortemp"))
+				runSystemCommand("sudo -n /usr/local/bin/colortemp -k " + v + " >/dev/null", "", nullptr);
+		});
+		s->addWithLabel(_("COLOR TEMPERATURE"), ctempSlider);
+		s->addSaveFunc([ctempSlider]
+		{
+			const std::string v = std::to_string((int)Math::round(ctempSlider->getValue()));
+
+			if (Utils::FileSystem::exists("/usr/local/bin/colortemp"))
+				runSystemCommand("sudo -n /usr/local/bin/colortemp -k " + v + " >/dev/null", "", nullptr);
+		});
 	}
 
   if (Utils::FileSystem::exists("/usr/local/bin/panel_set.sh"))

@@ -172,7 +172,9 @@ bool TextureResource::bind()
 
 void TextureResource::resetCache()
 {
-	sTextureDataManager.clearQueue();
+	// Wait for in-flight decodes too: one finishing after unloadAll() would
+	// leave its image in memory while the game runs.
+	sTextureDataManager.waitIdle();
 }
 
 void TextureResource::cancelAsync(std::shared_ptr<TextureResource> texture)
@@ -342,10 +344,11 @@ bool TextureResource::unload()
 
 void TextureResource::reload()
 {
-	// For dynamically loaded textures the texture manager will load them on demand.
-	// For manually loaded textures we have to reload them here
+	// Manually loaded textures (resources) have to be reloaded here.
+	// Dynamic textures are loaded on demand by bind() when drawn, except
+	// force-loaded ones, which must be ready immediately.
 	if (mTextureData && !mTextureData->isLoaded())
 		mTextureData->load();
-	else if (mTextureData == nullptr)
+	else if (mTextureData == nullptr && mForceLoad)
 		sTextureDataManager.get(this);
 }

@@ -147,7 +147,9 @@ void SliderComponent::onValueChanged()
 	// update knob position/size
 	mKnob.setResize(0, mSize.y() * 0.7f);
 	float lineLength = mSize.x() - mKnob.getSize().x() - (mValueCache ? mValueCache->metrics.size.x() + 4 : 0);
-	mKnob.setPosition(((mValue + mMin) / mMax) * lineLength + mKnob.getSize().x()/2, mSize.y() / 2);
+	/* 旋钮位置按相对区间归一化: 以前写成 (mValue + mMin) / mMax,
+	 * 只对 0 起点范围正确, 3000..9000 这类范围会从 2/3 处起步并冲出滑条 */
+	mKnob.setPosition(((mValue - mMin) / (mMax - mMin)) * lineLength + mKnob.getSize().x()/2, mSize.y() / 2);
 
 }
 

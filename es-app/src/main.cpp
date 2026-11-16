@@ -22,6 +22,9 @@
 #include <SDL_events.h>
 #include <SDL_main.h>
 #include <SDL_timer.h>
+#if defined(__GLIBC__)
+#include <malloc.h>
+#endif
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
@@ -410,6 +413,18 @@ int main(int argc, char* argv[])
 {
 	srand((unsigned int)time(NULL));
 
+#if defined(__GLIBC__)
+	// glibc gives each render/decode thread its own malloc arena and keeps
+	// freed memory in them, so RSS keeps growing while browsing on 1 GB
+	// handhelds. Cap the arenas and let the idle loop trim the heap back to
+	// the live working set.
+	mallopt(M_ARENA_MAX, 2);
+	mallopt(M_TRIM_THRESHOLD, 512 * 1024);
+	// big allocations (decoded images) on mmap: freeing them returns the
+	// memory to the system at once
+	mallopt(M_MMAP_THRESHOLD, 128 * 1024);
+#endif
+
 #if WIN32
 	std::locale::global(std::locale("en-US"));
 	setlocale(LC_NUMERIC, "C");
@@ -496,6 +511,12 @@ int main(int argc, char* argv[])
 	// 任何一条卡住都会让 ES 停在 window.init() 之前, 表现为"ES 起不来".
 	system("setsid sh -c 'sudo -n /usr/local/bin/darkos-hw-apply.sh "
 	       ">>/tmp/darkos-hw-apply.log 2>&1' </dev/null >/dev/null 2>&1 &");
+	// 色温/gamma: 重放保存值. ES 自己 modeset 会清掉 DRM gamma LUT,
+	// 内核 colortemp 参数存在时 colortemp 改写 sysfs, 由内核每帧保持.
+	if (Utils::FileSystem::exists("/usr/local/bin/colortemp"))
+		/* ES 启动后期还会再提交一次 KMS, 太早写 LUT 会被冲掉, 延迟几秒再重放 */
+		system("setsid sh -c 'sleep 6; sudo -n /usr/local/bin/colortemp -apply "
+		       ">>/tmp/colortemp.log 2>&1' </dev/null >/dev/null 2>&1 &");
 
 	// 电源灯: 恢复各 LED 的阈值与开关状态
 	{
@@ -702,6 +723,20 @@ int main(int argc, char* argv[])
 			SDL_Delay(10); // this doesn't need to be accurate, we're just giving up our CPU time until something wakes us up
 			continue;
 		}
+
+#if defined(__GLIBC__)
+		// After 15 s without input, hand freed heap pages back to the OS
+		// (at most once a minute).
+		{
+			static int s_lastTrim = 0;
+			const int now = SDL_GetTicks();
+			if (now - ps_time > 15000 && now - s_lastTrim > 60000)
+			{
+				malloc_trim(0);
+				s_lastTrim = now;
+			}
+		}
+#endif
 
 		int curTime = SDL_GetTicks();
 		int deltaTime = curTime - lastTime;

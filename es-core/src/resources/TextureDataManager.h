@@ -25,6 +25,7 @@ public:
 	void load(std::shared_ptr<TextureData> textureData);
 	bool remove(std::shared_ptr<TextureData> textureData);
 	void clearQueue();
+	void waitIdle();
 
 	size_t getQueueSize();
 
@@ -86,6 +87,7 @@ public:
 	void load(std::shared_ptr<TextureData> tex, bool block = false);
 
 	void clearQueue();
+	void waitIdle();
 
 	void onTextureLoaded(std::shared_ptr<TextureData> tex);
 

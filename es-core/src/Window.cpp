@@ -11,6 +11,9 @@
 #include "Scripting.h"
 #include <algorithm>
 #include <iomanip>
+#if defined(__GLIBC__)
+#include <malloc.h>
+#endif
 #include <SDL_events.h>
 #include "guis/GuiInfoPopup.h"
 #include "components/AsyncNotificationComponent.h"
@@ -171,6 +174,11 @@ void Window::deinit(bool deinitRenderer)
 
 	if (deinitRenderer)
 		Renderer::deinit();
+
+#if defined(__GLIBC__)
+	// return the freed heap (all arenas) to the system before the game runs
+	malloc_trim(0);
+#endif
 }
 
 void Window::textInput(const char* text)
