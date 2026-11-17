@@ -277,6 +277,25 @@ std::string getDefaultZramAlgorithm()
     return algos.empty() ? "lzo" : algos.front();
 }
 
+// Parse a menu size ("512M", "2G", or raw bytes) into bytes. The old code
+// only listed 128/256/512/1024M and silently fell back to 512M for 2048M.
+static long zramSizeToBytes(const std::string& size)
+{
+    if (size.empty())
+        return 512L * 1024 * 1024;
+    char* end = nullptr;
+    long v = std::strtol(size.c_str(), &end, 10);
+    if (v <= 0)
+        return 512L * 1024 * 1024;
+    if (end && (*end == 'M' || *end == 'm'))
+        return v * 1024L * 1024L;
+    if (end && (*end == 'G' || *end == 'g'))
+        return v * 1024L * 1024L * 1024L;
+    if (size.find_first_of("MmGg") == std::string::npos && v > 1024L * 1024L)
+        return v; // already bytes
+    return v * 1024L * 1024L;
+}
+
 void toggleZram(bool enable, const std::string& size, const std::string& compAlgo)
 {
     if (enable) {
@@ -288,12 +307,8 @@ void toggleZram(bool enable, const std::string& size, const std::string& compAlg
         // Set compression algorithm (must be set after reset, before disksize)
         ArkOSUtil::executeCommand("echo " + compAlgo + " | sudo tee /sys/block/zram0/comp_algorithm >/dev/null 2>&1");
 
-        // Convert size string (e.g., "512M") to bytes
-        long bytes = 536870912; // default 512M
-        if (size == "128M") bytes = 134217728;
-        else if (size == "256M") bytes = 268435456;
-        else if (size == "512M") bytes = 536870912;
-        else if (size == "1024M") bytes = 1073741824;
+        // Convert size string (e.g., "512M", "2G") to bytes
+        long bytes = zramSizeToBytes(size);
 
         // Set size in bytes
         ArkOSUtil::executeCommand("echo " + std::to_string(bytes) + " | sudo tee /sys/block/zram0/disksize >/dev/null 2>&1");
@@ -308,11 +323,7 @@ void toggleZram(bool enable, const std::string& size, const std::string& compAlg
 
 void saveZramConfig(const std::string& size, const std::string& compAlgo, bool enabled)
 {
-    long bytes = 536870912;
-    if (size == "128M") bytes = 134217728;
-    else if (size == "256M") bytes = 268435456;
-    else if (size == "512M") bytes = 536870912;
-    else if (size == "1024M") bytes = 1073741824;
+    long bytes = zramSizeToBytes(size);
 
     // printf, not "echo -e": the command runs through /bin/sh (dash), whose
     // echo has no -e and writes it into the file.
@@ -338,99 +349,6 @@ void toggleZramAutoStart(bool enable, const std::string& size, const std::string
     } else {
         ArkOSUtil::executeCommand("sudo systemctl disable zram-swap.service 2>/dev/null || true");
     }
-}
-
-std::string getSdCardName(const std::string& device)
-{
-    std::string name = ArkOSUtil::executeCommand("cat /sys/block/" + device + "/device/name 2>/dev/null");
-    name.erase(std::remove_if(name.begin(), name.end(), ::isspace), name.end());
-    if (name.empty()) {
-        name = ArkOSUtil::executeCommand("cat /sys/block/" + device + "/device/cid 2>/dev/null | cut -c1-8");
-        name.erase(std::remove_if(name.begin(), name.end(), ::isspace), name.end());
-    }
-    return name.empty() ? _("UNKNOWN") : name;
-}
-
-std::string getSdCardSpeed(const std::string& device)
-{
-    // Map device name to dmesg host name (mmcblk0 -> mmc0, mmcblk1 -> mmc1)
-    std::string hostNum = (device == "mmcblk0") ? "mmc0" : "mmc1";
-
-    // Parse existing kernel dmesg output
-    // Format: "mmc0: new high speed SDXC card at address 0001"
-    // Format: "mmc0: new ultra high speed SDR104 SDHC card at address 0001"
-    std::string dmesgLine = ArkOSUtil::executeCommand("dmesg | grep '" + hostNum + ": new' | tail -1");
-
-    if (!dmesgLine.empty()) {
-        // Check for UHS (ultra high speed)
-        if (dmesgLine.find("ultra high speed") != std::string::npos) {
-            // UHS Speed Grade: U3 (SDR104), U1 (SDR50/DDR50), Class 10 (SDR25/SDR12)
-            if (dmesgLine.find("SDR104") != std::string::npos) return "UHS-I U3 (104MB/s)";
-            if (dmesgLine.find("SDR50") != std::string::npos) return "UHS-I U1 (50MB/s)";
-            if (dmesgLine.find("DDR50") != std::string::npos) return "UHS-I U1 DDR (50MB/s)";
-            if (dmesgLine.find("SDR25") != std::string::npos) return "UHS-I Class 10 (25MB/s)";
-            if (dmesgLine.find("SDR12") != std::string::npos) return "UHS-I Class 4 (12MB/s)";
-            return "UHS-I";
-        }
-        // Check for High Speed
-        if (dmesgLine.find("high speed") != std::string::npos) {
-            return "Class 10 (25MB/s)";
-        }
-    }
-
-    return _("N/A");
-}
-
-std::string getCpuBinning()
-{
-    // Try to get CPU binning info from dmesg (added by rockchip-cpufreq.c)
-    // Format: es_info: cpu_bin=X process=X scale=X volt_sel=X
-    // volt_sel is the actual quality grade based on CPU leakage:
-    // - lower volt_sel = higher leakage = worse quality = needs higher voltage
-    // - higher volt_sel = lower leakage = better quality = can run at lower voltage
-    std::string dmesgBin = ArkOSUtil::executeCommand("dmesg | grep 'es_info: cpu_bin=' | tail -1");
-
-    if (!dmesgBin.empty()) {
-        // Parse the volt_sel value (actual quality indicator)
-        std::string voltSel = ArkOSUtil::executeCommand("echo '" + dmesgBin + "' | sed 's/.*volt_sel=\\(-*[0-9]*\\).*/\\1/'");
-        voltSel.erase(std::remove_if(voltSel.begin(), voltSel.end(), ::isspace), voltSel.end());
-
-        int voltVal = atoi(voltSel.c_str());
-
-        // Rockchip CPU quality grades based on volt_sel:
-        // volt_sel=0: L0 一般体质 - higher leakage, needs more voltage
-        // volt_sel=1: L1 较差体质 - slightly better than L0
-        // volt_sel=2: L2 标准体质 - standard quality
-        // volt_sel=3: L3 最佳体质 - lowest leakage, can run at lowest voltage
-        // negative value: N/A - not detected
-
-        if (voltVal < 0) return "N/A";
-        if (voltVal == 0) return "L0 (" + std::string(_("AVERAGE")) + ")";
-        if (voltVal == 1) return "L1 (" + std::string(_("POOR")) + ")";
-        if (voltVal == 2) return "L2 (" + std::string(_("STANDARD")) + ")";
-        if (voltVal == 3) return "L3 (" + std::string(_("BEST")) + ")";
-
-        return "L" + std::to_string(voltVal) + " (" + std::string(_("AVERAGE")) + ")";
-    }
-
-    return "N/A";
-}
-
-std::string getCpuTemp()
-{
-    std::string temp = ArkOSUtil::executeCommand("cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null");
-    temp.erase(std::remove_if(temp.begin(), temp.end(), ::isspace), temp.end());
-
-    if (!temp.empty()) {
-        // Convert millidegree to degree
-        int tempVal = atoi(temp.c_str());
-        if (tempVal > 1000) {
-            tempVal = tempVal / 1000;
-        }
-        return std::to_string(tempVal) + "°C";
-    }
-
-    return _("N/A");
 }
 
 }

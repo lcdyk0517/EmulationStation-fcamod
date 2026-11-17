@@ -370,7 +370,10 @@ void GuiMenu::openJoystickLedSettings()
 				ledBriFound = true;
 		}
 		if (!ledBriFound)
-			ledBrightness->selectFirstItem();
+		{
+			const std::string value = std::to_string(ledBri);
+			ledBrightness->add(_("CUSTOM") + " (" + value + ")", value, true);
+		}
 
 		ledBrightness->setSelectedChangedCallback([](const std::string& value)
 		{
@@ -388,11 +391,14 @@ void GuiMenu::openZramSettings()
 {
 	auto s = new GuiSettings(mWindow, _("ZRAM"));
 
-	auto pickSize = [](const std::string& bytes) -> std::string
+	// getZramSize() returns "<n>M"; the old code compared it with raw byte
+	// strings, so the menu always fell back to 1024M regardless of the
+	// running/saved configuration.
+	auto pickSize = [](const std::string& size) -> std::string
 	{
-		if (bytes == "134217728") return "128M";
-		if (bytes == "268435456") return "256M";
-		if (bytes == "536870912") return "512M";
+		if (size == "128M" || size == "256M" || size == "512M" ||
+		    size == "1024M" || size == "2048M")
+			return size;
 		return "1024M";
 	};
 
@@ -717,7 +723,12 @@ void GuiMenu::openJoystickSettings()
 
 	// L2/R2: 模拟轴 (ABS_Z/ABS_RZ) + 数字键双路; 可关掉线性上报只留数字键
 	auto trigSwitch = std::make_shared<SwitchComponent>(mWindow);
-	trigSwitch->setState(getShOutput("cat " + node + "/linear_triggers 2>/dev/null") != "0");
+	{
+		const std::string raw = getShOutput("cat " + node + "/linear_triggers 2>/dev/null");
+		trigSwitch->setState(raw.empty()
+			? Settings::getInstance()->getBool("LinearTriggers")
+			: raw != "0");
+	}
 	trigSwitch->setOnChangedCallback([trigSwitch, node]
 	{
 		Settings::getInstance()->setBool("LinearTriggers", trigSwitch->getState());
@@ -921,7 +932,10 @@ void GuiMenu::openPowerLedSettings()
 				thresholdFound = true;
 		}
 		if (!thresholdFound)
-			thresholdList->selectFirstItem();
+		{
+			const std::string value = std::to_string(threshold);
+			thresholdList->add(_("CUSTOM") + " (" + value + "%)", value, true);
+		}
 
 		const std::string labelForPath = led.first;
 		thresholdList->setSelectedChangedCallback([labelForPath](const std::string& value)
@@ -986,29 +1000,22 @@ void GuiMenu::openFanSettings()
 			found = true;
 	}
 	if (!found)
-		fanLevel->selectFirstItem();
-
-	LOG(LogInfo) << "FanSettings: cfg mode='" << fanMode << "' pwm=" << fanPwm
-	             << " matched=" << (found ? 1 : 0) << " selected=" << fanLevel->getSelected();
-
 	{
-		std::string flat = fanCfgRaw;
-		for (auto& ch : flat)
-			if (ch == '\n')
-				ch = '|';
-
-		FILE* dbg = fopen("/tmp/fan_dbg.log", "a");
-		if (dbg)
+		// Show the real PWM instead of silently claiming "Auto": the
+		// hotkey or an older config may leave a value outside presets.
+		if (fanPwm > 0)
 		{
-			fprintf(dbg, "mode='%s' pwm=%d matched=%d selected='%s' raw='%s'\n",
-			        fanMode.c_str(), fanPwm, found ? 1 : 0, fanLevel->getSelected().c_str(), flat.c_str());
-			fclose(dbg);
+			const std::string value = std::to_string(fanPwm);
+			fanLevel->add(_("CUSTOM") + " (" + value + ")", value, true);
+		}
+		else
+		{
+			fanLevel->selectFirstItem();
 		}
 	}
 
 	fanLevel->setSelectedChangedCallback([](const std::string& value)
 	{
-		LOG(LogInfo) << "FanSettings: user selected '" << value << "'";
 		const std::string cmd = value == "auto" ? "sudo /usr/local/bin/fanctl on"
 			: value == "off" ? "sudo /usr/local/bin/fanctl off"
 			: "sudo /usr/local/bin/fanctl set " + value;

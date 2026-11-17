@@ -385,16 +385,21 @@ float queryBatteryVoltage()
 // Adapted from emuelec
 std::string getShOutput(const std::string& mStr) 
 {
-    std::string result, file;
+    std::string result;
     FILE* pipe{popen(mStr.c_str(), "r")};
+    if(pipe == nullptr)
+        return result;
     char buffer[256];
 
     while(fgets(buffer, sizeof(buffer), pipe) != NULL)
-    {
-        file = buffer;
-        result += file.substr(0, file.size() - 1);
-    }
+        result += buffer;
 
     pclose(pipe);
+    // Only drop real line endings: the old code removed the last byte
+    // unconditionally, which ate the answer when a command did not end
+    // with a newline.
+    while(!result.empty() &&
+          (result.back() == '\n' || result.back() == '\r'))
+        result.pop_back();
     return result;
 }
