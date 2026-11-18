@@ -564,62 +564,94 @@ void GuiMenu::openPerformanceSettingsGlobal()
 		}
 	}
 
-	// eMMC loader (RK3562 idblock: DDR 初始化 + SPL) 版本. BootROM 固定从
-	// eMMC 读这段, 普通刷机不会更新它; 不是 v1.10 时给一个更新入口,
-	// 写引导区有风险, 先弹确认框, 备份由 loader-update 内的
-	// write-loader-emmc.sh 自动做到 /home/ark/loader-backup-*.bin
-	{
-		const std::string loaderVer = getShOutput("sudo -n /usr/local/bin/loader-version 2>/dev/null");
-		if (!loaderVer.empty())
-		{
-			const bool needUpdate = (loaderVer != "v1.10");
-			std::string label = std::string(_("EMMC LOADER")) + ": " + loaderVer;
-			if (needUpdate)
-				label += "  (" + std::string(_("UPDATE")) + ")";
+	// Loader 管理: 查看 eMMC/TF 的 Rockchip DDR loader 版本, 在 920/1560
+	// (v1.10) 之间切换; 写 TF 不留备份, 写 eMMC 先备份. 详见 loader-* 脚本.
+	s->addEntry(_("LOADER MANAGEMENT"), true, [this] { openLoaderManagement(); }, "iconAdvanced");
 
-			if (needUpdate)
-			{
-				s->addEntry(label, true, [this]
-				{
+	mWindow->pushGui(s);
+}
+
+void GuiMenu::openLoaderManagement()
+{
+	auto s = new GuiSettings(mWindow, _("LOADER MANAGEMENT"));
+
+	auto trim = [](std::string v) {
+		while (!v.empty() && (v.back() == '\n' || v.back() == '\r' || v.back() == ' '))
+			v.pop_back();
+		const size_t p = v.find_first_not_of(" \t\r\n");
+		return p == std::string::npos ? std::string() : v.substr(p);
+	};
+
+	const std::string emmcDev = trim(getShOutput("sudo -n /usr/local/bin/loader-targets 2>/dev/null | awk '$1==\"emmc\"{print $2}'"));
+	const std::string tfDev   = trim(getShOutput("sudo -n /usr/local/bin/loader-targets 2>/dev/null | awk '$1==\"tf\"{print $2}'"));
+
+	auto readVer = [&](const std::string& dev) -> std::string {
+		if (dev.empty())
+			return std::string(_("N/A"));
+		const std::string v = trim(getShOutput("sudo -n /usr/local/bin/loader-version " + dev + " 2>/dev/null"));
+		return v.empty() ? std::string(_("unknown")) : v;
+	};
+
+	// 当前 eMMC / TF 的 loader 版本 (只读展示)
+	s->addEntry(std::string(_("EMMC LOADER")) + ": " + readVer(emmcDev), false, [] {}, "iconAdvanced");
+	s->addEntry(std::string(_("TF LOADER")) + ": " + readVer(tfDev), false, [] {}, "iconAdvanced");
+
+	// 只更新 eMMC 引导 (固定 920MHz v1.10); TF 只读展示, 不写入.
+	if (!emmcDev.empty())
+	{
+		// 先问是否备份, 再弹写入确认 (eMMC 写引导区有变砖风险)
+		s->addEntry(_("UPDATE EMMC LOADER (920)"), true, [this]() {
+			mWindow->pushGui(new GuiMsgBox(mWindow,
+				_("Back up the current eMMC loader before writing?"),
+				_("BACKUP"), [this]() {
 					mWindow->pushGui(new GuiMsgBox(mWindow,
-						_("Writing the eMMC loader is RISKY: a power loss during the write can brick the device. The current loader is backed up to /home/ark first. Update the eMMC loader to v1.10 now?"),
-						_("YES, UPDATE"), [this]
-						{
-							const std::string out = getShOutput("sudo -n /usr/local/bin/loader-update 2>&1");
-							mWindow->pushGui(new GuiMsgBox(mWindow,
-								out.empty() ? std::string(_("Done.")) : out,
-								_("OK"), nullptr, ICON_INFORMATION));
+						_("Confirm writing the selected loader to eMMC? A power loss during the write may brick the device."),
+						_("YES, WRITE"), [this]() {
+							const std::string out = getShOutput("sudo -n /usr/local/bin/loader-write 920 emmc backup 2>&1");
+							mWindow->pushGui(new GuiMsgBox(mWindow, out.empty() ? std::string(_("Done.")) : out, _("OK"), nullptr, ICON_INFORMATION));
+						},
+						_("CANCEL"), nullptr, ICON_WARNING));
+				},
+				_("NO BACKUP"), [this]() {
+					mWindow->pushGui(new GuiMsgBox(mWindow,
+						_("Confirm writing the selected loader to eMMC WITHOUT backup? A power loss during the write may brick the device."),
+						_("YES, WRITE"), [this]() {
+							const std::string out = getShOutput("sudo -n /usr/local/bin/loader-write 920 emmc nobackup 2>&1");
+							mWindow->pushGui(new GuiMsgBox(mWindow, out.empty() ? std::string(_("Done.")) : out, _("OK"), nullptr, ICON_INFORMATION));
+						},
+						_("CANCEL"), nullptr, ICON_WARNING));
+				},
+				_("CANCEL"), nullptr, ICON_WARNING));
+		}, "iconAdvanced");
+	}
+
+	// 本机(机型+Serial)的 loader 备份 -> 恢复入口; 没有匹配则不显示
+	{
+		const std::string list = getShOutput("sudo -n /usr/local/bin/loader-restore --list 2>/dev/null");
+		std::string cur;
+		for (size_t i = 0; i <= list.size(); ++i)
+		{
+			if (i == list.size() || list[i] == '\n')
+			{
+				const std::string path = trim(cur);
+				cur.clear();
+				if (path.empty())
+					continue;
+				const std::string name = Utils::FileSystem::getFileName(path);
+				s->addEntry(std::string(_("RESTORE EMMC LOADER")) + ": " + name, true, [this, path]() {
+					mWindow->pushGui(new GuiMsgBox(mWindow,
+						_("Restore the eMMC loader from this backup? The current loader is backed up first. A power loss during the write may brick the device."),
+						_("YES, RESTORE"), [this, path]() {
+							const std::string out = getShOutput("sudo -n /usr/local/bin/loader-restore '" + path + "' 2>&1");
+							mWindow->pushGui(new GuiMsgBox(mWindow, out.empty() ? std::string(_("Done.")) : out, _("OK"), nullptr, ICON_INFORMATION));
 						},
 						_("CANCEL"), nullptr, ICON_WARNING));
 				}, "iconAdvanced");
 			}
 			else
 			{
-				// 已经是最新版本: 仅展示版本号. 必须给空 lambda 而不是 nullptr ——
-				// MenuComponent 对空 std::function 调 func() 会抛 bad_function_call
-				// 直接 abort(134), ES 被 systemd 重启.
-				s->addEntry(label, false, [] {}, "iconAdvanced");
+				cur.push_back(list[i]);
 			}
-		}
-
-		// 有备份就给回滚入口 (loader-update / write-loader-emmc.sh 写入前都会留备份)
-		const std::string backup = getShOutput("ls -1t /home/ark/loader-backup-*.bin 2>/dev/null | head -n1");
-		if (!backup.empty())
-		{
-			const std::string backupName = Utils::FileSystem::getFileName(backup);
-			s->addEntry(std::string(_("RESTORE EMMC LOADER")) + ": " + backupName, true, [this]
-			{
-				mWindow->pushGui(new GuiMsgBox(mWindow,
-					_("Restoring writes the eMMC boot area from the backup. A power loss during the write can brick the device. The current loader is backed up first. Restore now?"),
-					_("YES, RESTORE"), [this]
-					{
-						const std::string out = getShOutput("sudo -n /usr/local/bin/loader-restore 2>&1");
-						mWindow->pushGui(new GuiMsgBox(mWindow,
-							out.empty() ? std::string(_("Done.")) : out,
-							_("OK"), nullptr, ICON_INFORMATION));
-					},
-					_("CANCEL"), nullptr, ICON_WARNING));
-			}, "iconAdvanced");
 		}
 	}
 
@@ -2815,8 +2847,21 @@ void GuiMenu::openOtherSettings()
 
 	if (currentTimezone.empty())
 		currentTimezone = std::string(getShOutput(R"(/usr/local/bin/timezones current)"));
+	auto trim = [](std::string v) {
+		static const char* ws = " \t\r\n";
+		auto b = v.find_first_not_of(ws);
+		if (b == std::string::npos)
+			return std::string();
+		auto e = v.find_last_not_of(ws);
+		return v.substr(b, e - b + 1);
+	};
+	currentTimezone = trim(currentTimezone);
 	std::string a;
 	for(std::stringstream ss(getShOutput(R"(/usr/local/bin/timezones available)")); getline(ss, a, ','); ) {
+		a = trim(a);
+		// 列表脚本每项以逗号结尾, 最后的 "\n" 会变成一个空白条目(一行大空白)
+		if (a.empty())
+			continue;
 		es_timezones->add(a, a, currentTimezone == a);
 	}
 	s->addWithLabel(_("TIMEZONE"), es_timezones);

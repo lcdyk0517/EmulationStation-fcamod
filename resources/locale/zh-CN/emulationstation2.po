@@ -1437,3 +1437,48 @@ msgstr "写入 eMMC 引导区有风险：写入过程中断电可能导致设备
 msgid "Restoring writes the eMMC boot area from the backup. A power loss during the write can brick the device. The current loader is backed up first. Restore now?"
 msgstr "恢复会用备份写回 eMMC 引导区，写入过程中断电可能导致设备变砖。当前 loader 会先备份。现在恢复？"
 
+
+msgid "LOADER MANAGEMENT"
+msgstr "引导管理"
+
+msgid "TF LOADER"
+msgstr "TF 引导"
+
+msgid "LOADER FREQ"
+msgstr "引导频率"
+
+msgid "WRITE LOADER TO TF"
+msgstr "写入引导到 TF 卡"
+
+msgid "WRITE LOADER TO EMMC"
+msgstr "写入引导到 eMMC"
+
+msgid "N/A"
+msgstr "无"
+
+msgid "BACKUP"
+msgstr "备份"
+
+msgid "NO BACKUP"
+msgstr "不备份"
+
+msgid "YES, WRITE"
+msgstr "是，写入"
+
+msgid "Write the selected loader to the TF card? A power loss during the write may prevent the device from booting. TF writes are NOT backed up."
+msgstr "把所选引导写入 TF 卡？写入过程中断电可能导致无法启动。TF 卡写入不做备份。"
+
+msgid "Back up the current eMMC loader before writing?"
+msgstr "写入前先备份当前 eMMC 引导？"
+
+msgid "Confirm writing the selected loader to eMMC? A power loss during the write may brick the device."
+msgstr "确认把所选引导写入 eMMC？写入过程中断电可能使设备变砖。"
+
+msgid "Confirm writing the selected loader to eMMC WITHOUT backup? A power loss during the write may brick the device."
+msgstr "确认在【不备份】的情况下把所选引导写入 eMMC？写入过程中断电可能使设备变砖。"
+
+msgid "Restore the eMMC loader from this backup? The current loader is backed up first. A power loss during the write may brick the device."
+msgstr "用该备份恢复 eMMC 引导？恢复前会先备份当前引导。写入过程中断电可能使设备变砖。"
+
+msgid "UPDATE EMMC LOADER (920)"
+msgstr "更新 eMMC 引导 (920)"

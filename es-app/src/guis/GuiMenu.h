@@ -51,6 +51,7 @@ private:
 	void openBatteryPlusSettings();
 	void openJoystickSettings();
 	void openPerformanceSettingsGlobal();
+	void openLoaderManagement();
 	void openZramSettings();
 
 	MenuComponent mMenu;
