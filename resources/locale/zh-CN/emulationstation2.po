@@ -1149,6 +1149,9 @@ msgstr "WIFI"
 msgid "WIFI LIST"
 msgstr "WIFI 列表"
 
+msgid "WIFI INTERFACE"
+msgstr "无线网卡"
+
 msgid "WIFI SSID"
 msgstr "Wi-Fi SSID (网络名称)"
 

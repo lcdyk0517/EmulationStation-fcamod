@@ -1,5 +1,6 @@
 #include "guis/GuiWifi.h"
 
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <string>
@@ -48,24 +49,92 @@ std::string quote(const std::string& value)
 	out += '"';
 	return out;
 }
+
+// One nmcli device line: DEVICE:TYPE:STATE. P2P and unmanaged devices are not
+// station interfaces, so neither takes part here.
+bool parseDevice(const std::string& line, std::string& device, std::string& type, std::string& state)
+{
+	const auto p = line.find(':');
+	if (p == std::string::npos)
+		return false;
+	const auto q = line.find(':', p + 1);
+	if (q == std::string::npos)
+		return false;
+	device = line.substr(0, p);
+	type = line.substr(p + 1, q - p - 1);
+	state = line.substr(q + 1);
+	return true;
+}
+
+std::vector<std::string> wifiDevices()
+{
+	std::vector<std::string> devices;
+	for (const auto& line : runLines("nmcli -t -f DEVICE,TYPE,STATE device 2>/dev/null"))
+	{
+		std::string device, type, state;
+		if (parseDevice(line, device, type, state) && type == "wifi" && state != "unmanaged")
+			devices.push_back(device);
+	}
+	return devices;
+}
+
+std::string connectedWifi()
+{
+	for (const auto& line : runLines("nmcli -t -f DEVICE,TYPE,STATE device 2>/dev/null"))
+	{
+		std::string device, type, state;
+		if (parseDevice(line, device, type, state) && type == "wifi" && state == "connected")
+			return device;
+	}
+	return {};
+}
 }  // namespace
 
 GuiWifi::GuiWifi(Window* window)
-	: GuiSettings(window, _("WIFI LIST"))
+	: GuiWifi(window, std::string())
+{
+}
+
+GuiWifi::GuiWifi(Window* window, std::string iface)
+	: GuiSettings(window, _("WIFI LIST")), iface_(std::move(iface))
 {
 	load();
 }
 
 void GuiWifi::load()
 {
-	const auto active = runLines("nmcli -t -f ACTIVE,SSID device wifi 2>/dev/null | sed -n 's/^yes://p'");
+	// With one wireless interface there is nothing to pick and the commands
+	// stay interface-less, exactly as before. A chosen interface that has gone
+	// away (USB adapter unplugged) falls back to the connected one.
+	const std::vector<std::string> ifaces = wifiDevices();
+	if (iface_.empty() || std::find(ifaces.begin(), ifaces.end(), iface_) == ifaces.end())
+	{
+		const std::string connected = connectedWifi();
+		if (!connected.empty() && std::find(ifaces.begin(), ifaces.end(), connected) != ifaces.end())
+			iface_ = connected;
+		else if (std::find(ifaces.begin(), ifaces.end(), "wlan0") != ifaces.end())
+			iface_ = "wlan0";
+		else if (!ifaces.empty())
+			iface_ = ifaces.front();
+	}
+
+	const std::string ifname = iface_.empty() ? std::string() : " ifname " + quote(iface_);
+
+	// Entering the page rescans, so the list is not whatever the last scan left.
+	if (!iface_.empty())
+		system(("sudo nmcli device wifi rescan" + ifname + " >/dev/null 2>&1").c_str());
+
+	const auto active = runLines("nmcli -t -f ACTIVE,SSID device wifi list" + ifname + " 2>/dev/null | sed -n 's/^yes://p'");
 	const std::string current = active.empty() ? std::string(_("NOT CONNECTED")) : active[0];
 
 	addEntry(_("CURRENT") + ": " + current, false, nullptr);
 
+	if (ifaces.size() > 1)
+		addEntry(_("WIFI INTERFACE") + ": " + iface_, true, [this] { nextInterface(); }, "iconNetwork");
+
 	std::vector<std::pair<std::string, bool>> networks;
 
-	for (const auto& entry : runLines("nmcli -t -f SSID,SECURITY device wifi list 2>/dev/null"))
+	for (const auto& entry : runLines("nmcli -t -f SSID,SECURITY device wifi list" + ifname + " 2>/dev/null"))
 	{
 		const auto pos = entry.rfind(':');
 		if (pos == std::string::npos)
@@ -133,22 +202,40 @@ void GuiWifi::load()
 	}, "iconNetwork");
 }
 
-void GuiWifi::refresh()
+void GuiWifi::nextInterface()
 {
-	system("sudo nmcli device wifi rescan >/dev/null 2>&1");
+	const std::vector<std::string> ifaces = wifiDevices();
+	if (ifaces.size() < 2)
+		return;
+
+	auto it = std::find(ifaces.begin(), ifaces.end(), iface_);
+	if (it == ifaces.end() || ++it == ifaces.end())
+		it = ifaces.begin();
 
 	Window* window = mWindow;
-	window->pushGui(new GuiWifi(window));
+	window->pushGui(new GuiWifi(window, *it));
+	close();
+}
+
+void GuiWifi::refresh()
+{
+	if (!iface_.empty())
+		system(("sudo nmcli device wifi rescan ifname " + quote(iface_) + " >/dev/null 2>&1").c_str());
+
+	Window* window = mWindow;
+	window->pushGui(new GuiWifi(window, iface_));
 	close();
 }
 
 void GuiWifi::connectTo(const std::string& ssid, const std::string& password)
 {
 	std::string command = "sudo nmcli device wifi connect " + quote(ssid);
+	if (!iface_.empty())
+		command += " ifname " + quote(iface_);
 	if (!password.empty())
 		command += " password " + quote(password);
 
-	LOG(LogInfo) << "Wifi: connecting to " << ssid;
+	LOG(LogInfo) << "Wifi: connecting to " << ssid << (iface_.empty() ? "" : " on " + iface_);
 
 	const int result = system((command + " >/tmp/es_wifi_connect.log 2>&1").c_str());
 	if (result == 0)
