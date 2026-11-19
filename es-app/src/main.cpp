@@ -5,6 +5,7 @@
 #include "guis/GuiDetectDevice.h"
 #include "guis/GuiJoystickCalibration.h"
 #include "guis/GuiMsgBox.h"
+#include "guis/arkos4clone/SdCardControl.h"
 #include "utils/FileSystemUtil.h"
 #include "views/ViewController.h"
 #include "CollectionSystemManager.h"
@@ -579,6 +580,12 @@ int main(int argc, char* argv[])
 			system(cmd.c_str());
 		}
 	}
+
+	// Resolve ROMS SD card mode and apply the matching es_systems.cfg variant
+	// (falls back to sd1 when the SD2 card is missing, unmounted or empty).
+	// MUST run before SystemData::loadConfig(), which happens below in
+	// loadSystemConfigFile() - do not move it after window.init().
+	SdCardControl::applyRomsModeOnStartup();
 
 	TextureData::OPTIMIZEVRAM = Settings::getInstance()->getBool("OptimizeVRAM");
 	GuiComponent::ALLOWANIMATIONS = Settings::getInstance()->getString("TransitionStyle") != "instant";

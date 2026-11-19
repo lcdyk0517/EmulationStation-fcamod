@@ -6,6 +6,7 @@
 #include "components/MenuComponent.h"
 #include "components/OptionListComponent.h"
 #include "GuiComponent.h"
+#include "guis/arkos4clone/SdCardControl.h"
 
 class GuiSettings;
 class SystemData;
@@ -53,6 +54,8 @@ private:
 	void openPerformanceSettingsGlobal();
 	void openLoaderManagement();
 	void openZramSettings();
+	void openSdCardSettings();
+	void doSdCardSwitch(SdCardControl::RomsMode mode);
 
 	MenuComponent mMenu;
 	TextComponent mVersion;

@@ -41,6 +41,9 @@ namespace HardwareInfo
     bool isZramAutoStart();
     void toggleZramAutoStart(bool enable, const std::string& size = "1024M", const std::string& compAlgo = "zstd", bool zramEnabled = true);
     void saveZramConfig(const std::string& size, const std::string& compAlgo, bool enabled = true);
+
+    // SD card (device: "mmcblk0" / "mmcblk1")
+    std::string getSdCardName(const std::string& device = "mmcblk1");
 }
 
 #endif // ES_APP_GUIS_ARKOS4CLONE_HARDWAREINFO_H

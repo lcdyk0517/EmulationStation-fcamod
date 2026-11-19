@@ -351,4 +351,17 @@ void toggleZramAutoStart(bool enable, const std::string& size, const std::string
     }
 }
 
+std::string getSdCardName(const std::string& device)
+{
+    // Manufacturer name from sysfs, falling back to the CID prefix on
+    // controllers that do not expose device/name.
+    std::string name = ArkOSUtil::executeCommand("cat /sys/block/" + device + "/device/name 2>/dev/null");
+    name.erase(std::remove_if(name.begin(), name.end(), ::isspace), name.end());
+    if (name.empty()) {
+        name = ArkOSUtil::executeCommand("cat /sys/block/" + device + "/device/cid 2>/dev/null | cut -c1-8");
+        name.erase(std::remove_if(name.begin(), name.end(), ::isspace), name.end());
+    }
+    return name.empty() ? _("UNKNOWN") : name;
+}
+
 }

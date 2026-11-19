@@ -17,6 +17,7 @@
 #include "guis/GuiWifi.h"
 #include "guis/GuiJoystickCalibration.h"
 #include "guis/arkos4clone/HardwareInfo.h"
+#include "guis/arkos4clone/SdCardControl.h"
 #include "guis/GuiScraperStart.h"
 #include "guis/GuiSettings.h"
 #include "views/UIModeController.h"
@@ -145,10 +146,13 @@ void GuiMenu::openDArkOSSettings()
 	auto s = new GuiSettings(mWindow, _("dArkOS3562 SETTINGS"));
 
 	// WIFI 二级菜单 (开关 / 网络 / 远程服务), 置顶
-	// 硬件能力 (console_detect -s): 摇杆灯控制方式 / 风扇
+	// 硬件能力 (console_detect -s): 摇杆灯控制方式 / 风扇.
+	// 只认平台明确报告的类型: 旧版 console_detect 不输出 LED_TYPE, 而"没有
+	// 报告 unsupported"并不等于支持 (之前就是这样把没有摇杆灯的机器也露出入口).
 	const std::string hwInfo = getShOutput("/usr/local/bin/console_detect -s 2>/dev/null");
-	const bool hasStickLed = hwInfo.find("LED_TYPE=unsupported") == std::string::npos &&
-				 hwInfo.find("LED_TYPE=none") == std::string::npos;
+	const bool hasStickLed = hwInfo.find("LED_TYPE=mcu_led") != std::string::npos ||
+				 hwInfo.find("LED_TYPE=gpio") != std::string::npos ||
+				 hwInfo.find("LED_TYPE=ws2812") != std::string::npos;
 	const bool hasFan = hwInfo.find("FAN=yes") != std::string::npos;
 
 	s->addEntry(_("WIFI"), true, [this] { openWifiSettings(); }, "iconNetwork");
@@ -175,6 +179,10 @@ void GuiMenu::openDArkOSSettings()
 		s->addEntry(_("PERFORMANCE SETTINGS"), true, [this] { openPerformanceSettingsGlobal(); }, "iconAdvanced");
 	if (Utils::FileSystem::exists("/sys/block/zram0"))
 		s->addEntry(_("ZRAM"), true, [this] { openZramSettings(); }, "iconSystem");
+
+	// 游戏来源 SD 卡: SD1 / SD2 / 双卡 (切换后重载系统列表)
+	// 始终显示, 无第二卡槽时页内状态显示"未检测到"。
+	s->addEntry(_("ROMS SD CARD"), true, [this] { openSdCardSettings(); }, "iconGames");
 
 	// KODI 放最下面
 	if (Settings::getInstance()->getBool("EnableKodi") == 1 && Utils::FileSystem::exists("/usr/local/bin/Kodi.sh"))
@@ -219,6 +227,127 @@ void GuiMenu::openWifiSettings()
 	s->addWithLabel(_("REMOTE SERVICES"), remoteSwitch);
 
 	mWindow->pushGui(s);
+}
+
+void GuiMenu::openSdCardSettings()
+{
+	using namespace SdCardControl;
+
+	GuiSettings* s = new GuiSettings(mWindow, _("ROMS SD CARD"));
+
+	std::string sd2Info;
+	const std::string sd2Dev = findSd2Device();
+	if (sd2Dev.empty())
+	{
+		sd2Info = _("NOT DETECTED");
+	}
+	else
+	{
+		const std::string devName = sd2Dev.substr(sd2Dev.rfind('/') + 1);
+		sd2Info = HardwareInfo::getSdCardName(devName);
+		if (sd2Info.empty())
+			sd2Info = _("DETECTED");
+		sd2Info += isMountPoint("/roms2") ? (" [" + _("MOUNTED") + "]")
+		                                  : (" [" + _("NOT MOUNTED") + "]");
+	}
+	auto sd2Text = std::make_shared<TextComponent>(mWindow, sd2Info,
+		Font::get(FONT_SIZE_SMALL), 0x777777FF);
+	s->addWithLabel(_("SD CARD 2"), sd2Text);
+
+	std::string modeStr;
+	switch (resolveEffectiveMode())
+	{
+		case RomsMode::Dual: modeStr = _("SD1 + SD2 (DUAL)"); break;
+		case RomsMode::Sd2:  modeStr = _("SD2 ONLY");         break;
+		case RomsMode::Sd1:
+		default:             modeStr = _("MAIN SD (SD1)");    break;
+	}
+	auto modeText = std::make_shared<TextComponent>(mWindow, modeStr,
+		Font::get(FONT_SIZE_SMALL), 0x777777FF);
+	s->addWithLabel(_("CURRENT MODE"), modeText);
+
+	auto confirmSwitch = [this](SdCardControl::RomsMode mode) {
+		mWindow->pushGui(new GuiMsgBox(mWindow,
+			_("ARE YOU SURE YOU WANT TO SWITCH THE ROMS SOURCE?") + "\n" + _("EMULATIONSTATION WILL RELOAD"),
+			_("YES"), [this, mode] { doSdCardSwitch(mode); },
+			_("NO"), nullptr));
+	};
+
+	s->addEntry(_("USE MAIN SD CARD (SD1)"), true, [confirmSwitch] {
+		confirmSwitch(SdCardControl::RomsMode::Sd1);
+	}, "");
+
+	s->addEntry(_("USE SD2 CARD ONLY"), true, [confirmSwitch] {
+		confirmSwitch(SdCardControl::RomsMode::Sd2);
+	}, "");
+
+	s->addEntry(_("READ SD1 AND SD2 (DUAL)"), true, [confirmSwitch] {
+		confirmSwitch(SdCardControl::RomsMode::Dual);
+	}, "");
+
+	mWindow->pushGui(s);
+}
+
+void GuiMenu::doSdCardSwitch(SdCardControl::RomsMode mode)
+{
+	using namespace SdCardControl;
+	Window* window = mWindow;
+
+	if (mode != RomsMode::Sd1 && !isSd2CardPresent())
+	{
+		window->pushGui(new GuiMsgBox(window, _("SD2 CARD NOT DETECTED"), _("OK")));
+		return;
+	}
+
+	if (mode != RomsMode::Sd1)
+	{
+		if (!isMountPoint("/roms2"))
+		{
+			window->renderLoadingScreen(_("MOUNTING SD2 CARD..."));
+			if (!mountRoms2())
+			{
+				window->pushGui(new GuiMsgBox(window, _("COULD NOT MOUNT SD2 CARD"), _("OK")));
+				return;
+			}
+		}
+
+		// Mirror /roms on SD2. Runs even when the card is already mounted by
+		// the boot hook, because a freshly formatted card is mounted but empty.
+		if (!syncRoms2Dirs())
+		{
+			window->pushGui(new GuiMsgBox(window, _("FAILED TO PREPARE SD2 CARD"), _("OK")));
+			return;
+		}
+	}
+
+	if (mode != RomsMode::Sd1 && !isRoms2Usable())
+	{
+		window->pushGui(new GuiMsgBox(window, _("SD2 CARD IS EMPTY"), _("OK")));
+		return;
+	}
+
+	ApplyResult result = applyCfg(mode);
+	if (result == ApplyResult::Failed)
+	{
+		window->pushGui(new GuiMsgBox(window, _("FAILED TO APPLY SYSTEM CONFIG"), _("OK")));
+		return;
+	}
+
+	setSavedMode(mode);
+
+	// fstab marker: "# roms2" line present in sd2/dual mode, deleted for
+	// sd1. Best effort; mounting itself stays with mountRoms2().
+	updateFstabEntry(mode);
+
+	if (result == ApplyResult::Unchanged)
+	{
+		window->pushGui(new GuiMsgBox(window, _("MODE ALREADY ACTIVE"), _("OK")));
+		return;
+	}
+
+	// Rebuild the system list from the updated config. This deletes every
+	// GUI on the stack (including `this`); do not touch members afterwards.
+	GuiMenu::reloadAllGames(window, false);
 }
 
 void GuiMenu::openJoystickLedSettings()
@@ -370,10 +499,7 @@ void GuiMenu::openJoystickLedSettings()
 				ledBriFound = true;
 		}
 		if (!ledBriFound)
-		{
-			const std::string value = std::to_string(ledBri);
-			ledBrightness->add(_("CUSTOM") + " (" + value + ")", value, true);
-		}
+			ledBrightness->selectFirstItem();
 
 		ledBrightness->setSelectedChangedCallback([](const std::string& value)
 		{
@@ -1012,9 +1138,9 @@ void GuiMenu::openFanSettings()
 			fanPwm = atoi(value.c_str());
 	}
 
-	// 档位: auto=温度自动, off=关闭, 100=低速, 200=中速, 255=高速
+	// 档位: off=关闭, 100=低速, 200=中速, 255=高速
 	static const std::pair<const char*, const char*> fanPresets[] = {
-		{ "Auto", "auto" }, { "Off", "off" }, { "Low", "100" }, { "Medium", "200" }, { "High", "255" },
+		{ "Off", "off" }, { "Low", "100" }, { "Medium", "200" }, { "High", "255" },
 	};
 
 	auto fanLevel = std::make_shared<OptionListComponent<std::string>>(mWindow, _("FAN SPEED"), false);
@@ -1024,9 +1150,8 @@ void GuiMenu::openFanSettings()
 	for (const auto& preset : fanPresets)
 	{
 		const std::string value = preset.second;
-		const bool selected = (fanMode == "auto" && value == "auto") ||
-			(fanMode == "off" && value == "off") ||
-			(fanMode == "manual" && value != "off" && value != "auto" && std::to_string(fanPwm) == value);
+		const bool selected = (fanMode == "off" && value == "off") ||
+			(fanMode == "manual" && value != "off" && std::to_string(fanPwm) == value);
 		fanLevel->add(_(preset.first), value, selected);
 		if (selected)
 			found = true;
@@ -1048,8 +1173,7 @@ void GuiMenu::openFanSettings()
 
 	fanLevel->setSelectedChangedCallback([](const std::string& value)
 	{
-		const std::string cmd = value == "auto" ? "sudo /usr/local/bin/fanctl on"
-			: value == "off" ? "sudo /usr/local/bin/fanctl off"
+		const std::string cmd = value == "off" ? "sudo /usr/local/bin/fanctl off"
 			: "sudo /usr/local/bin/fanctl set " + value;
 		if (system(cmd.c_str()) != 0)
 			LOG(LogWarning) << "fanctl failed";
