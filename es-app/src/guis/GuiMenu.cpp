@@ -198,6 +198,21 @@ void GuiMenu::openDArkOSSettings()
 	mWindow->pushGui(s);
 }
 
+// IPv4 address of the connected Wi-Fi interface; empty when the radio is
+// off or no network is connected. The device is resolved through nmcli so
+// USB Wi-Fi adapters work too, not just wlan0.
+static std::string getWifiIpAddress()
+{
+	const std::string dev = getShOutput(
+		"nmcli -t -f DEVICE,TYPE,STATE device 2>/dev/null | "
+		"awk -F: '$2 == \"wifi\" && $3 == \"connected\" { print $1; exit }'");
+	if (dev.empty())
+		return "";
+
+	return getShOutput("ip -4 -o addr show dev " + dev +
+		" 2>/dev/null | awk '{ print $4 }' | cut -d/ -f1 | head -n1");
+}
+
 void GuiMenu::openWifiSettings()
 {
 	auto s = new GuiSettings(mWindow, _("WIFI"));
@@ -210,6 +225,12 @@ void GuiMenu::openWifiSettings()
 			LOG(LogWarning) << "wifi radio toggle failed";
 	});
 	s->addWithLabel(_("ENABLE WIFI"), wifiSwitch);
+
+	// Read once when the page opens; toggling the radio refreshes on reopen.
+	const std::string wifiIp = getWifiIpAddress();
+	auto ipText = std::make_shared<TextComponent>(mWindow,
+		wifiIp.empty() ? _("NOT CONNECTED") : wifiIp, Font::get(FONT_SIZE_SMALL), 0x777777FF);
+	s->addWithLabel(_("IP ADDRESS"), ipText);
 
 	s->addEntry(_("WIFI LIST"), true, [this] {
 		mWindow->pushGui(new GuiWifi(mWindow));

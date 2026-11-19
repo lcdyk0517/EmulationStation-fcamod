@@ -1549,8 +1549,230 @@ msgstr "SD2 卡为空"
 msgid "FAILED TO PREPARE SD2 CARD"
 msgstr "无法准备 SD2 卡"
 
+msgid "IP ADDRESS"
+msgstr "IP 地址"
+
 msgid "FAILED TO APPLY SYSTEM CONFIG"
 msgstr "应用系统配置失败"
 
 msgid "MODE ALREADY ACTIVE"
 msgstr "该模式已生效"
+
+msgid "GAMMA R"
+msgstr "伽马 R"
+
+msgid "GAMMA G"
+msgstr "伽马 G"
+
+msgid "GAMMA B"
+msgstr "伽马 B"
+
+msgid "NAME"
+msgstr "名称"
+
+msgid "DESCRIPTION"
+msgstr "描述"
+
+msgid "VIDEO"
+msgstr "视频"
+
+msgid "THUMBNAIL"
+msgstr "缩略图"
+
+msgid "RATING"
+msgstr "评分"
+
+msgid "RELEASE DATE"
+msgstr "发售日期"
+
+msgid "DEVELOPER"
+msgstr "开发商"
+
+msgid "PUBLISHER"
+msgstr "发行商"
+
+msgid "GENRE"
+msgstr "类型"
+
+msgid "PLAYERS"
+msgstr "玩家人数"
+
+msgid "HIDDEN"
+msgstr "隐藏"
+
+msgid "KIDGAME"
+msgstr "儿童游戏"
+
+msgid "PLAY COUNT"
+msgstr "游玩次数"
+
+msgid "LAST PLAYED"
+msgstr "最近游玩"
+
+msgid "ARCADE SYSTEM"
+msgstr "街机系统"
+
+msgid "FAVORITES"
+msgstr "收藏"
+
+msgid "PUBLISHER / DEVELOPER"
+msgstr "发行商 / 开发商"
+
+msgid "enter game name"
+msgstr "输入游戏名称"
+
+msgid "enter description"
+msgstr "输入描述"
+
+msgid "emulator"
+msgstr "模拟器"
+
+msgid "core"
+msgstr "核心"
+
+msgid "governor"
+msgstr "调度器"
+
+msgid "enter path to image"
+msgstr "输入图片路径"
+
+msgid "enter path to video"
+msgstr "输入视频路径"
+
+msgid "enter path to marquee"
+msgstr "输入跑马灯图片路径"
+
+msgid "enter path to thumbnail"
+msgstr "输入缩略图路径"
+
+msgid "enter rating"
+msgstr "输入评分"
+
+msgid "enter release date"
+msgstr "输入发售日期"
+
+msgid "enter game developer"
+msgstr "输入游戏开发商"
+
+msgid "enter game publisher"
+msgstr "输入游戏发行商"
+
+msgid "enter game genre"
+msgstr "输入游戏类型"
+
+msgid "enter number of players"
+msgstr "输入玩家人数"
+
+msgid "enter favorite off/on"
+msgstr "设置收藏（开/关）"
+
+msgid "enter hidden off/on"
+msgstr "设置隐藏（开/关）"
+
+msgid "enter kidgame off/on"
+msgstr "设置儿童游戏（开/关）"
+
+msgid "enter number of times played"
+msgstr "输入游玩次数"
+
+msgid "enter last played date"
+msgstr "输入最近游玩日期"
+
+msgid "enter arcade system name"
+msgstr "输入街机系统名称"
+
+msgid "Default"
+msgstr "默认"
+
+msgid "default"
+msgstr "默认"
+
+msgid "disabled"
+msgstr "禁用"
+
+msgid "warning"
+msgstr "警告"
+
+msgid "error"
+msgstr "错误"
+
+msgid "debug"
+msgstr "调试"
+
+msgid "performance"
+msgstr "性能"
+
+msgid "powersave"
+msgstr "省电"
+
+msgid "ondemand"
+msgstr "按需"
+
+msgid "schedutil"
+msgstr "调度器"
+
+msgid "conservative"
+msgstr "保守"
+
+msgid "userspace"
+msgstr "用户空间"
+
+msgid "interactive"
+msgstr "交互"
+
+msgid "always"
+msgstr "始终"
+
+msgid "start & end"
+msgstr "开始和结束"
+
+msgid "dim"
+msgstr "变暗"
+
+msgid "black"
+msgstr "黑屏"
+
+msgid "random video"
+msgstr "随机视频"
+
+msgid "slideshow"
+msgstr "幻灯片"
+
+msgid "having multiple games"
+msgstr "有多个游戏时"
+
+msgid "THEME COLORSET"
+msgstr "主题配色"
+
+msgid "THEME ICONSET"
+msgstr "主题图标"
+
+msgid "THEME MENU"
+msgstr "主题菜单"
+
+msgid "THEME SYSTEMVIEW"
+msgstr "主题系统视图"
+
+msgid "THEME GAMELISTVIEW"
+msgstr "主题游戏列表"
+
+msgid "THEME REGION"
+msgstr "主题区域"
+
+msgid "SELECT ALL"
+msgstr "全选"
+
+msgid "SELECT NONE"
+msgstr "全不选"
+
+msgid "UPDATE AVAILABLE"
+msgstr "有可用更新"
+
+msgid "USE RANDOM DECORATION"
+msgstr "使用随机装饰"
+
+msgid "accept"
+msgstr "接受"
+
+msgid "WARNING: SOME OF YOUR SELECTED SYSTEMS DO NOT HAVE A PLATFORM SET. RESULTS MAY BE EVEN MORE INACCURATE THAN USUAL!\nCONTINUE ANYWAY?"
+msgstr "警告：部分已选系统未设置平台，刮削结果可能比平时更不准确！\n仍要继续吗？"
