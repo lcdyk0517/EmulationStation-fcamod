@@ -334,9 +334,13 @@ void GuiMenu::doSdCardSwitch(SdCardControl::RomsMode mode)
 
 		// Mirror /roms on SD2. Runs even when the card is already mounted by
 		// the boot hook, because a freshly formatted card is mounted but empty.
-		if (!syncRoms2Dirs())
+		SyncResult prep = syncRoms2Dirs();
+		if (!prep.ok)
 		{
-			window->pushGui(new GuiMsgBox(window, _("FAILED TO PREPARE SD2 CARD"), _("OK")));
+			std::string text = _("FAILED TO PREPARE SD2 CARD");
+			if (!prep.detail.empty())
+				text += "\n\n" + prep.detail;
+			window->pushGui(new GuiMsgBox(window, text, _("OK")));
 			return;
 		}
 	}

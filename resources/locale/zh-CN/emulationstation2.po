@@ -1549,6 +1549,48 @@ msgstr "SD2 卡为空"
 msgid "FAILED TO PREPARE SD2 CARD"
 msgstr "无法准备 SD2 卡"
 
+msgid "SD2 card is not mounted"
+msgstr "SD2 卡未挂载"
+
+msgid "SD2 card is mounted read-only"
+msgstr "SD2 卡为只读挂载"
+
+msgid "Not enough free space on SD2 card"
+msgstr "SD2 卡剩余空间不足"
+
+msgid "SD2 card is not writable"
+msgstr "SD2 卡不可写入"
+
+msgid "Internal /roms is missing"
+msgstr "内部 /roms 目录不存在"
+
+msgid "Nothing could be created on SD2 card"
+msgstr "SD2 卡上无法创建任何目录"
+
+msgid "read-only filesystem"
+msgstr "只读文件系统"
+
+msgid "no space left"
+msgstr "空间不足"
+
+msgid "permission denied"
+msgstr "权限不足"
+
+msgid "a file with this name already exists"
+msgstr "已存在同名文件"
+
+msgid "name not allowed on this filesystem"
+msgstr "该文件名在 SD 卡文件系统上不允许"
+
+msgid "name too long"
+msgstr "文件名过长"
+
+msgid "I/O error"
+msgstr "输入/输出错误"
+
+msgid "unknown error"
+msgstr "未知错误"
+
 msgid "IP ADDRESS"
 msgstr "IP 地址"
 

@@ -20,6 +20,19 @@ namespace SdCardControl
         Failed      // variant file missing or could not be written
     };
 
+    // Result of preparing the SD2 directory layout. Per-directory failures are
+    // best effort: the switch may still work with the directories that exist.
+    // "ok" is false only for blockers (read-only mount, no space, unwritable
+    // card, nothing created at all); "detail" then says why.
+    struct SyncResult
+    {
+        bool ok = true;
+        int created = 0;
+        int existing = 0;
+        int failed = 0;
+        std::string detail;
+    };
+
     // ---- probing ----
     // Second SD slot block device (e.g. /dev/mmcblk2), detected as the first
     // SD-type mmcblk that does not back "/". Empty when the device has no
@@ -56,8 +69,8 @@ namespace SdCardControl
     // mountRoms2().
     bool updateFstabEntry(RomsMode mode);
 
-    // Sync missing subdirectories from /roms to /roms2.
-    bool syncRoms2Dirs();
+    // Sync missing subdirectories from /roms to /roms2 (best effort).
+    SyncResult syncRoms2Dirs();
 
     // Startup hook: resolve mode, guarantee /roms2 mount for sd2/dual,
     // then apply the matching cfg before SystemData::loadConfig() runs.

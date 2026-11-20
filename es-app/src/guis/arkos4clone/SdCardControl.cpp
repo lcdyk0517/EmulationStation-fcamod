@@ -3,6 +3,7 @@
 #include "Settings.h"
 #include "SystemData.h"
 #include "Log.h"
+#include "EsLocale.h"
 
 #include <algorithm>
 #include <cctype>
@@ -16,6 +17,7 @@
 #include <set>
 #include <sstream>
 #include <sys/stat.h>
+#include <sys/statvfs.h>
 #include <unistd.h>
 #include <vector>
 
@@ -565,22 +567,174 @@ namespace SdCardControl
     // directory sync
     // ------------------------------------------------------------------
 
-    bool syncRoms2Dirs()
+    static bool isMountReadOnly(const std::string& path)
     {
-        if (!isMountPoint(roms2))
+        std::ifstream in("/proc/mounts");
+        std::string line, dev, mnt, type, opts;
+        while (std::getline(in, line))
+        {
+            std::istringstream ss(line);
+            if (!(ss >> dev >> mnt >> type >> opts))
+                continue;
+            if (mnt != path)
+                continue;
+
+            std::istringstream o(opts);
+            std::string opt;
+            while (std::getline(o, opt, ','))
+            {
+                if (opt == "ro")
+                    return true;
+            }
             return false;
+        }
+        return false;
+    }
 
-        // Mirror the /roms layout as empty directories. /roms missing is a
-        // failure; an unmatched glob stays literal ("/roms/*/"), so the
-        // [ -d ] guard keeps it from creating a junk "*" directory.
-        std::string cmd = "test -d /roms || exit 1; "
-                          "for d in /roms/*/; do [ -d \"$d\" ] || continue; "
-                          "n=\"${d#/roms/}\"; n=\"${n%/}\"; "
-                          "sudo mkdir -p " + ArkOSUtil::shellQuote(roms2) + "/\"$n\" || exit 1; "
-                          "done";
+    static unsigned long long freeBytes(const std::string& path)
+    {
+        struct statvfs st;
+        if (statvfs(path.c_str(), &st) != 0)
+            return 0;
+        return static_cast<unsigned long long>(st.f_bavail) * st.f_frsize;
+    }
 
-        int ret = std::system(cmd.c_str());
-        return ret == 0;
+    static std::string errnoText(int err)
+    {
+        switch (err)
+        {
+            case EROFS:        return _("read-only filesystem");
+            case ENOSPC:       return _("no space left");
+            case EACCES:
+            case EPERM:        return _("permission denied");
+            case EEXIST:       return _("a file with this name already exists");
+            case EINVAL:       return _("name not allowed on this filesystem");
+            case ENAMETOOLONG: return _("name too long");
+            case EIO:          return _("I/O error");
+            default:           return _("unknown error");
+        }
+    }
+
+    SyncResult syncRoms2Dirs()
+    {
+        SyncResult r;
+
+        if (!isMountPoint(roms2))
+        {
+            r.ok = false;
+            r.detail = _("SD2 card is not mounted");
+            return r;
+        }
+
+        // A card can be mounted read-only (remount-ro on I/O error, manual
+        // mount option). Try one remount before giving up.
+        if (isMountReadOnly(roms2))
+        {
+            ArkOSUtil::executeCommand("sudo mount -o remount,rw " + roms2 + " 2>/dev/null");
+            if (isMountReadOnly(roms2))
+            {
+                r.ok = false;
+                r.detail = _("SD2 card is mounted read-only");
+                return r;
+            }
+        }
+
+        // Empty directories need almost no space; below this the card is full
+        // or its filesystem is broken, which directory creation cannot fix.
+        if (freeBytes(roms2) < 8ULL * 1024 * 1024)
+        {
+            r.ok = false;
+            r.detail = _("Not enough free space on SD2 card");
+            return r;
+        }
+
+        // Write probe: catch a card that mounted rw but still rejects writes.
+        {
+            const std::string probe = roms2 + "/.sd2-write-test";
+            int rc = mkdir(probe.c_str(), 0777);
+            int err = errno;
+            if (rc != 0 && (err == EACCES || err == EPERM))
+            {
+                if (std::system(("sudo mkdir -p " + ArkOSUtil::shellQuote(probe)).c_str()) == 0)
+                    rc = 0;
+                else
+                    err = errno;
+            }
+            if (rc != 0)
+            {
+                r.ok = false;
+                r.detail = _("SD2 card is not writable") + "\n" + errnoText(err);
+                return r;
+            }
+            rmdir(probe.c_str());
+        }
+
+        // Mirror the /roms layout as empty directories. Best effort: a name
+        // the card's filesystem rejects (or a colliding file) is skipped and
+        // reported, the remaining directories are still created.
+        DIR* dir = opendir("/roms");
+        if (!dir)
+        {
+            r.ok = false;
+            r.detail = _("Internal /roms is missing");
+            return r;
+        }
+
+        std::string first_fail;
+        struct dirent* entry;
+        while ((entry = readdir(dir)) != nullptr)
+        {
+            if (entry->d_name[0] == '.')
+                continue;
+
+            const std::string src = std::string("/roms/") + entry->d_name;
+            struct stat st;
+            if (stat(src.c_str(), &st) != 0 || !S_ISDIR(st.st_mode))
+                continue;
+
+            const std::string dst = roms2 + "/" + entry->d_name;
+            if (mkdir(dst.c_str(), 0777) == 0)
+            {
+                ++r.created;
+                continue;
+            }
+
+            int err = errno;
+            if (err == EEXIST)
+            {
+                if (stat(dst.c_str(), &st) == 0 && S_ISDIR(st.st_mode))
+                {
+                    ++r.existing;
+                    continue;
+                }
+            }
+            else if (err == EACCES || err == EPERM)
+            {
+                // ext4/f2fs mounts are root-owned: fall back to sudo once.
+                if (std::system(("sudo mkdir -p " + ArkOSUtil::shellQuote(dst)).c_str()) == 0)
+                {
+                    ++r.created;
+                    continue;
+                }
+            }
+
+            ++r.failed;
+            const std::string why = errnoText(err);
+            LOG(LogWarning) << "SdCardControl: mkdir " << dst << " failed: " << why;
+            if (first_fail.empty())
+                first_fail = entry->d_name + std::string(": ") + why;
+        }
+        closedir(dir);
+
+        if (r.failed > 0 && r.created == 0 && r.existing == 0)
+        {
+            r.ok = false;
+            r.detail = _("Nothing could be created on SD2 card") + "\n" + first_fail;
+        }
+
+        LOG(LogInfo) << "SdCardControl: roms2 prepare: created " << r.created
+                     << ", existing " << r.existing << ", failed " << r.failed;
+        return r;
     }
 
     // ------------------------------------------------------------------
