@@ -526,7 +526,7 @@ bool ApiSystem::getDBrightness(int& value)
 #if WIN32
 	return false;
 #else
-    std::string DISPLAY_BRIGHTNESS_NAME = getShOutput(R"(panel_set.sh get_brightness &)");
+    std::string DISPLAY_BRIGHTNESS_NAME = getShOutput(R"(/usr/local/bin/panel_set.sh get_brightness)");
 
 	int fd;
 
@@ -546,7 +546,7 @@ void ApiSystem::setDBrightness(int value)
 	if (value > 100)
 		value = 100;
 
-    std::string change = "sudo panel_set.sh set_brightness ";
+    std::string change = "sudo -n /usr/local/bin/panel_set.sh set_brightness ";
     change += std::to_string(value);
     change += " & 2>1 > /dev/null";
 
@@ -560,7 +560,7 @@ bool ApiSystem::getDContrast(int& value)
 #if WIN32
 	return false;
 #else
-    std::string DISPLAY_CONTRAST_NAME = getShOutput(R"(panel_set.sh get_contrast &)");
+    std::string DISPLAY_CONTRAST_NAME = getShOutput(R"(/usr/local/bin/panel_set.sh get_contrast)");
 
 	int fd;
 
@@ -580,7 +580,7 @@ void ApiSystem::setDContrast(int value)
 	if (value > 100)
 		value = 100;
 
-    std::string change = "sudo panel_set.sh set_contrast ";
+    std::string change = "sudo -n /usr/local/bin/panel_set.sh set_contrast ";
     change += std::to_string(value);
     change += " & 2>1 > /dev/null";
 
@@ -594,7 +594,7 @@ bool ApiSystem::getDSaturation(int& value)
 #if WIN32
 	return false;
 #else
-    std::string DISPLAY_SATURATION_NAME = getShOutput(R"(panel_set.sh get_saturation &)");
+    std::string DISPLAY_SATURATION_NAME = getShOutput(R"(/usr/local/bin/panel_set.sh get_saturation)");
 
 	int fd;
 
@@ -614,7 +614,7 @@ void ApiSystem::setDSaturation(int value)
 	if (value > 100)
 		value = 100;
 
-    std::string change = "sudo panel_set.sh set_saturation ";
+    std::string change = "sudo -n /usr/local/bin/panel_set.sh set_saturation ";
     change += std::to_string(value);
     change += " & 2>1 > /dev/null";
 
@@ -628,7 +628,7 @@ bool ApiSystem::getDHue(int& value)
 #if WIN32
 	return false;
 #else
-    std::string DISPLAY_HUE_NAME = getShOutput(R"(panel_set.sh get_hue &)");
+    std::string DISPLAY_HUE_NAME = getShOutput(R"(/usr/local/bin/panel_set.sh get_hue)");
 
 	int fd;
 
@@ -648,7 +648,7 @@ void ApiSystem::setDHue(int value)
 	if (value > 100)
 		value = 100;
 
-    std::string change = "sudo panel_set.sh set_hue ";
+    std::string change = "sudo -n /usr/local/bin/panel_set.sh set_hue ";
     change += std::to_string(value);
     change += " & 2>1 > /dev/null";
 

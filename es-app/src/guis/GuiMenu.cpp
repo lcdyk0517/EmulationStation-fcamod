@@ -1551,21 +1551,6 @@ void GuiMenu::openDisplaySettings()
 
   if (Utils::FileSystem::exists("/usr/local/bin/panel_set.sh"))
   {
-    // Panel Brightness
-    int Dbrightness;
-    ApiSystem::getInstance()->getDBrightness(Dbrightness);
-   	auto DbrightnessComponent = std::make_shared<SliderComponent>(mWindow, 1.f, 100.f, 1.f, "%");
-    DbrightnessComponent->setValue(Dbrightness);
-   	DbrightnessComponent->setOnValueChanged([](const float &newVal)
-    {
-    	ApiSystem::getInstance()->setDBrightness((int)Math::round(newVal));
-   	});
-    s->addSaveFunc([this, DbrightnessComponent] {
-         SystemConf::getInstance()->set("Dbrightness.level", std::to_string((int)Math::round(DbrightnessComponent->getValue())));
-    });
-
-	s->addWithLabel(_("PANEL BRIGHTNESS"), DbrightnessComponent);
-
     //Panel Contrast
     int Dcontrast;
     ApiSystem::getInstance()->getDContrast(Dcontrast);
@@ -1619,6 +1604,16 @@ void GuiMenu::openDisplaySettings()
     }
 
   }
+
+	s->addEntry(_("RESET TO DEFAULTS"), true, [this, s] {
+		runSystemCommand("sudo -n /usr/local/bin/colortemp -reset >/dev/null 2>&1", "", nullptr);
+		runSystemCommand("sudo -n /usr/local/bin/panel_set.sh reset >/dev/null 2>&1", "", nullptr);
+		mWindow->postToUiThread([this, s](Window*) {
+			delete s;
+			openDisplaySettings();
+		});
+	});
+
 	mWindow->pushGui(s);
 }
 

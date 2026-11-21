@@ -618,6 +618,9 @@ msgstr "屏幕对比度"
 msgid "PANEL HUE"
 msgstr "屏幕色调"
 
+msgid "RESET TO DEFAULTS"
+msgstr "恢复默认设置"
+
 msgid "PANEL ID"
 msgstr "面板 ID"
 
