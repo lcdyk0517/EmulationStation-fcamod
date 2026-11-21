@@ -1756,6 +1756,15 @@ msgstr "应用系统配置失败"
 msgid "MODE ALREADY ACTIVE"
 msgstr "该模式已生效"
 
+msgid "GAMMA R 0.01"
+msgstr "伽马 R"
+
+msgid "GAMMA G 0.01"
+msgstr "伽马 G"
+
+msgid "GAMMA B 0.01"
+msgstr "伽马 B"
+
 msgid "GAMMA R"
 msgstr "伽马 R"
 

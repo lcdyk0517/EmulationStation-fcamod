@@ -1429,7 +1429,7 @@ void GuiMenu::openDisplaySettings()
 			}
 		);
 
-	// Gamma (gamma 工具, R/G/B 独立调整, 0.6-1.4, 0.1 步进)
+	// Gamma (gamma 工具, R/G/B 独立调整, 0.1 粗调 + 0.01 微调)
 	if (Utils::FileSystem::exists("/usr/local/bin/gamma"))
 	{
 		float initGamma[3] = { 1.0f, 1.0f, 1.0f };
@@ -1438,54 +1438,73 @@ void GuiMenu::openDisplaySettings()
 			gammaState >> initGamma[0] >> initGamma[1] >> initGamma[2];
 		}
 
-		auto current = std::make_shared<std::array<std::string, 3>>();
+		auto coarseIdx = std::make_shared<std::array<int, 3>>();
+		auto fineIdx = std::make_shared<std::array<int, 3>>();
 
 		for (int ch = 0; ch < 3; ch++)
 		{
 			float value = initGamma[ch];
-			if (value < 0.3f || value > 2.0f)
+			if (value < 0.55f || value > 1.5f)
 				value = 1.0f;
 
-			char buf[8];
-			snprintf(buf, sizeof(buf), "%.1f", value);
-			(*current)[ch] = buf;
+			int coarse = (int)lroundf(value * 10.0f);
+			if (coarse < 6) coarse = 6;
+			if (coarse > 14) coarse = 14;
+			int fine = (int)lroundf(value * 100.0f) - coarse * 10;
+			if (fine < 0) fine = 0;
+			if (fine > 9) fine = 9;
+
+			(*coarseIdx)[ch] = coarse;
+			(*fineIdx)[ch] = fine;
 		}
 
 		static const char* gammaLabels[3] = { "GAMMA R", "GAMMA G", "GAMMA B" };
+		static const char* gammaFineLabels[3] = { "GAMMA R 0.01", "GAMMA G 0.01", "GAMMA B 0.01" };
+
+		auto applyGamma = [coarseIdx, fineIdx]() {
+			char vr[8], vg[8], vb[8];
+			snprintf(vr, sizeof(vr), "%.2f", (*coarseIdx)[0] / 10.0 + (*fineIdx)[0] / 100.0);
+			snprintf(vg, sizeof(vg), "%.2f", (*coarseIdx)[1] / 10.0 + (*fineIdx)[1] / 100.0);
+			snprintf(vb, sizeof(vb), "%.2f", (*coarseIdx)[2] / 10.0 + (*fineIdx)[2] / 100.0);
+
+			const std::string home = getenv("HOME") ? getenv("HOME") : "/home/ark";
+			const std::string cmd = Utils::FileSystem::exists("/usr/local/bin/colortemp")
+				? std::string("sudo -n /usr/local/bin/colortemp -r ") + vr + " -g " + vg + " -b " + vb
+				: std::string("sudo env HOME=") + home + " /usr/local/bin/gamma -r " + vr + " -g " + vg + " -b " + vb;
+			if (system(cmd.c_str()) != 0)
+				LOG(LogWarning) << "gamma apply failed";
+		};
 
 		for (int ch = 0; ch < 3; ch++)
 		{
-			auto gammaList = std::make_shared<OptionListComponent<std::string>>(mWindow, _(gammaLabels[ch]), false);
-
-			bool gammaFound = false;
+			auto coarseList = std::make_shared<OptionListComponent<std::string>>(mWindow, _(gammaLabels[ch]), false);
 			for (int step = 6; step <= 14; step++)
 			{
 				char value[8];
 				snprintf(value, sizeof(value), "%.1f", step / 10.0);
-				const bool selected = std::string(value) == (*current)[ch];
-				gammaList->add(value, value, selected);
-				if (selected)
-					gammaFound = true;
+				coarseList->add(value, value, step == (*coarseIdx)[ch]);
 			}
-			if (!gammaFound)
-				gammaList->selectFirstItem();
-
-			gammaList->setSelectedChangedCallback([current, ch](const std::string& value)
+			coarseList->setSelectedChangedCallback([coarseIdx, ch, applyGamma](const std::string& value)
 			{
-				(*current)[ch] = value;
-				const std::string home = getenv("HOME") ? getenv("HOME") : "/home/ark";
-				/* colortemp 负责把色温 x gamma 合成成绝对 LUT (内核参数或
-				 * DRM gamma), 避免在旧 LUT 上再乘导致色彩崩掉 */
-				const std::string cmd = Utils::FileSystem::exists("/usr/local/bin/colortemp")
-					? "sudo -n /usr/local/bin/colortemp -r " + (*current)[0] +
-					  " -g " + (*current)[1] + " -b " + (*current)[2]
-					: "sudo env HOME=" + home + " /usr/local/bin/gamma -r " + (*current)[0] +
-					  " -g " + (*current)[1] + " -b " + (*current)[2];
-				if (system(cmd.c_str()) != 0)
-					LOG(LogWarning) << "gamma apply failed";
+				(*coarseIdx)[ch] = (int)lroundf(atof(value.c_str()) * 10.0f);
+				applyGamma();
 			});
+			s->addWithLabel(_(gammaLabels[ch]), coarseList);
 
-			s->addWithLabel(_(gammaLabels[ch]), gammaList);
+			auto fineList = std::make_shared<OptionListComponent<std::string>>(mWindow, _(gammaFineLabels[ch]), false);
+			for (int d = 0; d <= 9; d++)
+			{
+				char value[4], label[8];
+				snprintf(value, sizeof(value), "%d", d);
+				snprintf(label, sizeof(label), "+0.%02d", d);
+				fineList->add(label, value, d == (*fineIdx)[ch]);
+			}
+			fineList->setSelectedChangedCallback([fineIdx, ch, applyGamma](const std::string& value)
+			{
+				(*fineIdx)[ch] = atoi(value.c_str());
+				applyGamma();
+			});
+			s->addWithLabel(_(gammaFineLabels[ch]), fineList);
 		}
 	}
 
