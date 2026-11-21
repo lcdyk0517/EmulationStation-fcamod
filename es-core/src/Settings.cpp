@@ -223,7 +223,8 @@ void Settings::setDefaults()
 	#ifdef _RPI_
 		mStringMap["AudioDevice"] = "PCM";
 	#else
-		mStringMap["AudioDevice"] = "Master";
+		/* rk817 codec: Master 是只读占位控件, 实际音量在 DAC */
+		mStringMap["AudioDevice"] = "DAC";
 	#endif
 
 	mStringMap["AudioCard"] = "default";
