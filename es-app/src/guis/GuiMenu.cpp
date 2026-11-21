@@ -17,6 +17,7 @@
 #include "guis/GuiWifi.h"
 #include "guis/GuiJoystickCalibration.h"
 #include "guis/arkos4clone/HardwareInfo.h"
+#include "guis/arkos4clone/HotkeyConfig.h"
 #include "guis/arkos4clone/SdCardControl.h"
 #include "guis/GuiScraperStart.h"
 #include "guis/GuiSettings.h"
@@ -160,12 +161,11 @@ void GuiMenu::openDArkOSSettings()
 	if (Utils::FileSystem::exists("/var/run/drmConn"))
 		s->addEntry(_("DISPLAY SETTINGS"), true, [this] { openDisplaySettings(); }, "iconBrightnessctl");
 
-	if (UIModeController::getInstance()->isUIModeFull())
-		s->addEntry(_("CONFIGURE INPUT"), true, [this] { openConfigInput(); }, "iconControllers");
-
-	if (Utils::FileSystem::exists("/sys/devices/platform/play_joystick") ||
-	    Utils::FileSystem::exists("/sys/devices/platform/rk3562-joystick"))
-		s->addEntry(_("JOYSTICK SETTINGS"), true, [this] { openJoystickSettings(); }, "iconControllers");
+	if (UIModeController::getInstance()->isUIModeFull() ||
+	    Utils::FileSystem::exists("/sys/devices/platform/play_joystick") ||
+	    Utils::FileSystem::exists("/sys/devices/platform/rk3562-joystick") ||
+	    Utils::FileSystem::exists("/usr/local/bin/ogage"))
+		s->addEntry(_("INPUT CONTROL"), true, [this] { openInputControl(); }, "iconControllers");
 	if (hasStickLed)
 		s->addEntry(_("JOYSTICK LED"), true, [this] { openJoystickLedSettings(); }, "iconBrightnessctl");
 	if (Utils::FileSystem::exists("/sys/devices/platform/power-leds"))
@@ -1134,6 +1134,197 @@ void GuiMenu::openPowerLedSettings()
 
 		s->addWithLabel(std::string(uiName ? _(uiName) : led.first) + " " + _("BATTERY THRESHOLD"), thresholdList);
 	}
+
+	mWindow->pushGui(s);
+}
+
+void GuiMenu::openInputControl()
+{
+	auto s = new GuiSettings(mWindow, _("INPUT CONTROL"));
+
+	if (UIModeController::getInstance()->isUIModeFull())
+		s->addEntry(_("CONFIGURE INPUT"), true, [this] { openConfigInput(); });
+
+	if (Utils::FileSystem::exists("/sys/devices/platform/play_joystick") ||
+	    Utils::FileSystem::exists("/sys/devices/platform/rk3562-joystick"))
+		s->addEntry(_("JOYSTICK SETTINGS"), true, [this] { openJoystickSettings(); });
+
+	if (Utils::FileSystem::exists("/usr/local/bin/ogage"))
+		s->addEntry(_("GLOBAL HOTKEYS"), true, [this] { openGlobalHotkeys(); });
+
+	mWindow->pushGui(s);
+}
+
+namespace
+{
+    // 热键页在“热键改变需要重建风扇候选”时保留未保存的选择
+    struct HotkeyDraft
+    {
+        bool valid = false;
+        std::string hotkey, volAxis, brightAxis, fanKey;
+    };
+    HotkeyDraft g_hotkeyDraft;
+}
+
+void GuiMenu::openGlobalHotkeys()
+{
+	auto s = new GuiSettings(mWindow, _("GLOBAL HOTKEYS"));
+	const auto conf = HotkeyConfig::read();
+
+	auto confValue = [&conf](const std::string& key, const std::string& def) {
+		const auto it = conf.find(key);
+		return (it != conf.end() && !it->second.empty()) ? it->second : def;
+	};
+
+	auto pick = [](bool useDraft, const std::string& draft, const std::string& stored) {
+		return (useDraft && !draft.empty()) ? draft : stored;
+	};
+
+	auto makeList = [this](const std::string& key, const std::string& cur,
+		const std::vector<std::pair<std::string, std::string>>& items) {
+		auto list = std::make_shared<OptionListComponent<std::string>>(mWindow, key, false);
+		bool found = false;
+		for (const auto& it : items)
+		{
+			const bool sel = (it.second == cur);
+			list->add(it.first, it.second, sel);
+			found = found || sel;
+		}
+		if (!found)
+			list->add(cur, cur, true);
+		return list;
+	};
+
+	auto makeAxis = [this](const std::string& label, const std::string& cur) {
+		auto list = std::make_shared<OptionListComponent<std::string>>(mWindow, label, false);
+		const std::vector<std::pair<std::string, std::string>> axes = {
+			{ _("RIGHT STICK X"), "RSTICK_X" }, { _("RIGHT STICK Y"), "RSTICK_Y" },
+			{ _("LEFT STICK X"), "LSTICK_X" }, { _("LEFT STICK Y"), "LSTICK_Y" },
+			{ _("DPAD X"), "DPAD_X" }, { _("DPAD Y"), "DPAD_Y" },
+		};
+		bool found = false;
+		for (const auto& it : axes)
+		{
+			const bool sel = (it.second == cur);
+			list->add(it.first, it.second, sel);
+			found = found || sel;
+		}
+		if (!found)
+			list->add(cur, cur, true);
+		return list;
+	};
+
+	auto axisCur = [&confValue](const std::string& upKey, const std::string& downKey,
+		const std::string& def) {
+		const std::string u = confValue(upKey, "");
+		const std::string d = confValue(downKey, "");
+		if (u == "RSTICK_RIGHT" && d == "RSTICK_LEFT") return std::string("RSTICK_X");
+		if (u == "RSTICK_UP" && d == "RSTICK_DOWN") return std::string("RSTICK_Y");
+		if (u == "LSTICK_RIGHT" && d == "LSTICK_LEFT") return std::string("LSTICK_X");
+		if (u == "LSTICK_UP" && d == "LSTICK_DOWN") return std::string("LSTICK_Y");
+		if (u == "BTN_DPAD_RIGHT" && d == "BTN_DPAD_LEFT") return std::string("DPAD_X");
+		if (u == "BTN_DPAD_UP" && d == "BTN_DPAD_DOWN") return std::string("DPAD_Y");
+		return def;
+	};
+
+	const bool useDraft = g_hotkeyDraft.valid;
+	const bool hasFan = Utils::FileSystem::exists("/sys/devices/platform/pwm-fan");
+
+	std::string hotkeyVal = pick(useDraft, g_hotkeyDraft.hotkey, confValue("HOTKEY", "BTN_MODE"));
+	std::string volVal = pick(useDraft, g_hotkeyDraft.volAxis,
+		axisCur("VOL_UP", "VOL_DOWN", "DPAD_X"));
+	std::string brightVal = pick(useDraft, g_hotkeyDraft.brightAxis,
+		axisCur("BRIGHT_UP", "BRIGHT_DOWN", "DPAD_Y"));
+	std::string fanVal = pick(useDraft, g_hotkeyDraft.fanKey,
+		confValue("FAN_TOGGLE_KEY", "BTN_SOUTH"));
+
+	auto hotkey = makeList("HOTKEY", hotkeyVal, {
+		{ _("L3"), "BTN_THUMBL" }, { _("R3"), "BTN_THUMBR" },
+		{ _("HOME"), "BTN_MODE" },
+		{ _("HAPPY1"), "BTN_TRIGGER_HAPPY1" },
+		{ _("R2"), "BTN_TR2" }, { _("L2"), "BTN_TL2" },
+		{ _("L1"), "BTN_TL" }, { _("R1"), "BTN_TR" },
+		{ _("START"), "BTN_START" }, { _("SELECT"), "BTN_SELECT" },
+	});
+	s->addWithLabel(_("HOTKEY"), hotkey);
+
+	auto volume = makeAxis(_("VOLUME"), volVal);
+	auto bright = makeAxis(_("BRIGHTNESS"), brightVal);
+	s->addWithLabel(_("VOLUME"), volume);
+	s->addWithLabel(_("BRIGHTNESS"), bright);
+
+	std::shared_ptr<OptionListComponent<std::string>> fan;
+	if (hasFan)
+	{
+		// 风扇候选 = 全局热键候选 + ABXY, 但排除当前热键本身
+		std::vector<std::pair<std::string, std::string>> fanItems = {
+			{ _("DISABLED"), "KEY_RESERVED" },
+			{ _("L3"), "BTN_THUMBL" }, { _("R3"), "BTN_THUMBR" },
+			{ _("HOME"), "BTN_MODE" }, { _("HAPPY1"), "BTN_TRIGGER_HAPPY1" },
+			{ _("R2"), "BTN_TR2" }, { _("L2"), "BTN_TL2" },
+			{ _("L1"), "BTN_TL" }, { _("R1"), "BTN_TR" },
+			{ _("START"), "BTN_START" }, { _("SELECT"), "BTN_SELECT" },
+			{ _("A"), "BTN_SOUTH" }, { _("B"), "BTN_EAST" },
+			{ _("X"), "BTN_NORTH" }, { _("Y"), "BTN_WEST" },
+		};
+		if (hotkeyVal == fanVal)
+			fanVal = "KEY_RESERVED";
+		fanItems.erase(std::remove_if(fanItems.begin(), fanItems.end(),
+			[&hotkeyVal](const std::pair<std::string, std::string>& it) {
+				return it.second == hotkeyVal;
+			}), fanItems.end());
+
+		fan = makeList("FAN_TOGGLE_KEY", fanVal, fanItems);
+		s->addWithLabel(_("FAN TOGGLE"), fan);
+	}
+
+	// 换了热键: 重建页面, 让风扇候选立刻排除新热键
+	hotkey->setSelectedChangedCallback([this, s, volume, bright, fan, hotkeyVal](const std::string& v) {
+		if (v == hotkeyVal)
+			return;
+
+		g_hotkeyDraft.valid = true;
+		g_hotkeyDraft.hotkey = v;
+		g_hotkeyDraft.volAxis = volume->getSelected();
+		g_hotkeyDraft.brightAxis = bright->getSelected();
+		g_hotkeyDraft.fanKey = fan ? fan->getSelected() : std::string();
+
+		mWindow->postToUiThread([this, s](Window*) {
+			delete s;
+			openGlobalHotkeys();
+		});
+	});
+
+	s->addSaveFunc([=]() {
+		std::string up, down;
+		auto mapAxis = [](const std::string& axis, std::string& u, std::string& d) {
+			if (axis == "RSTICK_X") { u = "RSTICK_RIGHT"; d = "RSTICK_LEFT"; }
+			else if (axis == "RSTICK_Y") { u = "RSTICK_UP"; d = "RSTICK_DOWN"; }
+			else if (axis == "LSTICK_X") { u = "LSTICK_RIGHT"; d = "LSTICK_LEFT"; }
+			else if (axis == "LSTICK_Y") { u = "LSTICK_UP"; d = "LSTICK_DOWN"; }
+			else if (axis == "DPAD_X") { u = "BTN_DPAD_RIGHT"; d = "BTN_DPAD_LEFT"; }
+			else { u = "BTN_DPAD_UP"; d = "BTN_DPAD_DOWN"; }
+		};
+
+		std::map<std::string, std::string> v;
+		v["HOTKEY"] = hotkey->getSelected();
+		mapAxis(volume->getSelected(), up, down);
+		v["VOL_UP"] = up;
+		v["VOL_DOWN"] = down;
+		mapAxis(bright->getSelected(), up, down);
+		v["BRIGHT_UP"] = up;
+		v["BRIGHT_DOWN"] = down;
+		if (fan)
+		{
+			std::string f = fan->getSelected();
+			if (f == hotkey->getSelected())
+				f = "KEY_RESERVED";
+			v["FAN_TOGGLE_KEY"] = f;
+		}
+		g_hotkeyDraft.valid = false;
+		if (HotkeyConfig::writeValues(v))
+			HotkeyConfig::restartOgAge();
+	});
 
 	mWindow->pushGui(s);
 }

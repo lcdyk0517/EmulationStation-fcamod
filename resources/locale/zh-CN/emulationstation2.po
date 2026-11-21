@@ -1591,6 +1591,162 @@ msgstr "输入/输出错误"
 msgid "unknown error"
 msgstr "未知错误"
 
+msgid "INPUT CONTROL"
+msgstr "输入控制"
+
+msgid "HOME"
+msgstr "Home 键"
+
+msgid "CONTROL SOURCE"
+msgstr "控制方式"
+
+msgid "RIGHT STICK"
+msgstr "右摇杆"
+
+msgid "LEFT STICK"
+msgstr "左摇杆"
+
+msgid "BUTTONS"
+msgstr "按键"
+
+msgid "UP"
+msgstr "上"
+
+msgid "DOWN"
+msgstr "下"
+
+msgid "LEFT"
+msgstr "左"
+
+msgid "RIGHT"
+msgstr "右"
+
+msgid "SELECT+START"
+msgstr "双 S（Select+Start）"
+
+msgid "VOLUME"
+msgstr "音量"
+
+msgid "FAN TOGGLE"
+msgstr "风扇切换"
+
+msgid "RIGHT STICK X"
+msgstr "右摇杆 X"
+
+msgid "RIGHT STICK Y"
+msgstr "右摇杆 Y"
+
+msgid "LEFT STICK X"
+msgstr "左摇杆 X"
+
+msgid "LEFT STICK Y"
+msgstr "左摇杆 Y"
+
+msgid "DPAD X"
+msgstr "方向键 X"
+
+msgid "DPAD Y"
+msgstr "方向键 Y"
+
+msgid "GLOBAL HOTKEYS"
+msgstr "全局快捷键"
+
+msgid "HOTKEY"
+msgstr "全局热键"
+
+msgid "L3"
+msgstr "L3"
+
+msgid "R3"
+msgstr "R3"
+
+msgid "HAPPY1"
+msgstr "HAPPY1"
+
+msgid "DISABLED"
+msgstr "禁用"
+
+msgid "DPAD UP"
+msgstr "十字键上"
+
+msgid "DPAD DOWN"
+msgstr "十字键下"
+
+msgid "DPAD LEFT"
+msgstr "十字键左"
+
+msgid "DPAD RIGHT"
+msgstr "十字键右"
+
+msgid "L1"
+msgstr "L1"
+
+msgid "R1"
+msgstr "R1"
+
+msgid "L2"
+msgstr "L2"
+
+msgid "R2"
+msgstr "R2"
+
+msgid "A"
+msgstr "A"
+
+msgid "B"
+msgstr "B"
+
+msgid "X"
+msgstr "X"
+
+msgid "Y"
+msgstr "Y"
+
+msgid "BRIGHTNESS UP"
+msgstr "亮度+"
+
+msgid "BRIGHTNESS DOWN"
+msgstr "亮度-"
+
+msgid "VOLUME UP"
+msgstr "音量+"
+
+msgid "VOLUME DOWN"
+msgstr "音量-"
+
+msgid "FAN TOGGLE KEY"
+msgstr "风扇切换键"
+
+msgid "RIGHT STICK HOTKEYS"
+msgstr "右摇杆快捷键"
+
+msgid "RIGHT STICK UP"
+msgstr "右摇杆上"
+
+msgid "RIGHT STICK DOWN"
+msgstr "右摇杆下"
+
+msgid "RIGHT STICK LEFT"
+msgstr "右摇杆左"
+
+msgid "RIGHT STICK RIGHT"
+msgstr "右摇杆右"
+
+msgid "LEFT STICK HOTKEYS"
+msgstr "左摇杆快捷键"
+
+msgid "LEFT STICK UP"
+msgstr "左摇杆上"
+
+msgid "LEFT STICK DOWN"
+msgstr "左摇杆下"
+
+msgid "LEFT STICK LEFT"
+msgstr "左摇杆左"
+
+msgid "LEFT STICK RIGHT"
+msgstr "左摇杆右"
+
 msgid "IP ADDRESS"
 msgstr "IP 地址"
 

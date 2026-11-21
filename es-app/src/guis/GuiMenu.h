@@ -51,6 +51,8 @@ private:
 	void openPowerLedSettings();
 	void openBatteryPlusSettings();
 	void openJoystickSettings();
+	void openGlobalHotkeys();
+	void openInputControl();
 	void openPerformanceSettingsGlobal();
 	void openLoaderManagement();
 	void openZramSettings();

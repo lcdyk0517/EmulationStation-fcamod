@@ -106,6 +106,8 @@ set(ES_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/arkos4clone/FreqProfile.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/arkos4clone/SdCardControl.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/arkos4clone/SdCardControl.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/arkos4clone/HotkeyConfig.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/arkos4clone/HotkeyConfig.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiJoystickCalibration.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiSettings.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/guis/GuiScraperMulti.cpp
