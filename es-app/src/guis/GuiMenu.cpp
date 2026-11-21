@@ -1354,9 +1354,10 @@ void GuiMenu::openFanSettings()
 			fanPwm = atoi(value.c_str());
 	}
 
-	// 档位: off=关闭, 100=低速, 200=中速, 255=高速
+	// 档位: off=关闭, 100=低速, 200=中速, 255=高速, smart=智能温控
 	static const std::pair<const char*, const char*> fanPresets[] = {
 		{ "Off", "off" }, { "Low", "100" }, { "Medium", "200" }, { "High", "255" },
+		{ "Smart", "smart" },
 	};
 
 	auto fanLevel = std::make_shared<OptionListComponent<std::string>>(mWindow, _("FAN SPEED"), false);
@@ -1367,7 +1368,9 @@ void GuiMenu::openFanSettings()
 	{
 		const std::string value = preset.second;
 		const bool selected = (fanMode == "off" && value == "off") ||
-			(fanMode == "manual" && value != "off" && std::to_string(fanPwm) == value);
+			(fanMode == "smart" && value == "smart") ||
+			(fanMode == "manual" && value != "off" && value != "smart" &&
+			 std::to_string(fanPwm) == value);
 		fanLevel->add(_(preset.first), value, selected);
 		if (selected)
 			found = true;
@@ -1390,6 +1393,7 @@ void GuiMenu::openFanSettings()
 	fanLevel->setSelectedChangedCallback([](const std::string& value)
 	{
 		const std::string cmd = value == "off" ? "sudo /usr/local/bin/fanctl off"
+			: value == "smart" ? "sudo /usr/local/bin/fanctl smart"
 			: "sudo /usr/local/bin/fanctl set " + value;
 		if (system(cmd.c_str()) != 0)
 			LOG(LogWarning) << "fanctl failed";

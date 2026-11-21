@@ -1401,6 +1401,9 @@ msgstr "中"
 msgid "High"
 msgstr "高"
 
+msgid "Smart"
+msgstr "智能"
+
 msgid "Low Brightness"
 msgstr "低亮度"
 
